@@ -1,0 +1,21 @@
+// Simplified penguin data for download scripts
+export const penguinData = [
+  { name: "Little Blue Penguin" },
+  { name: "Fairy Penguin" },
+  { name: "Rockhopper Penguin" },
+  { name: "Adélie Penguin" },
+  { name: "Galápagos Penguin" },
+  { name: "Snares Penguin" },
+  { name: "Erect-crested Penguin" },
+  { name: "Gentoo Penguin" },
+  { name: "Fiordland Penguin" },
+  { name: "African Penguin" },
+  { name: "Magellanic Penguin" },
+  { name: "Humboldt Penguin" },
+  { name: "Royal Penguin" },
+  { name: "Chinstrap Penguin" },
+  { name: "Macaroni Penguin" },
+  { name: "Yellow-eyed Penguin" },
+  { name: "King Penguin" },
+  { name: "Emperor Penguin" },
+];

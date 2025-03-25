@@ -1,9 +1,14 @@
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
-const { penguinData } = require('../client/src/lib/penguin-data');
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
+import { penguinData } from './penguin-data.js';
 
 // Create directories if they don't exist
+// Get the directory of the current module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const penguinsDir = path.join(__dirname, '../public/images/penguins');
 const bwDir = path.join(penguinsDir, 'bw');
 
