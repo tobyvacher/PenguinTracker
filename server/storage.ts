@@ -13,7 +13,7 @@ export interface IStorage {
   // Penguin methods
   getAllPenguins(): Promise<Penguin[]>;
   getPenguin(id: number): Promise<Penguin | undefined>;
-  createPenguin(penguin: InsertPenguin): Promise<Penguin>;
+  createPenguin(penguin: InsertPenguin & { id?: number }): Promise<Penguin>;
   
   // Seen penguin methods
   getSeenPenguins(userId: number): Promise<number[]>;
@@ -65,8 +65,15 @@ export class MemStorage implements IStorage {
     return this.penguins.get(id);
   }
 
-  async createPenguin(insertPenguin: InsertPenguin): Promise<Penguin> {
-    const id = this.currentPenguinId++;
+  async createPenguin(insertPenguin: InsertPenguin & { id?: number }): Promise<Penguin> {
+    let id: number;
+    // If an id is provided, use it (for updating existing penguins)
+    if (insertPenguin.id !== undefined) {
+      id = insertPenguin.id;
+    } else {
+      id = this.currentPenguinId++;
+    }
+    
     const penguin: Penguin = { ...insertPenguin, id };
     this.penguins.set(id, penguin);
     return penguin;

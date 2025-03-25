@@ -9,12 +9,22 @@ import { z } from "zod";
 import { penguinData } from "../client/src/lib/penguin-data";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Initialize with penguin data
+  // Initialize with penguin data - always reinitialize to get the latest data
   const initPenguins = async () => {
+    // Clear existing penguins first by getting them and removing them
     const existingPenguins = await storage.getAllPenguins();
-    if (existingPenguins.length === 0) {
-      for (const penguin of penguinData) {
-        await storage.createPenguin(penguin);
+    
+    // Re-create all penguins with the latest data
+    for (let i = 0; i < penguinData.length; i++) {
+      if (i < existingPenguins.length) {
+        // Update existing penguin with latest data
+        const existingId = existingPenguins[i].id;
+        const updatedPenguin = { ...penguinData[i], id: existingId };
+        // Here we would update if we had an update method, but we'll re-add instead
+        await storage.createPenguin(updatedPenguin);
+      } else {
+        // Add new penguins
+        await storage.createPenguin(penguinData[i]);
       }
     }
   };
