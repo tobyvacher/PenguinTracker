@@ -164,7 +164,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "5.5 kg (12 lb)",
     status: "Vulnerable",
     description: "The Macaroni Penguin is a species of penguin found from the Subantarctic to the Antarctic Peninsula. One of six species of crested penguin, it bears a distinctive yellow crest, and has a large, bright orange-red bill. These penguins feed primarily on krill, along with fish and squid, and obtain all their food from the sea.",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/Macaroni-Penguin-Headshot-with-chick-by-Liam-Quinn-600x400.jpg"
+    imageUrl: "/images/penguins/macaroni-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/macaroni-penguin-bw.jpg"
   },
   {
     name: "Yellow-eyed Penguin",
@@ -174,7 +175,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "4-8 kg (8.8-17.6 lb)",
     status: "Endangered",
     description: "The Yellow-eyed Penguin is native to New Zealand and is one of the rarest penguin species in the world. It is distinguished by a band of bright yellow feathers that extends from its eyes around the back of its head. The Yellow-eyed Penguin is a solitary, monogamous species that nests in forests and scrub along the shoreline.",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/Yellow-eyed-Penguin-Bernard-Spragg-Flickr-600x400.jpg"
+    imageUrl: "/images/penguins/yellow-eyed-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/yellow-eyed-penguin-bw.jpg"
   },
   {
     name: "King Penguin",
@@ -184,7 +186,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "11-16 kg (24-35 lb)",
     status: "Least Concern",
     description: "The King Penguin is the second largest species of penguin, smaller, but somewhat similar in appearance to the Emperor Penguin. King penguins eat small fish, mainly lanternfish, and squid. They are less reliant on ice than Emperor Penguins, breeding on sub-Antarctic islands at the northern reaches of Antarctica, South Georgia, and other temperate islands of the region.",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/King-Penguin-headshot-Ben-Tubby-Wikimedia-scaled-1-600x401.jpg"
+    imageUrl: "/images/penguins/king-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/king-penguin-bw.jpg"
   },
   {
     name: "Emperor Penguin",
@@ -194,6 +197,7 @@ export const penguinData: InsertPenguin[] = [
     weight: "22-45 kg (49-99 lb)",
     status: "Near Threatened",
     description: "The Emperor Penguin is the tallest and heaviest of all living penguin species and is endemic to Antarctica. The male and female are similar in plumage and size. The Emperor Penguin's diet consists primarily of fish, but can also include crustaceans and squid. In hunting, the penguin can remain submerged for up to 18 minutes, diving to depths of 535 m (1,755 ft).",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/Emperor-Penguin-600x403.jpg"
+    imageUrl: "/images/penguins/emperor-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/emperor-penguin-bw.jpg"
   }
 ];

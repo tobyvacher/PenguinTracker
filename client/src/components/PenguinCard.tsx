@@ -70,9 +70,9 @@ export default function PenguinCard({
     >
       <div className="relative">
         <img 
-          src={penguin.imageUrl} 
+          src={isSeen ? penguin.imageUrl : (penguin.bwImageUrl || penguin.imageUrl)} 
           alt={penguin.name}
-          className={`w-full aspect-square object-cover transition-all duration-300 ${isSeen ? 'filter-none' : 'grayscale'}`}
+          className="w-full aspect-square object-cover transition-all duration-300"
         />
         <motion.div 
           className="absolute top-2 right-2 bg-[#10B981] text-white rounded-full p-1"
