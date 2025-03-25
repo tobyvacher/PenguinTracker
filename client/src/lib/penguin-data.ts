@@ -10,7 +10,7 @@ export const penguinData: InsertPenguin[] = [
     weight: "1-1.5 kg (2.2-3.3 lb)",
     status: "Least Concern",
     description: "The Little Blue Penguin, also known as the Fairy Penguin, is the smallest species of penguin. They are found on the coastlines of southern Australia and New Zealand. The penguin's slate-blue plumage and its small size give the species its common name.",
-    imageUrl: "https://www.DOC.govt.nz/globalassets/images/nature/native-animals/birds/little-blue-penguins/little-blue-penguin-1200.jpg"
+    imageUrl: "https://thetorngats.com/wp-content/uploads/2022/05/Little-penguin-Eudyptula-minor.jpg"
   },
   {
     name: "Fairy Penguin",
@@ -20,7 +20,7 @@ export const penguinData: InsertPenguin[] = [
     weight: "1-1.3 kg (2.2-2.9 lb)",
     status: "Least Concern",
     description: "The Fairy Penguin, also known as the Little Blue Penguin or Little Penguin, is the smallest species of penguin. They primarily feed on fish, squid, and occasionally krill. Fairy Penguins typically forage relatively close to the shore, but can travel further when necessary.",
-    imageUrl: "https://cdn.britannica.com/11/139611-050-0C1C1B93/fairy-penguin-young-pair-coast-Bicheno-Tasmania.jpg"
+    imageUrl: "https://www.australiazoo.com.au/wp-content/uploads/2019/09/Fair-Penguin-1920x1280.jpg"
   },
   {
     name: "Rockhopper Penguin",
@@ -30,7 +30,7 @@ export const penguinData: InsertPenguin[] = [
     weight: "2-3.4 kg (4.4-7.5 lb)",
     status: "Vulnerable",
     description: "Rockhopper Penguins are among the smallest species of penguin in the world. They are the most aggressive and numerous of all crested penguins. Rockhopper Penguins are distinguished by the straight, yellow feathers that rise from their heads. They have blood-red eyes, a red-orange beak, and pink webbed feet.",
-    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Gorfou_sauteur_-_Rockhopper_Penguin.jpg/1200px-Gorfou_sauteur_-_Rockhopper_Penguin.jpg"
+    imageUrl: "https://a-z-animals.com/media/2021/08/rockhopper-penguin.jpg"
   },
   {
     name: "Adélie Penguin",
@@ -50,7 +50,7 @@ export const penguinData: InsertPenguin[] = [
     weight: "2.1-3.7 kg (4.6-8.2 lb)",
     status: "Endangered",
     description: "The Galápagos Penguin is a penguin species that is endemic to the Galápagos Islands. It is the only penguin found north of the equator and is the most endangered and rarest of penguin species with fewer than 2,000 individuals.",
-    imageUrl: "https://cdn.download.ams.birds.cornell.edu/api/v1/asset/70371901/1800"
+    imageUrl: "https://www.galapagos.org/wp-content/uploads/2016/04/galapagos-penguin-landing.jpg"
   },
   {
     name: "Snares Penguin",
@@ -60,7 +60,7 @@ export const penguinData: InsertPenguin[] = [
     weight: "2.5-4 kg (5.5-8.8 lb)",
     status: "Vulnerable",
     description: "The Snares Penguin, also known as the Snares Crested Penguin, is a penguin from New Zealand. The species breeds on The Snares, a group of islands off the southern coast of New Zealand. These penguins have a bright yellow crest, red-brown bill, and pink skin at the base of the bill.",
-    imageUrl: "https://www.nzbirdsonline.org.nz/sites/all/files/470724Snares%20Crested%20Penguin%20-%20Chris%20Collins.jpg"
+    imageUrl: "https://a-z-animals.com/media/2022/06/iStock-471248971-1024x682.jpg"
   },
   {
     name: "Erect-crested Penguin",
@@ -70,7 +70,7 @@ export const penguinData: InsertPenguin[] = [
     weight: "2.5-6 kg (5.5-13.2 lb)",
     status: "Endangered",
     description: "The Erect-crested Penguin is a species of penguin endemic to New Zealand. It breeds on the Bounty and Antipodes Islands, with individuals occasionally visiting New Zealand's eastern coasts. This penguin has black upper parts, white underparts, and a yellow crest that begins at the base of the bill and extends backward.",
-    imageUrl: "https://www.doc.govt.nz/globalassets/images/nature/native-animals/birds/penguins/erect-crested-penguin/erect-crested-penguin-1200.jpg"
+    imageUrl: "https://assets.londonzoo.org/plants-and-animals/_plantAnimalCarouselLarge/erect-crested-penguin-ZSL-London-Zoo.jpg"
   },
   {
     name: "Gentoo Penguin",
@@ -80,7 +80,7 @@ export const penguinData: InsertPenguin[] = [
     weight: "4.5-8.5 kg (9.9-18.7 lb)",
     status: "Least Concern",
     description: "The Gentoo Penguin is recognizable by the wide white stripe extending like a bonnet across the top of its head and its bright orange-red bill. They have the most prominent tail of all penguin species. Gentoos are the fastest underwater swimming penguins, reaching speeds of 36 km/h (22 mph).",
-    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Gentoo_Penguin.jpg/1200px-Gentoo_Penguin.jpg"
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Gentoo_Penguin_at_Cooper_Bay%2C_South_Georgia.jpg/1200px-Gentoo_Penguin_at_Cooper_Bay%2C_South_Georgia.jpg"
   },
   {
     name: "Fiordland Penguin",
@@ -90,7 +90,7 @@ export const penguinData: InsertPenguin[] = [
     weight: "2.5-5 kg (5.5-11 lb)",
     status: "Vulnerable",
     description: "The Fiordland Penguin is native to the Fiordland region of the southwestern New Zealand. It has a distinctive appearance with a broad yellow stripe that starts above the eye and drops down the neck. These penguins prefer dense forests for breeding, which is unusual among penguin species. They are also known as Fiordland Crested Penguins.",
-    imageUrl: "https://cdn.download.ams.birds.cornell.edu/api/v1/asset/325506861/1800"
+    imageUrl: "https://oceanwide-expeditions.com/uploads/media-dynamic/default/0001/23/55ea82ec9fbfa0ff2b6fe07254cdae9dd7e89060.jpeg"
   },
   {
     name: "African Penguin",
@@ -100,7 +100,7 @@ export const penguinData: InsertPenguin[] = [
     weight: "2.2-3.5 kg (4.9-7.7 lb)",
     status: "Endangered",
     description: "The African Penguin, also known as the Black-footed Penguin, is a species found on the southwestern coast of Africa. It is the only penguin species that breeds in Africa and its presence gave name to the Penguin Islands. The African Penguin has distinctive pink patches of skin above the eyes and a black facial mask.",
-    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/African_Penguin_-_Boulders_Beach%2C_Cape_Town%2C_South_Africa.jpg/1200px-African_Penguin_-_Boulders_Beach%2C_Cape_Town%2C_South_Africa.jpg"
+    imageUrl: "https://files.worldwildlife.org/wwfcmsprod/images/African_Penguin_WW1113022/story_full_width/8u4dlz507h_African_Penguin_WW1113022.jpg"
   },
   {
     name: "Magellanic Penguin",
@@ -110,7 +110,7 @@ export const penguinData: InsertPenguin[] = [
     weight: "2.7-6.5 kg (6-14.3 lb)",
     status: "Near Threatened",
     description: "The Magellanic Penguin is a South American penguin, breeding in coastal Argentina, Chile and the Falkland Islands. This penguin is named after Portuguese explorer Ferdinand Magellan, who spotted the birds in 1520. Magellanic Penguins are medium-sized penguins with distinctive white bands that loop over the eye, down the sides of the neck, and meet at the throat.",
-    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Magellanic_Penguin_in_Peninsula_de_Valdes_-_panoramio.jpg/1200px-Magellanic_Penguin_in_Peninsula_de_Valdes_-_panoramio.jpg"
+    imageUrl: "https://www.aquariumofpacific.org/images/made_new/images-uploads-magellanic_penguin_2_600_q85.jpg"
   },
   {
     name: "Humboldt Penguin",
@@ -120,7 +120,7 @@ export const penguinData: InsertPenguin[] = [
     weight: "4-5 kg (8.8-11 lb)",
     status: "Vulnerable",
     description: "The Humboldt Penguin is found in South America and breeds in coastal Peru and Chile. This medium-sized penguin is named after the cold water current it swims in, which itself is named after explorer Alexander von Humboldt. These penguins have a black head with a white border running from the eyes to the chest and around the neck.",
-    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/5/51/Humboldt_penguin%2C_Liverpool.jpg"
+    imageUrl: "https://www.edinburghzoo.org.uk/media/9548/humboldt-penguin-pair-at-penguins-rock-by-jon-paul-orsi.jpg"
   },
   {
     name: "Royal Penguin",
@@ -130,7 +130,7 @@ export const penguinData: InsertPenguin[] = [
     weight: "4-5.5 kg (8.8-12.1 lb)",
     status: "Near Threatened",
     description: "The Royal Penguin is endemic to Macquarie Island, an Australian territory in the southwest Pacific. They are distinguished by the white face and chin instead of the black face and chin of Macaroni penguins. Royal penguins nest on beaches or on bare areas on slopes covered with vegetation. They form large colonies on Macquarie Island.",
-    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Royal_penguin.jpg/1200px-Royal_penguin.jpg"
+    imageUrl: "https://www.penguins-world.com/wp-content/uploads/royal_penguin_head.jpg"
   },
   {
     name: "Chinstrap Penguin",
@@ -140,7 +140,7 @@ export const penguinData: InsertPenguin[] = [
     weight: "3-5 kg (6.6-11 lb)",
     status: "Least Concern",
     description: "The Chinstrap Penguin is named for the narrow black band under its head which makes it appear as if it were wearing a black helmet. It is also known as the Ringed Penguin, Bearded Penguin, or Stone-cracker Penguin due to its loud, harsh call.",
-    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Chinstrap_Penguin.jpg/640px-Chinstrap_Penguin.jpg"
+    imageUrl: "https://www.coolantarctica.com/Antarctica%20fact%20file/wildlife/chinstrap-b.jpg"
   },
   {
     name: "Macaroni Penguin",
@@ -150,7 +150,7 @@ export const penguinData: InsertPenguin[] = [
     weight: "5.5 kg (12 lb)",
     status: "Vulnerable",
     description: "The Macaroni Penguin is a species of penguin found from the Subantarctic to the Antarctic Peninsula. One of six species of crested penguin, it bears a distinctive yellow crest, and has a large, bright orange-red bill. These penguins feed primarily on krill, along with fish and squid, and obtain all their food from the sea.",
-    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Southern_Macaroni_Penguin.jpg/1200px-Southern_Macaroni_Penguin.jpg"
+    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/SGI-2016-South_Georgia_%28Fortuna_Bay%29%E2%80%93Macaroni_penguin_%28Eudyptes_chrysolophus%29_04.jpg/1200px-SGI-2016-South_Georgia_%28Fortuna_Bay%29%E2%80%93Macaroni_penguin_%28Eudyptes_chrysolophus%29_04.jpg"
   },
   {
     name: "Yellow-eyed Penguin",
@@ -160,7 +160,7 @@ export const penguinData: InsertPenguin[] = [
     weight: "4-8 kg (8.8-17.6 lb)",
     status: "Endangered",
     description: "The Yellow-eyed Penguin is native to New Zealand and is one of the rarest penguin species in the world. It is distinguished by a band of bright yellow feathers that extends from its eyes around the back of its head. The Yellow-eyed Penguin is a solitary, monogamous species that nests in forests and scrub along the shoreline.",
-    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Yellow-eyed_Penguin_MC.jpg/1200px-Yellow-eyed_Penguin_MC.jpg"
+    imageUrl: "https://www.doc.govt.nz/globalassets/images/nature/native-animals/birds/yellow-eyed-penguin-hoiho/yellow-eyed-penguin-1200.jpg"
   },
   {
     name: "King Penguin",
@@ -170,7 +170,7 @@ export const penguinData: InsertPenguin[] = [
     weight: "11-16 kg (24-35 lb)",
     status: "Least Concern",
     description: "The King Penguin is the second largest species of penguin, smaller, but somewhat similar in appearance to the Emperor Penguin. King penguins eat small fish, mainly lanternfish, and squid. They are less reliant on ice than Emperor Penguins, breeding on sub-Antarctic islands at the northern reaches of Antarctica, South Georgia, and other temperate islands of the region.",
-    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Salisbury_Plain_King_Penguins.JPG/1200px-Salisbury_Plain_King_Penguins.JPG"
+    imageUrl: "https://www.alltravels.com/wp-content/uploads/2020/08/King-Penguin-Facts.jpg"
   },
   {
     name: "Emperor Penguin",
@@ -180,6 +180,6 @@ export const penguinData: InsertPenguin[] = [
     weight: "22-45 kg (49-99 lb)",
     status: "Near Threatened",
     description: "The Emperor Penguin is the tallest and heaviest of all living penguin species and is endemic to Antarctica. The male and female are similar in plumage and size. The Emperor Penguin's diet consists primarily of fish, but can also include crustaceans and squid. In hunting, the penguin can remain submerged for up to 18 minutes, diving to depths of 535 m (1,755 ft).",
-    imageUrl: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Emperor_penguins.jpg/1200px-Emperor_penguins.jpg"
+    imageUrl: "https://www.arcctic.com/wp-content/uploads/2022/07/emperor-penguin-antarctica.jpg"
   }
 ];
