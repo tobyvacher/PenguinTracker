@@ -36,29 +36,26 @@ export default function Home() {
   // Ensure penguins is always an array
   const penguins: Penguin[] = data || [];
   
-  // Check if user has reached any achievement milestones
-  const shouldShowAchievementBadge = () => {
+  // Check for achievement milestones and trigger effects
+  useEffect(() => {
     const count = seenPenguins.length;
     
-    if (count >= 5 && lastMilestoneRef.current < 5) {
-      lastMilestoneRef.current = 5;
-      return true;
-    }
-    if (count >= 10 && lastMilestoneRef.current < 10) {
-      lastMilestoneRef.current = 10;
-      return true;
-    }
-    if (count >= 15 && lastMilestoneRef.current < 15) {
-      lastMilestoneRef.current = 15;
-      return true;
-    }
-    if (count >= 18 && lastMilestoneRef.current < 18) {
+    if (count === 18 && lastMilestoneRef.current < 18) {
       lastMilestoneRef.current = 18;
       // Show congratulations modal when all 18 are collected
       setShowCongratsModal(true);
-      return true;
+    } else if (count >= 15 && lastMilestoneRef.current < 15) {
+      lastMilestoneRef.current = 15;
+    } else if (count >= 10 && lastMilestoneRef.current < 10) {
+      lastMilestoneRef.current = 10;
+    } else if (count >= 5 && lastMilestoneRef.current < 5) {
+      lastMilestoneRef.current = 5;
     }
-    
+  }, [seenPenguins.length]);
+  
+  // This function is no longer used, we use the useEffect above instead
+  const checkAchievements = () => {
+    // Just a placeholder - logic moved to useEffect
     return false;
   };
 
@@ -72,11 +69,8 @@ export default function Home() {
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
       
-      // Check for achievement milestones after a short delay
-      // to make sure the seenPenguins state is updated
-      setTimeout(() => {
-        shouldShowAchievementBadge();
-      }, 100);
+      // No need to call anything here - useEffect will automatically
+      // check for achievements when seenPenguins.length changes
     }
   };
 
