@@ -7,13 +7,14 @@ import InfoBanner from "@/components/InfoBanner";
 import SuccessToast from "@/components/SuccessToast";
 import { usePenguinStore } from "@/hooks/use-penguin-store";
 import { Penguin } from "@shared/schema";
-import { Feather } from "lucide-react";
+import { Feather, HelpCircle } from "lucide-react";
 
 export default function Home() {
   const [selectedPenguin, setSelectedPenguin] = useState<Penguin | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [showToast, setShowToast] = useState(false);
+  const [showInfoBanner, setShowInfoBanner] = useState(true);
   
   const { seenPenguins, toggleSeen } = usePenguinStore();
 
@@ -77,13 +78,25 @@ export default function Home() {
               <h1 className="text-2xl font-bold text-[#1E3A8A]">Penguin Spotter</h1>
             </div>
             
-            <ProgressCounter count={seenPenguins.length} total={penguins.length} />
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setShowInfoBanner(true)}
+                className="bg-white rounded-full p-2 shadow-sm hover:bg-slate-100 transition-colors"
+                aria-label="Show help information"
+              >
+                <HelpCircle className="text-[#1E3A8A] h-5 w-5" />
+              </button>
+              <ProgressCounter count={seenPenguins.length} total={penguins.length} />
+            </div>
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <InfoBanner />
+        <InfoBanner 
+          isVisible={showInfoBanner}
+          onClose={() => setShowInfoBanner(false)}
+        />
         
         {/* Penguin Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 py-4">
