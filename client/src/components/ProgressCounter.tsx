@@ -65,7 +65,7 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
 
   // Use Web Share API if available
   const useNativeShare = () => {
-    if (navigator.share) {
+    if (typeof navigator !== 'undefined' && 'share' in navigator) {
       navigator.share({
         title: 'My Penguin Spotting Progress',
         text: shareText,
@@ -125,7 +125,7 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
             </div>
             
             <div className="flex flex-wrap gap-2 justify-center">
-              {navigator.share && (
+              {typeof navigator !== 'undefined' && 'share' in navigator && (
                 <Button onClick={useNativeShare} className="flex items-center gap-2">
                   <Share2 size={18} />
                   Share

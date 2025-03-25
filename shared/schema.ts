@@ -17,8 +17,10 @@ export const penguins = pgTable("penguins", {
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  firebaseUid: text("firebase_uid").notNull().unique(),
+  displayName: text("display_name"),
+  email: text("email"),
+  photoURL: text("photo_url"),
 });
 
 export const seenPenguins = pgTable("seen_penguins", {
@@ -40,8 +42,10 @@ export const insertPenguinSchema = createInsertSchema(penguins).pick({
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+  firebaseUid: true,
+  displayName: true,
+  email: true,
+  photoURL: true,
 });
 
 export const insertSeenPenguinSchema = createInsertSchema(seenPenguins).pick({
