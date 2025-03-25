@@ -24,17 +24,24 @@ export default function PenguinCard({
   // Animation variants for the card
   const cardVariants = {
     seen: {
-      rotate: [0, 1, 0, -1, 0],
+      rotate: [0, 4, 0, -4, 0, 2, 0, -2, 0],
+      y: [0, -10, 0, -7, 0],
       transition: {
         rotate: {
           repeat: 0, // No repeats, just one animation cycle
-          duration: 4,
+          duration: 1.5,
+          ease: "easeInOut"
+        },
+        y: {
+          repeat: 0,
+          duration: 1.5,
           ease: "easeInOut"
         }
       }
     },
     unseen: {
-      rotate: 0
+      rotate: 0,
+      y: 0
     }
   };
   
@@ -186,7 +193,7 @@ export default function PenguinCard({
         </motion.div>
       </div>
       <div className="text-center">
-        <h3 className="font-medium">{penguin.name}</h3>
+        <h3 className="font-medium">{penguin.name.replace(' Penguin', '')}</h3>
       </div>
     </motion.div>
   );
