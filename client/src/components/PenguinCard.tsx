@@ -58,8 +58,8 @@ export default function PenguinCard({
 
   return (
     <motion.div
-      className="rounded-lg bg-white shadow overflow-hidden cursor-pointer"
-      whileHover={{ y: -5, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }}
+      className="flex flex-col items-center cursor-pointer"
+      whileHover={{ y: -5 }}
       transition={{ duration: 0.2 }}
       onMouseDown={pressStartHandler}
       onMouseUp={pressEndHandler}
@@ -68,16 +68,18 @@ export default function PenguinCard({
       onTouchEnd={pressEndHandler}
       onContextMenu={handleContextMenu}
     >
-      <div className="relative">
-        <img 
-          src={penguin.imageUrl}
-          alt={penguin.name}
-          className={`w-full aspect-square object-cover transition-all duration-300 ${
-            !isSeen ? 'grayscale' : ''
-          }`}
-        />
+      <div className="relative mb-3">
+        <div className="rounded-full overflow-hidden h-32 w-32 shadow-lg border-4 border-white">
+          <img 
+            src={penguin.imageUrl}
+            alt={penguin.name}
+            className={`w-full h-full object-cover transition-all duration-300 ${
+              !isSeen ? 'grayscale' : ''
+            }`}
+          />
+        </div>
         <motion.div 
-          className="absolute top-2 right-2 bg-[#10B981] text-white rounded-full p-1"
+          className="absolute bottom-0 right-0 bg-[#10B981] text-white rounded-full p-1 shadow-md border-2 border-white"
           initial={{ opacity: 0, scale: 0 }}
           animate={isSeen ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
           transition={{ duration: 0.3 }}
@@ -85,8 +87,8 @@ export default function PenguinCard({
           <Eye className="h-4 w-4" />
         </motion.div>
       </div>
-      <div className="p-4">
-        <h3 className="font-medium text-center">{penguin.name}</h3>
+      <div className="text-center">
+        <h3 className="font-medium">{penguin.name}</h3>
       </div>
     </motion.div>
   );

@@ -18,9 +18,12 @@ export default function Home() {
   const { seenPenguins, toggleSeen } = usePenguinStore();
 
   // Fetch all penguins
-  const { data: penguins, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery<Penguin[]>({
     queryKey: ["/api/penguins"],
   });
+  
+  // Ensure penguins is always an array
+  const penguins: Penguin[] = data || [];
 
   const handlePenguinClick = (penguin: Penguin) => {
     const wasSeen = seenPenguins.includes(penguin.id);
@@ -83,7 +86,7 @@ export default function Home() {
         <InfoBanner />
         
         {/* Penguin Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 py-4">
           {penguins.map((penguin: Penguin) => (
             <PenguinCard
               key={penguin.id}
