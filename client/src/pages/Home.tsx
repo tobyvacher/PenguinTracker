@@ -76,13 +76,16 @@ export default function Home() {
       {/* Header */}
       <header className="sticky top-0 bg-white/90 backdrop-blur-sm shadow-md z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
+          {/* Responsive header layout */}
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+            {/* Logo and title - centered on mobile, left-aligned on desktop */}
+            <div className="flex items-center justify-center sm:justify-start mb-3 sm:mb-0">
               <img src="/logo.png" alt="Penguin Spotter Logo" className="w-10 h-10 mr-3" />
               <h1 className="text-2xl font-bold text-[#1E3A8A]">Penguin Spotter</h1>
             </div>
             
-            <div className="flex items-center gap-4">
+            {/* Action buttons - centered on mobile, right-aligned on desktop */}
+            <div className="flex items-center justify-center sm:justify-end gap-4">
               {!showInfoBanner && (
                 <button 
                   onClick={() => setShowInfoBanner(true)}
