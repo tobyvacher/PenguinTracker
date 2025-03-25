@@ -19,6 +19,30 @@ export default function PenguinCard({
   const [isPressing, setIsPressing] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Animation variants for the card
+  const cardVariants = {
+    seen: {
+      y: [0, -3, 0],
+      rotate: [0, 1, 0, -1, 0],
+      transition: {
+        y: {
+          repeat: Infinity,
+          duration: 3,
+          ease: "easeInOut",
+        },
+        rotate: {
+          repeat: Infinity,
+          duration: 4,
+          ease: "easeInOut",
+        }
+      }
+    },
+    unseen: {
+      y: 0,
+      rotate: 0
+    }
+  };
+  
   const pressStartHandler = () => {
     setIsPressing(true);
     timerRef.current = setTimeout(() => {
@@ -59,6 +83,8 @@ export default function PenguinCard({
   return (
     <motion.div
       className="flex flex-col items-center cursor-pointer"
+      variants={cardVariants}
+      animate={isSeen ? "seen" : "unseen"}
       whileHover={{ y: -5 }}
       transition={{ duration: 0.2 }}
       onMouseDown={pressStartHandler}
@@ -69,7 +95,11 @@ export default function PenguinCard({
       onContextMenu={handleContextMenu}
     >
       <div className="relative mb-3">
-        <div className="rounded-full overflow-hidden h-32 w-32 shadow-lg border-4 border-white">
+        <div className={`rounded-full overflow-hidden h-32 w-32 transition-all duration-300 ${
+          isSeen 
+            ? 'border-[#FFD700] border-4 shadow-[0_0_15px_rgba(255,215,0,0.6)]' 
+            : 'border-white border-4 shadow-lg'
+        }`}>
           <img 
             src={penguin.imageUrl}
             alt={penguin.name}
@@ -79,10 +109,26 @@ export default function PenguinCard({
           />
         </div>
         <motion.div 
-          className="absolute bottom-0 right-0 bg-[#10B981] text-white rounded-full p-1 shadow-md border-2 border-white"
+          className="absolute bottom-0 right-0 bg-[#FFD700] text-[#7B5800] rounded-full p-1.5 shadow-[0_0_8px_rgba(255,215,0,0.8)] border-2 border-white"
           initial={{ opacity: 0, scale: 0 }}
-          animate={isSeen ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0 }}
-          transition={{ duration: 0.3 }}
+          animate={isSeen ? { 
+            opacity: 1, 
+            scale: 1,
+            rotate: [0, 10, 0, -10, 0],
+            transition: {
+              opacity: { duration: 0.3 },
+              scale: { duration: 0.3 },
+              rotate: { 
+                repeat: Infinity, 
+                duration: 2,
+                ease: "easeInOut",
+                delay: 0.3 
+              }
+            }
+          } : { 
+            opacity: 0, 
+            scale: 0 
+          }}
         >
           <Eye className="h-4 w-4" />
         </motion.div>
