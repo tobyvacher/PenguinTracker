@@ -54,7 +54,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "2.1-3.7 kg (4.6-8.2 lb)",
     status: "Endangered",
     description: "The Galápagos Penguin is a penguin species that is endemic to the Galápagos Islands. It is the only penguin found north of the equator and is the most endangered and rarest of penguin species with fewer than 2,000 individuals.",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/Galapagos-Penguin-Jerzy-Strzelecki-Wikimedia-e1740430198124-600x404.jpg"
+    imageUrl: "/images/penguins/galapagos-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/galapagos-penguin-bw.jpg"
   },
   {
     name: "Snares Penguin",
@@ -64,7 +65,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "2.5-4 kg (5.5-8.8 lb)",
     status: "Vulnerable",
     description: "The Snares Penguin, also known as the Snares Crested Penguin, is a penguin from New Zealand. The species breeds on The Snares, a group of islands off the southern coast of New Zealand. These penguins have a bright yellow crest, red-brown bill, and pink skin at the base of the bill.",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/Snares-Penguin-Island-View-Jon-Hornbuckle-Wikimedia-600x399.jpg"
+    imageUrl: "/images/penguins/snares-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/snares-penguin-bw.jpg"
   },
   {
     name: "Erect-crested Penguin",
@@ -74,7 +76,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "2.5-6 kg (5.5-13.2 lb)",
     status: "Endangered",
     description: "The Erect-crested Penguin is a species of penguin endemic to New Zealand. It breeds on the Bounty and Antipodes Islands, with individuals occasionally visiting New Zealand's eastern coasts. This penguin has black upper parts, white underparts, and a yellow crest that begins at the base of the bill and extends backward.",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/Erect-crested-Penguin-Headshot-C00ch-Wikimedia-600x403.jpg"
+    imageUrl: "/images/penguins/erect-crested-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/erect-crested-penguin-bw.jpg"
   },
   {
     name: "Gentoo Penguin",
@@ -84,7 +87,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "4.5-8.5 kg (9.9-18.7 lb)",
     status: "Least Concern",
     description: "The Gentoo Penguin is recognizable by the wide white stripe extending like a bonnet across the top of its head and its bright orange-red bill. They have the most prominent tail of all penguin species. Gentoos are the fastest underwater swimming penguins, reaching speeds of 36 km/h (22 mph).",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/Gentoo-Penguin-Headshot-Ben-Tubby-Wikimedia-600x401.jpg"
+    imageUrl: "/images/penguins/gentoo-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/gentoo-penguin-bw.jpg"
   },
   {
     name: "Fiordland Penguin",
@@ -94,7 +98,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "2.5-5 kg (5.5-11 lb)",
     status: "Vulnerable",
     description: "The Fiordland Penguin is native to the Fiordland region of the southwestern New Zealand. It has a distinctive appearance with a broad yellow stripe that starts above the eye and drops down the neck. These penguins prefer dense forests for breeding, which is unusual among penguin species. They are also known as Fiordland Crested Penguins.",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/Fiordland-Penguin-Bernard-Spragg-Flickr-e1740430134933-600x404.jpg"
+    imageUrl: "/images/penguins/fiordland-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/fiordland-penguin-bw.jpg"
   },
   {
     name: "African Penguin",
@@ -104,7 +109,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "2.2-3.5 kg (4.9-7.7 lb)",
     status: "Endangered",
     description: "The African Penguin, also known as the Black-footed Penguin, is a species found on the southwestern coast of Africa. It is the only penguin species that breeds in Africa and its presence gave name to the Penguin Islands. The African Penguin has distinctive pink patches of skin above the eyes and a black facial mask.",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/African-penguin-resting-Bettys-Bay-by-Dyan-deNapoli-600x403.jpg"
+    imageUrl: "/images/penguins/african-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/african-penguin-bw.jpg"
   },
   {
     name: "Magellanic Penguin",
@@ -114,7 +120,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "2.7-6.5 kg (6-14.3 lb)",
     status: "Near Threatened",
     description: "The Magellanic Penguin is a South American penguin, breeding in coastal Argentina, Chile and the Falkland Islands. This penguin is named after Portuguese explorer Ferdinand Magellan, who spotted the birds in 1520. Magellanic Penguins are medium-sized penguins with distinctive white bands that loop over the eye, down the sides of the neck, and meet at the throat.",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/Magellanic-Penguin-Beach-2-gregoriosz-Wikimedia-600x400.jpg"
+    imageUrl: "/images/penguins/magellanic-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/magellanic-penguin-bw.jpg"
   },
   {
     name: "Humboldt Penguin",
@@ -124,7 +131,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "4-5 kg (8.8-11 lb)",
     status: "Vulnerable",
     description: "The Humboldt Penguin is found in South America and breeds in coastal Peru and Chile. This medium-sized penguin is named after the cold water current it swims in, which itself is named after explorer Alexander von Humboldt. These penguins have a black head with a white border running from the eyes to the chest and around the neck.",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/Humboldt-Penguin-Javier-Ábalos-Álvarez-Wikimedia-600x404.jpg"
+    imageUrl: "/images/penguins/humboldt-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/humboldt-penguin-bw.jpg"
   },
   {
     name: "Royal Penguin",
@@ -134,7 +142,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "4-5.5 kg (8.8-12.1 lb)",
     status: "Near Threatened",
     description: "The Royal Penguin is endemic to Macquarie Island, an Australian territory in the southwest Pacific. They are distinguished by the white face and chin instead of the black face and chin of Macaroni penguins. Royal penguins nest on beaches or on bare areas on slopes covered with vegetation. They form large colonies on Macquarie Island.",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/Royal-Penguin-Headshot-Liam-Quinn-Wikimedia-600x399.jpg"
+    imageUrl: "/images/penguins/royal-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/royal-penguin-bw.jpg"
   },
   {
     name: "Chinstrap Penguin",
@@ -144,7 +153,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "3-5 kg (6.6-11 lb)",
     status: "Least Concern",
     description: "The Chinstrap Penguin is named for the narrow black band under its head which makes it appear as if it were wearing a black helmet. It is also known as the Ringed Penguin, Bearded Penguin, or Stone-cracker Penguin due to its loud, harsh call.",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/Chinstrap-Penguin-Headshot-Jerzy-Strzelecki-Wikimedia-1-e1740430314605-600x403.jpg"
+    imageUrl: "/images/penguins/chinstrap-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/chinstrap-penguin-bw.jpg"
   },
   {
     name: "Macaroni Penguin",
