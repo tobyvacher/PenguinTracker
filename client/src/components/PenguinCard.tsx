@@ -22,15 +22,8 @@ export default function PenguinCard({
   // Animation variants for the card
   const cardVariants = {
     seen: {
-      y: [0, -3, 0],
       rotate: [0, 1, 0, -1, 0],
       transition: {
-        y: {
-          repeat: 2, // 3 repetitions (initial + 2 repeats)
-          duration: 3,
-          ease: "easeInOut",
-          repeatType: "loop"
-        },
         rotate: {
           repeat: 2, // 3 repetitions (initial + 2 repeats)
           duration: 4,
@@ -40,7 +33,6 @@ export default function PenguinCard({
       }
     },
     unseen: {
-      y: 0,
       rotate: 0
     }
   };
