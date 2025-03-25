@@ -42,9 +42,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    // First, handle any redirect results when the component mounts
+    const handleRedirect = async () => {
+      try {
+        const redirectUser = await handleRedirectResult();
+        if (redirectUser) {
+          await createOrGetUser(redirectUser);
+          // Invalidate queries that depend on authentication
+          queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
+        }
+      } catch (error) {
+        console.error('Error handling redirect:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    handleRedirect();
+    
+    // Then, set up the auth state listener
     const unsubscribe = onAuthStateChange(async (user) => {
       setCurrentUser(user);
-      setLoading(false);
       
       if (user) {
         await createOrGetUser(user);
@@ -58,13 +76,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async () => {
     try {
-      const user = await signInWithGoogle();
-      if (user) {
-        await createOrGetUser(user);
-        // Invalidate queries that depend on authentication
-        queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
-      }
-      return user;
+      // For redirect flow, this will redirect the user away from the page
+      await signInWithGoogle();
+      // The result handling happens in the useEffect with handleRedirectResult
+      return null;
     } catch (error) {
       console.error('Error signing in:', error);
       return null;

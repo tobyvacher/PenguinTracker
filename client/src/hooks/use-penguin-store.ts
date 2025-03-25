@@ -62,7 +62,7 @@ export function usePenguinStore() {
       if (isCurrentlySeen) {
         // Remove from seen
         if (isAuthenticated) {
-          await apiRequest('DELETE', `/api/seen-penguins/${penguinId}`, null, {
+          await apiRequest(`/api/seen-penguins/${penguinId}`, 'DELETE', null, {
             headers: {
               'Authorization': currentUser ? `Bearer ${await currentUser.getIdToken()}` : '',
             }
@@ -76,7 +76,7 @@ export function usePenguinStore() {
       } else {
         // Add to seen
         if (isAuthenticated) {
-          await apiRequest('POST', '/api/seen-penguins', { penguinId }, {
+          await apiRequest('/api/seen-penguins', 'POST', { penguinId }, {
             headers: {
               'Authorization': currentUser ? `Bearer ${await currentUser.getIdToken()}` : '',
             }
