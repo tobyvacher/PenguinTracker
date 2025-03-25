@@ -17,13 +17,36 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+// Check if Firebase configuration is valid
+const isConfigValid = 
+  !!import.meta.env.VITE_FIREBASE_API_KEY && 
+  !!import.meta.env.VITE_FIREBASE_PROJECT_ID && 
+  !!import.meta.env.VITE_FIREBASE_APP_ID;
+
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const googleProvider = new GoogleAuthProvider();
+let app: ReturnType<typeof initializeApp> | undefined;
+let auth: ReturnType<typeof getAuth> | undefined;
+let googleProvider: GoogleAuthProvider | undefined;
+
+try {
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  googleProvider = new GoogleAuthProvider();
+  // Log successful initialization
+  console.log("Firebase initialized successfully");
+} catch (error) {
+  console.error("Error initializing Firebase:", error);
+}
+
+// Export config validity for components that need to know
+export const firebaseConfigValid = isConfigValid;
 
 // Sign in with Google using popup (better for Replit environment)
 export const signInWithGoogle = async () => {
+  if (!auth || !googleProvider) {
+    throw new Error("Firebase authentication not initialized. Check your environment variables.");
+  }
+
   try {
     const result = await signInWithPopup(auth, googleProvider);
     return result.user;
@@ -41,6 +64,10 @@ export const handleRedirectResult = async () => {
 
 // Sign out
 export const signOutUser = async () => {
+  if (!auth) {
+    throw new Error("Firebase authentication not initialized");
+  }
+  
   try {
     await signOut(auth);
   } catch (error) {
@@ -51,11 +78,15 @@ export const signOutUser = async () => {
 
 // Get current user
 export const getCurrentUser = (): User | null => {
-  return auth.currentUser;
+  return auth?.currentUser || null;
 };
 
 // Auth state observer
 export const onAuthStateChange = (callback: (user: User | null) => void) => {
+  if (!auth) {
+    console.error("Firebase authentication not initialized");
+    return () => {}; // Return a no-op unsubscribe function
+  }
   return onAuthStateChanged(auth, callback);
 };
 

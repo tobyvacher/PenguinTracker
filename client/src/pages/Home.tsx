@@ -9,7 +9,8 @@ import AuthButton from "@/components/AuthButton";
 import { usePenguinStore } from "@/hooks/use-penguin-store";
 import { useAuth } from "@/contexts/AuthContext";
 import { Penguin } from "@shared/schema";
-import { HelpCircle } from "lucide-react";
+import { HelpCircle, AlertTriangle } from "lucide-react";
+import { firebaseConfigValid } from "@/lib/firebase";
 
 export default function Home() {
   const [selectedPenguin, setSelectedPenguin] = useState<Penguin | null>(null);

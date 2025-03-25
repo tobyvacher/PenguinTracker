@@ -16,6 +16,13 @@ function Router() {
 }
 
 function App() {
+  // Log environment variables (without values) to help with debugging
+  console.log("Environment variables present:", {
+    VITE_FIREBASE_API_KEY: !!import.meta.env.VITE_FIREBASE_API_KEY,
+    VITE_FIREBASE_PROJECT_ID: !!import.meta.env.VITE_FIREBASE_PROJECT_ID,
+    VITE_FIREBASE_APP_ID: !!import.meta.env.VITE_FIREBASE_APP_ID,
+  });
+  
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
