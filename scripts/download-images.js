@@ -4,27 +4,27 @@ import https from 'https';
 import { fileURLToPath } from 'url';
 import { penguinData } from './penguin-data.js';
 
-// Map of penguin names to Flickr image IDs (public domain or Creative Commons images)
-// These are just placeholder URLs - replace with actual public domain images
+// Map of penguin names to image URLs
+// Using Wikimedia Commons images which are direct links to the images (no redirects)
 const penguinImageUrls = {
-  'Little Blue Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Little_blue_penguin_at_the_Melbourne_Zoo.jpg/800px-Little_blue_penguin_at_the_Melbourne_Zoo.jpg',
-  'Fairy Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Little_Penguin_Feb09.jpg/800px-Little_Penguin_Feb09.jpg',
-  'Rockhopper Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Gorfou_sauteur_-_Southern_Rockhopper_Penguin.jpg/800px-Gorfou_sauteur_-_Southern_Rockhopper_Penguin.jpg',
-  'Adélie Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Hope_Bay-2016-Trinity_Peninsula%E2%80%93Ad%C3%A9lie_penguin_%28Pygoscelis_adeliae%29_04.jpg/800px-Hope_Bay-2016-Trinity_Peninsula%E2%80%93Ad%C3%A9lie_penguin_%28Pygoscelis_adeliae%29_04.jpg',
-  'Galápagos Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/db/Spheniscus_mendiculus_-Galapagos_Islands-8.jpg/800px-Spheniscus_mendiculus_-Galapagos_Islands-8.jpg',
-  'Snares Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Eudyptes_robustus_-Snares_Island_-head-8.jpg/800px-Eudyptes_robustus_-Snares_Island_-head-8.jpg',
-  'Erect-crested Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Erect-crested_penguin_on_rock.jpg/800px-Erect-crested_penguin_on_rock.jpg',
-  'Gentoo Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Gentoo_Penguin_at_Cooper_Bay%2C_South_Georgia.jpg/800px-Gentoo_Penguin_at_Cooper_Bay%2C_South_Georgia.jpg',
-  'Fiordland Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c9/Fiordland_Penguin_walking_into_water.jpg/800px-Fiordland_Penguin_walking_into_water.jpg',
-  'African Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Boulders_Beach_Penguins_04.jpg/800px-Boulders_Beach_Penguins_04.jpg',
-  'Magellanic Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Magellanic_penguin%2C_Valdes_Peninsula%2C_Argentina.jpg/800px-Magellanic_penguin%2C_Valdes_Peninsula%2C_Argentina.jpg',
-  'Humboldt Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Humboldt_Penguin_RWD2.jpg/800px-Humboldt_Penguin_RWD2.jpg',
-  'Royal Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Royal_penguin_on_rock.jpg/800px-Royal_penguin_on_rock.jpg',
-  'Chinstrap Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/08/South_Shetland-2016-Deception_Island%E2%80%93Chinstrap_penguin_%28Pygoscelis_antarctica%29_04.jpg/800px-South_Shetland-2016-Deception_Island%E2%80%93Chinstrap_penguin_%28Pygoscelis_antarctica%29_04.jpg',
-  'Macaroni Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Macaroni_Penguin_at_Cooper_Bay%2C_South_Georgia.jpg/800px-Macaroni_Penguin_at_Cooper_Bay%2C_South_Georgia.jpg',
-  'Yellow-eyed Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/Yellow-eyed_Penguin_MC.jpg/800px-Yellow-eyed_Penguin_MC.jpg', 
-  'King Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Manchot_royal_-_King_Penguin.jpg/800px-Manchot_royal_-_King_Penguin.jpg',
-  'Emperor Penguin': 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/Manchot_empereur_-_Emperor_Penguin_-_Aptenodytes_forsteri.jpg/800px-Manchot_empereur_-_Emperor_Penguin_-_Aptenodytes_forsteri.jpg'
+  'Little Blue Penguin': 'https://upload.wikimedia.org/wikipedia/commons/e/e3/Little_blue_penguin_at_the_Melbourne_Zoo.jpg',
+  'Fairy Penguin': 'https://upload.wikimedia.org/wikipedia/commons/b/bc/Little_Penguin_Feb09.jpg',
+  'Rockhopper Penguin': 'https://upload.wikimedia.org/wikipedia/commons/e/e3/Gorfou_sauteur_-_Southern_Rockhopper_Penguin.jpg',
+  'Adélie Penguin': 'https://upload.wikimedia.org/wikipedia/commons/e/e3/Hope_Bay-2016-Trinity_Peninsula%E2%80%93Ad%C3%A9lie_penguin_%28Pygoscelis_adeliae%29_04.jpg',
+  'Galápagos Penguin': 'https://upload.wikimedia.org/wikipedia/commons/d/db/Spheniscus_mendiculus_-Galapagos_Islands-8.jpg',
+  'Snares Penguin': 'https://upload.wikimedia.org/wikipedia/commons/3/3d/Eudyptes_robustus_-Snares_Island_-head-8.jpg',
+  'Erect-crested Penguin': 'https://upload.wikimedia.org/wikipedia/commons/f/f9/Erect-crested_penguin_on_rock.jpg',
+  'Gentoo Penguin': 'https://upload.wikimedia.org/wikipedia/commons/5/54/Gentoo_Penguin_at_Cooper_Bay%2C_South_Georgia.jpg',
+  'Fiordland Penguin': 'https://upload.wikimedia.org/wikipedia/commons/c/c9/Fiordland_Penguin_walking_into_water.jpg',
+  'African Penguin': 'https://upload.wikimedia.org/wikipedia/commons/f/f5/Boulders_Beach_Penguins_04.jpg',
+  'Magellanic Penguin': 'https://upload.wikimedia.org/wikipedia/commons/7/7a/Magellanic_penguin%2C_Valdes_Peninsula%2C_Argentina.jpg',
+  'Humboldt Penguin': 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Humboldt_Penguin_RWD2.jpg',
+  'Royal Penguin': 'https://upload.wikimedia.org/wikipedia/commons/e/e1/Royal_penguin_on_rock.jpg',
+  'Chinstrap Penguin': 'https://upload.wikimedia.org/wikipedia/commons/0/08/South_Shetland-2016-Deception_Island%E2%80%93Chinstrap_penguin_%28Pygoscelis_antarctica%29_04.jpg',
+  'Macaroni Penguin': 'https://upload.wikimedia.org/wikipedia/commons/9/99/Macaroni_Penguin_at_Cooper_Bay%2C_South_Georgia.jpg',
+  'Yellow-eyed Penguin': 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Yellow-eyed_Penguin_MC.jpg',
+  'King Penguin': 'https://upload.wikimedia.org/wikipedia/commons/a/a1/Manchot_royal_-_King_Penguin.jpg',
+  'Emperor Penguin': 'https://upload.wikimedia.org/wikipedia/commons/b/b6/Manchot_empereur_-_Emperor_Penguin_-_Aptenodytes_forsteri.jpg'
 };
 
 // Create directories if they don't exist
@@ -48,6 +48,21 @@ function downloadFile(url, destPath) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(destPath);
     https.get(url, (response) => {
+      // Check if the response is valid
+      if (response.statusCode !== 200) {
+        fs.unlink(destPath, () => {});
+        reject(new Error(`Failed to download. Status code: ${response.statusCode}`));
+        return;
+      }
+      
+      // Check content type to ensure it's an image
+      const contentType = response.headers['content-type'];
+      if (!contentType || !contentType.startsWith('image/')) {
+        fs.unlink(destPath, () => {});
+        reject(new Error(`Invalid content type: ${contentType}`));
+        return;
+      }
+      
       response.pipe(file);
       file.on('finish', () => {
         file.close(resolve);
