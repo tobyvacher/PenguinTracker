@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Penguin } from "@shared/schema";
 import { X } from "lucide-react";
@@ -31,9 +31,14 @@ export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalP
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-auto">
         <DialogHeader className="flex justify-between items-center">
-          <DialogTitle className="text-2xl font-bold text-[#1E3A8A]">
-            {penguin.name}
-          </DialogTitle>
+          <div>
+            <DialogTitle className="text-2xl font-bold text-[#1E3A8A]">
+              {penguin.name}
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Details about the {penguin.name} penguin species
+            </DialogDescription>
+          </div>
           <Button 
             variant="ghost" 
             className="text-[#94A3B8] hover:text-[#334155]"
