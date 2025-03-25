@@ -105,6 +105,29 @@ export default function Home() {
           onClose={() => setShowInfoBanner(false)}
         />
         
+        {/* Deployment Warning */}
+        {!firebaseConfigValid && (
+          <div className="mb-6 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-md shadow-sm">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <AlertTriangle className="h-5 w-5 text-amber-400" />
+              </div>
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-amber-800">Firebase Configuration Warning</h3>
+                <div className="mt-2 text-sm text-amber-700">
+                  <p>
+                    Your app is running but Firebase environment variables are missing. For the deployed app to work properly:
+                  </p>
+                  <ul className="list-disc list-inside mt-2">
+                    <li>Make sure all Firebase environment variables are set in your deployment</li>
+                    <li>Add your deployment domain ({window.location.hostname}) to the Firebase authorized domains list</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Penguin Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 py-4">
           {penguins.map((penguin: Penguin) => (
