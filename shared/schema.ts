@@ -12,6 +12,7 @@ export const penguins = pgTable("penguins", {
   status: text("status").notNull(),
   description: text("description").notNull(),
   imageUrl: text("image_url").notNull(),
+  bwImageUrl: text("bw_image_url"),
 });
 
 export const users = pgTable("users", {
@@ -35,6 +36,7 @@ export const insertPenguinSchema = createInsertSchema(penguins).pick({
   status: true,
   description: true,
   imageUrl: true,
+  bwImageUrl: true,
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({

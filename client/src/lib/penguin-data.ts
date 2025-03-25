@@ -10,7 +10,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "1-1.5 kg (2.2-3.3 lb)",
     status: "Least Concern",
     description: "The Little Blue Penguin, also known as the Fairy Penguin, is the smallest species of penguin. They are found on the coastlines of southern Australia and New Zealand. The penguin's slate-blue plumage and its small size give the species its common name.",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/Little-Blue-Penguins-Shutterstock-600x360.jpg"
+    imageUrl: "/images/penguins/little-blue-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/little-blue-penguin-bw.jpg"
   },
   {
     name: "Fairy Penguin",
@@ -20,7 +21,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "1-1.3 kg (2.2-2.9 lb)",
     status: "Least Concern",
     description: "The Fairy Penguin, also known as the Little Blue Penguin or Little Penguin, is the smallest species of penguin. They primarily feed on fish, squid, and occasionally krill. Fairy Penguins typically forage relatively close to the shore, but can travel further when necessary.",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/Little-Blue-Penguins-Shutterstock-600x360.jpg"
+    imageUrl: "/images/penguins/fairy-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/fairy-penguin-bw.jpg"
   },
   {
     name: "Rockhopper Penguin",
@@ -30,7 +32,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "2-3.4 kg (4.4-7.5 lb)",
     status: "Vulnerable",
     description: "Rockhopper Penguins are among the smallest species of penguin in the world. They are the most aggressive and numerous of all crested penguins. Rockhopper Penguins are distinguished by the straight, yellow feathers that rise from their heads. They have blood-red eyes, a red-orange beak, and pink webbed feet.",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/Southern-Rockhopper-Penguin-1024x682.jpg"
+    imageUrl: "/images/penguins/rockhopper-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/rockhopper-penguin-bw.jpg"
   },
   {
     name: "Adélie Penguin",
@@ -40,7 +43,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "3.6-6 kg (7.9-13.2 lb)",
     status: "Least Concern",
     description: "The Adélie Penguin is a species of penguin common along the entire coast of the Antarctic continent. They are among the most southerly distributed of all seabirds. Adélie Penguins are named after Adélie Land, which in turn was named for the wife of French explorer Jules Dumont d'Urville who discovered these penguins in 1840.",
-    imageUrl: "https://www.penguinsinternational.org/wp-content/uploads/2025/02/Adelie-Penguins-Headshots-owamux-Wikimedia-600x360.png"
+    imageUrl: "/images/penguins/adelie-penguin.jpg",
+    bwImageUrl: "/images/penguins/bw/adelie-penguin-bw.jpg"
   },
   {
     name: "Galápagos Penguin",
