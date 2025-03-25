@@ -18,6 +18,8 @@ export default function PenguinCard({
 }: PenguinCardProps) {
   const [isPressing, setIsPressing] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const touchStartPosRef = useRef<{ x: number; y: number } | null>(null);
+  const isScrollingRef = useRef<boolean>(false);
   
   // Animation variants for the card
   const cardVariants = {
@@ -36,7 +38,8 @@ export default function PenguinCard({
     }
   };
   
-  const pressStartHandler = () => {
+  // Mouse handlers (desktop)
+  const mouseDownHandler = () => {
     setIsPressing(true);
     timerRef.current = setTimeout(() => {
       onLongPress();
@@ -44,15 +47,70 @@ export default function PenguinCard({
     }, 500);
   };
   
-  const pressEndHandler = (e: React.MouseEvent | React.TouchEvent) => {
-    // Prevent the click from triggering if this was a long press
-    if (timerRef.current && !isPressing) {
-      e.preventDefault();
-    } else if (isPressing) {
+  const mouseUpHandler = () => {
+    if (isPressing) {
       onClick();
     }
     
     setIsPressing(false);
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+  
+  // Touch handlers (mobile)
+  const touchStartHandler = (e: React.TouchEvent) => {
+    // Store the starting touch position
+    const touch = e.touches[0];
+    touchStartPosRef.current = { x: touch.clientX, y: touch.clientY };
+    isScrollingRef.current = false;
+    
+    setIsPressing(true);
+    timerRef.current = setTimeout(() => {
+      // Only trigger long press if we're not scrolling
+      if (!isScrollingRef.current) {
+        onLongPress();
+      }
+      setIsPressing(false);
+    }, 500);
+  };
+  
+  const touchMoveHandler = (e: React.TouchEvent) => {
+    // If we don't have a starting position, exit
+    if (!touchStartPosRef.current) return;
+    
+    const touch = e.touches[0];
+    const currentPos = { x: touch.clientX, y: touch.clientY };
+    
+    // Calculate distance moved
+    const deltaX = Math.abs(currentPos.x - touchStartPosRef.current.x);
+    const deltaY = Math.abs(currentPos.y - touchStartPosRef.current.y);
+    
+    // If moved more than threshold, consider it scrolling
+    if (deltaX > 10 || deltaY > 10) {
+      isScrollingRef.current = true;
+      
+      // Cancel the long press timer
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+      setIsPressing(false);
+    }
+  };
+  
+  const touchEndHandler = () => {
+    // Only trigger click if we weren't scrolling and are still pressing
+    if (!isScrollingRef.current && isPressing) {
+      onClick();
+    }
+    
+    // Reset state
+    touchStartPosRef.current = null;
+    isScrollingRef.current = false;
+    setIsPressing(false);
+    
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
@@ -80,11 +138,12 @@ export default function PenguinCard({
       animate={isSeen ? "seen" : "unseen"}
       whileHover={{ y: -5 }}
       transition={{ duration: 0.2 }}
-      onMouseDown={pressStartHandler}
-      onMouseUp={pressEndHandler}
-      onMouseLeave={pressEndHandler}
-      onTouchStart={pressStartHandler}
-      onTouchEnd={pressEndHandler}
+      onMouseDown={mouseDownHandler}
+      onMouseUp={mouseUpHandler}
+      onMouseLeave={mouseUpHandler}
+      onTouchStart={touchStartHandler}
+      onTouchMove={touchMoveHandler}
+      onTouchEnd={touchEndHandler}
       onContextMenu={handleContextMenu}
     >
       <div className="relative mb-3">
