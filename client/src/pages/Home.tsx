@@ -9,7 +9,7 @@ import AuthButton from "@/components/AuthButton";
 import { usePenguinStore } from "@/hooks/use-penguin-store";
 import { useAuth } from "@/contexts/AuthContext";
 import { Penguin } from "@shared/schema";
-import { Feather, HelpCircle } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 
 export default function Home() {
   const [selectedPenguin, setSelectedPenguin] = useState<Penguin | null>(null);
@@ -77,7 +77,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <Feather className="text-[#1E3A8A] mr-3 h-6 w-6" />
+              <img src="/logo.png" alt="Penguin Spotter Logo" className="w-10 h-10 mr-3" />
               <h1 className="text-2xl font-bold text-[#1E3A8A]">Penguin Spotter</h1>
             </div>
             
