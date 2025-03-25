@@ -8,6 +8,7 @@ export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   
   // Penguin methods
@@ -45,13 +46,28 @@ export class MemStorage implements IStorage {
 
   async getUserByUsername(username: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
-      (user) => user.username === username,
+      (user) => user.displayName === username,
+    );
+  }
+  
+  async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.firebaseUid === firebaseUid,
     );
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
+    
+    // Ensure all required fields are properly set with null values if undefined
+    const user: User = {
+      id,
+      firebaseUid: insertUser.firebaseUid,
+      displayName: insertUser.displayName === undefined ? null : insertUser.displayName,
+      email: insertUser.email === undefined ? null : insertUser.email,
+      photoURL: insertUser.photoURL === undefined ? null : insertUser.photoURL
+    };
+    
     this.users.set(id, user);
     return user;
   }
@@ -74,7 +90,20 @@ export class MemStorage implements IStorage {
       id = this.currentPenguinId++;
     }
     
-    const penguin: Penguin = { ...insertPenguin, id };
+    // Ensure all required fields are properly set
+    const penguin: Penguin = {
+      id,
+      name: insertPenguin.name,
+      scientificName: insertPenguin.scientificName,
+      location: insertPenguin.location,
+      size: insertPenguin.size,
+      weight: insertPenguin.weight,
+      status: insertPenguin.status,
+      description: insertPenguin.description,
+      imageUrl: insertPenguin.imageUrl,
+      bwImageUrl: insertPenguin.bwImageUrl === undefined ? null : insertPenguin.bwImageUrl
+    };
+    
     this.penguins.set(id, penguin);
     return penguin;
   }
