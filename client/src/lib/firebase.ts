@@ -2,8 +2,7 @@ import { initializeApp } from "firebase/app";
 import { 
   getAuth, 
   GoogleAuthProvider, 
-  signInWithRedirect, 
-  getRedirectResult,
+  signInWithPopup,
   signOut, 
   onAuthStateChanged, 
   User 
@@ -23,29 +22,21 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
-// Sign in with Google using redirect
+// Sign in with Google using popup (better for Replit environment)
 export const signInWithGoogle = async () => {
   try {
-    await signInWithRedirect(auth, googleProvider);
-    return null; // The result will be handled by getRedirectResult after redirect
+    const result = await signInWithPopup(auth, googleProvider);
+    return result.user;
   } catch (error) {
     console.error("Error signing in with Google:", error);
     throw error;
   }
 };
 
-// Handle redirect result
+// This function is kept for backward compatibility
 export const handleRedirectResult = async () => {
-  try {
-    const result = await getRedirectResult(auth);
-    if (result) {
-      return result.user;
-    }
-    return null;
-  } catch (error) {
-    console.error("Error handling redirect:", error);
-    throw error;
-  }
+  // No longer needed with popup flow, but kept for API compatibility
+  return null;
 };
 
 // Sign out

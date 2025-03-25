@@ -28,8 +28,14 @@ export default function AuthButton() {
       await signIn();
     } catch (error: any) {
       console.error('Error signing in:', error);
-      if (error.code === 'auth/unauthorized-domain') {
+      if (error.code === 'auth/popup-closed-by-user') {
+        setAuthError('Sign-in popup was closed. Please try again.');
+      } else if (error.code === 'auth/popup-blocked') {
+        setAuthError('Sign-in popup was blocked by your browser. Please allow popups for this site.');
+      } else if (error.code === 'auth/unauthorized-domain') {
         setAuthError('Your domain needs to be added to Firebase authorized domains list.');
+      } else if (error.code === 'auth/network-request-failed') {
+        setAuthError('Network connection error. Please check your internet connection and try again.');
       } else {
         setAuthError(error.message || 'Authentication error');
       }
@@ -76,8 +82,12 @@ export default function AuthButton() {
               <TooltipContent className="max-w-xs bg-white p-2 shadow-lg rounded border">
                 <p className="text-sm">
                   {authError}<br/><br/>
-                  Go to Firebase console &gt; Authentication &gt; Settings &gt; 
-                  Authorized domains and add your Replit domain.
+                  {authError.includes('domain') && (
+                    <>
+                      Go to Firebase console &gt; Authentication &gt; Settings &gt; 
+                      Authorized domains and add your Replit domain.
+                    </>
+                  )}
                 </p>
               </TooltipContent>
             </Tooltip>

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
-import { signInWithGoogle, signOutUser, onAuthStateChange, handleRedirectResult } from '@/lib/firebase';
+import { signInWithGoogle, signOutUser, onAuthStateChange } from '@/lib/firebase';
 import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
 
@@ -42,25 +42,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // First, handle any redirect results when the component mounts
-    const handleRedirect = async () => {
-      try {
-        const redirectUser = await handleRedirectResult();
-        if (redirectUser) {
-          await createOrGetUser(redirectUser);
-          // Invalidate queries that depend on authentication
-          queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
-        }
-      } catch (error) {
-        console.error('Error handling redirect:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    handleRedirect();
-    
-    // Then, set up the auth state listener
+    // Set up the auth state listener 
     const unsubscribe = onAuthStateChange(async (user) => {
       setCurrentUser(user);
       
@@ -69,6 +51,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Invalidate queries that depend on authentication
         queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
       }
+      
+      // Set loading to false once auth state is initialized
+      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -76,10 +61,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async () => {
     try {
-      // For redirect flow, this will redirect the user away from the page
-      await signInWithGoogle();
-      // The result handling happens in the useEffect with handleRedirectResult
-      return null;
+      // Using popup flow - this will immediately return the user
+      const user = await signInWithGoogle();
+      if (user) {
+        await createOrGetUser(user);
+        // Invalidate queries that depend on authentication
+        queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
+      }
+      return user;
     } catch (error) {
       console.error('Error signing in:', error);
       // Re-throw the error so the UI can handle it
