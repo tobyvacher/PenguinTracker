@@ -45,11 +45,13 @@ export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalP
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
           <div>
-            <img 
-              src={penguin.imageUrl} 
-              alt={penguin.name}
-              className="w-full rounded-lg shadow-md object-cover aspect-square"
-            />
+            <div className="rounded-full overflow-hidden shadow-md border-4 border-white mx-auto max-w-[280px] aspect-square">
+              <img 
+                src={penguin.imageUrl} 
+                alt={penguin.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
           <div>
             <div className="mb-4">
@@ -74,7 +76,7 @@ export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalP
             
             <div className="mb-4">
               <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-1">Conservation Status</h3>
-              <p className={`inline-block px-2 py-1 rounded text-sm ${getStatusColor(penguin.status)}`}>
+              <p className={`inline-block px-4 py-1 rounded-full text-sm font-medium ${getStatusColor(penguin.status)}`}>
                 {penguin.status}
               </p>
             </div>
@@ -88,7 +90,7 @@ export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalP
         
         <div className="mt-6 flex justify-end">
           <Button 
-            className="bg-[#1E3A8A] hover:bg-[#3B82F6] text-white"
+            className="bg-[#1E3A8A] hover:bg-[#3B82F6] text-white rounded-full px-6"
             onClick={onClose}
           >
             Close
