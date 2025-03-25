@@ -21,8 +21,8 @@ export const penguinData: InsertPenguin[] = [
     weight: "2-3.5 kg (4.4-7.7 lb)",
     status: "Vulnerable",
     description: "The Southern Rockhopper Penguin is one of two rockhopper species, characterized by its distinctive yellow eyebrow tufts. These birds get their name from their habit of hopping from rock to rock. They breed on sub-Antarctic islands in the southern Atlantic and Indian Oceans, often nesting in large colonies on steep rocky slopes.",
-    imageUrl: "/images/penguins/Northern-Rockhopper-Headshot-Antoine-Lamielle-Wikimedia-600x403.jpg.jpeg",
-    bwImageUrl: "/images/penguins/Northern-Rockhopper-Headshot-Antoine-Lamielle-Wikimedia-600x403.jpg.jpeg"
+    imageUrl: "/images/penguins/Southern-Rockhopper-Headshot-PI-Photo-Library-600x403.jpg.jpeg",
+    bwImageUrl: "/images/penguins/Southern-Rockhopper-Headshot-PI-Photo-Library-600x403.jpg.jpeg"
   },
   {
     name: "Northern Rockhopper Penguin",
