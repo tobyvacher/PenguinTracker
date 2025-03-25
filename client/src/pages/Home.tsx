@@ -1,11 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import PenguinCard from "@/components/PenguinCard";
 import PenguinModal from "@/components/PenguinModal";
 import ProgressCounter from "@/components/ProgressCounter";
 import InfoBanner from "@/components/InfoBanner";
 import SuccessToast from "@/components/SuccessToast";
 import AuthButton from "@/components/AuthButton";
+import AchievementBadge from "@/components/AchievementBadge";
+import CongratulationsModal from "@/components/CongratulationsModal";
 import { usePenguinStore } from "@/hooks/use-penguin-store";
 import { useAuth } from "@/contexts/AuthContext";
 import { Penguin } from "@shared/schema";
@@ -18,6 +20,10 @@ export default function Home() {
   const [toastMessage, setToastMessage] = useState("");
   const [showToast, setShowToast] = useState(false);
   const [showInfoBanner, setShowInfoBanner] = useState(true);
+  const [showCongratsModal, setShowCongratsModal] = useState(false);
+  
+  // Track the last milestone reached to prevent showing the badge again for the same milestone
+  const lastMilestoneRef = useRef<number>(0);
   
   const { currentUser } = useAuth();
   const { seenPenguins, toggleSeen } = usePenguinStore();
@@ -29,15 +35,48 @@ export default function Home() {
   
   // Ensure penguins is always an array
   const penguins: Penguin[] = data || [];
+  
+  // Check if user has reached any achievement milestones
+  const shouldShowAchievementBadge = () => {
+    const count = seenPenguins.length;
+    
+    if (count >= 5 && lastMilestoneRef.current < 5) {
+      lastMilestoneRef.current = 5;
+      return true;
+    }
+    if (count >= 10 && lastMilestoneRef.current < 10) {
+      lastMilestoneRef.current = 10;
+      return true;
+    }
+    if (count >= 15 && lastMilestoneRef.current < 15) {
+      lastMilestoneRef.current = 15;
+      return true;
+    }
+    if (count >= 18 && lastMilestoneRef.current < 18) {
+      lastMilestoneRef.current = 18;
+      // Show congratulations modal when all 18 are collected
+      setShowCongratsModal(true);
+      return true;
+    }
+    
+    return false;
+  };
 
   const handlePenguinClick = (penguin: Penguin) => {
     const wasSeen = seenPenguins.includes(penguin.id);
     toggleSeen(penguin.id);
     
     if (!wasSeen) {
+      // Update toast message
       setToastMessage(`You've spotted the ${penguin.name}!`);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
+      
+      // Check for achievement milestones after a short delay
+      // to make sure the seenPenguins state is updated
+      setTimeout(() => {
+        shouldShowAchievementBadge();
+      }, 100);
     }
   };
 
@@ -48,6 +87,10 @@ export default function Home() {
 
   const closeModal = () => {
     setIsModalOpen(false);
+  };
+  
+  const closeCongratsModal = () => {
+    setShowCongratsModal(false);
   };
 
   if (isLoading) {
@@ -94,6 +137,12 @@ export default function Home() {
                 >
                   <HelpCircle className="text-[#1E3A8A] h-5 w-5" />
                 </button>
+              )}
+              {/* Achievement Badge */}
+              {seenPenguins.length >= 5 && (
+                <AchievementBadge count={seenPenguins.length >= 18 ? 18 : 
+                                         seenPenguins.length >= 15 ? 15 : 
+                                         seenPenguins.length >= 10 ? 10 : 5} />
               )}
               <ProgressCounter count={seenPenguins.length} total={penguins.length} />
               <AuthButton />
@@ -153,6 +202,11 @@ export default function Home() {
           onClose={closeModal} 
         />
       )}
+      
+      <CongratulationsModal
+        isOpen={showCongratsModal}
+        onClose={closeCongratsModal}
+      />
       
       <SuccessToast 
         message={toastMessage} 
