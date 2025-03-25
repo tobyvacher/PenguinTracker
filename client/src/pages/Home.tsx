@@ -82,13 +82,15 @@ export default function Home() {
             </div>
             
             <div className="flex items-center gap-4">
-              <button 
-                onClick={() => setShowInfoBanner(true)}
-                className="bg-white rounded-full p-2 shadow-sm hover:bg-slate-100 transition-colors"
-                aria-label="Show help information"
-              >
-                <HelpCircle className="text-[#1E3A8A] h-5 w-5" />
-              </button>
+              {!showInfoBanner && (
+                <button 
+                  onClick={() => setShowInfoBanner(true)}
+                  className="bg-white rounded-full p-2 shadow-sm hover:bg-slate-100 transition-colors"
+                  aria-label="Show help information"
+                >
+                  <HelpCircle className="text-[#1E3A8A] h-5 w-5" />
+                </button>
+              )}
               <ProgressCounter count={seenPenguins.length} total={penguins.length} />
               <AuthButton />
             </div>

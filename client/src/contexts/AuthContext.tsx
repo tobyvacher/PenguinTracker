@@ -82,7 +82,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return null;
     } catch (error) {
       console.error('Error signing in:', error);
-      return null;
+      // Re-throw the error so the UI can handle it
+      throw error;
     }
   };
 
