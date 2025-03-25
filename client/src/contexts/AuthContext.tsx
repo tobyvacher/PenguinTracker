@@ -69,8 +69,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
       }
       return user;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error signing in:', error);
+      
+      // Better error handling for common Firebase auth errors
+      if (error.code === 'auth/popup-closed-by-user') {
+        console.log('Sign-in popup was closed by the user before completing the sign-in process.');
+      } else if (error.code === 'auth/popup-blocked') {
+        alert('Sign-in popup was blocked by your browser. Please allow popups for this site and try again.');
+      } else if (error.code === 'auth/unauthorized-domain') {
+        const currentDomain = window.location.hostname;
+        alert(`This domain (${currentDomain}) is not authorized for Firebase authentication. Please add it to your Firebase authorized domains list.`);
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        console.log('Multiple popup requests were made. The latest request canceled the previous one.');
+      } else if (error.code === 'auth/internal-error') {
+        // This often indicates environment variables or config issues
+        console.error('Firebase internal error. Check that all environment variables are set correctly.');
+      }
+      
       // Re-throw the error so the UI can handle it
       throw error;
     }

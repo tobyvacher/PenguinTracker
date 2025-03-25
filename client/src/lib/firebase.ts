@@ -23,17 +23,31 @@ const isConfigValid =
   !!import.meta.env.VITE_FIREBASE_PROJECT_ID && 
   !!import.meta.env.VITE_FIREBASE_APP_ID;
 
+// Debug environment variables without exposing actual values
+const envCheck = {
+  VITE_FIREBASE_API_KEY: !!import.meta.env.VITE_FIREBASE_API_KEY,
+  VITE_FIREBASE_PROJECT_ID: !!import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  VITE_FIREBASE_APP_ID: !!import.meta.env.VITE_FIREBASE_APP_ID
+};
+console.log("Environment variables present:", envCheck);
+
 // Initialize Firebase
 let app: ReturnType<typeof initializeApp> | undefined;
 let auth: ReturnType<typeof getAuth> | undefined;
 let googleProvider: GoogleAuthProvider | undefined;
 
 try {
-  app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  googleProvider = new GoogleAuthProvider();
-  // Log successful initialization
-  console.log("Firebase initialized successfully");
+  if (!isConfigValid) {
+    console.error("Firebase configuration is invalid. Missing environment variables.", envCheck);
+    console.log("Current host:", window.location.hostname);
+  } else {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    googleProvider = new GoogleAuthProvider();
+    console.log("Firebase initialized successfully");
+    // Log auth domain for debugging
+    console.log(`Auth domain being used: ${firebaseConfig.authDomain}`);
+  }
 } catch (error) {
   console.error("Error initializing Firebase:", error);
 }

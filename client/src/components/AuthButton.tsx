@@ -36,6 +36,10 @@ export default function AuthButton() {
         setAuthError('Your domain needs to be added to Firebase authorized domains list.');
       } else if (error.code === 'auth/network-request-failed') {
         setAuthError('Network connection error. Please check your internet connection and try again.');
+      } else if (error.code === 'auth/internal-error') {
+        setAuthError('Firebase internal error. Check that environment variables are set correctly.');
+      } else if (error.message?.includes('apiKey') || error.message?.includes('config')) {
+        setAuthError('Firebase configuration error. Check that environment variables are set correctly.');
       } else {
         setAuthError(error.message || 'Authentication error');
       }
@@ -86,6 +90,12 @@ export default function AuthButton() {
                     <>
                       Go to Firebase console &gt; Authentication &gt; Settings &gt; 
                       Authorized domains and add your Replit domain.
+                    </>
+                  )}
+                  {authError.includes('variables') && (
+                    <>
+                      Make sure all Firebase environment variables are set in your deployment:
+                      VITE_FIREBASE_API_KEY, VITE_FIREBASE_PROJECT_ID, and VITE_FIREBASE_APP_ID
                     </>
                   )}
                 </p>
