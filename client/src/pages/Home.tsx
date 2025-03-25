@@ -5,7 +5,9 @@ import PenguinModal from "@/components/PenguinModal";
 import ProgressCounter from "@/components/ProgressCounter";
 import InfoBanner from "@/components/InfoBanner";
 import SuccessToast from "@/components/SuccessToast";
+import AuthButton from "@/components/AuthButton";
 import { usePenguinStore } from "@/hooks/use-penguin-store";
+import { useAuth } from "@/contexts/AuthContext";
 import { Penguin } from "@shared/schema";
 import { Feather, HelpCircle } from "lucide-react";
 
@@ -16,6 +18,7 @@ export default function Home() {
   const [showToast, setShowToast] = useState(false);
   const [showInfoBanner, setShowInfoBanner] = useState(true);
   
+  const { currentUser } = useAuth();
   const { seenPenguins, toggleSeen } = usePenguinStore();
 
   // Fetch all penguins
@@ -87,6 +90,7 @@ export default function Home() {
                 <HelpCircle className="text-[#1E3A8A] h-5 w-5" />
               </button>
               <ProgressCounter count={seenPenguins.length} total={penguins.length} />
+              <AuthButton />
             </div>
           </div>
         </div>
