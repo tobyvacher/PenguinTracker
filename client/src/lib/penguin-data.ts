@@ -14,24 +14,24 @@ export const penguinData: InsertPenguin[] = [
     bwImageUrl: "/images/penguins/Little-Penguin-Headshot-Stephen-Dann-Wikimedia-1-600x403.jpg.jpeg"
   },
   {
-    name: "Fairy Penguin",
-    scientificName: "Eudyptula minor",
-    location: "Australia and New Zealand",
-    size: "30-33 cm (12-13 inches) tall",
-    weight: "1-1.3 kg (2.2-2.9 lb)",
-    status: "Least Concern",
-    description: "The Fairy Penguin, also known as the Little Blue Penguin or Little Penguin, is the smallest species of penguin. They primarily feed on fish, squid, and occasionally krill. Fairy Penguins typically forage relatively close to the shore, but can travel further when necessary.",
-    imageUrl: "/images/penguins/Little-Penguin-Headshot-Stephen-Dann-Wikimedia-1-600x403.jpg.jpeg",
-    bwImageUrl: "/images/penguins/Little-Penguin-Headshot-Stephen-Dann-Wikimedia-1-600x403.jpg.jpeg"
+    name: "Southern Rockhopper Penguin",
+    scientificName: "Eudyptes chrysocome",
+    location: "Sub-Antarctic islands, South America",
+    size: "45-58 cm (18-23 inches) tall",
+    weight: "2-3.5 kg (4.4-7.7 lb)",
+    status: "Vulnerable",
+    description: "The Southern Rockhopper Penguin is one of two rockhopper species, characterized by its distinctive yellow eyebrow tufts. These birds get their name from their habit of hopping from rock to rock. They breed on sub-Antarctic islands in the southern Atlantic and Indian Oceans, often nesting in large colonies on steep rocky slopes.",
+    imageUrl: "/images/penguins/Northern-Rockhopper-Headshot-Antoine-Lamielle-Wikimedia-600x403.jpg.jpeg",
+    bwImageUrl: "/images/penguins/Northern-Rockhopper-Headshot-Antoine-Lamielle-Wikimedia-600x403.jpg.jpeg"
   },
   {
-    name: "Rockhopper Penguin",
-    scientificName: "Eudyptes chrysocome",
-    location: "Sub-Antarctic islands",
+    name: "Northern Rockhopper Penguin",
+    scientificName: "Eudyptes moseleyi",
+    location: "Tristan da Cunha, Gough Island, Amsterdam Island",
     size: "45-58 cm (18-23 inches) tall",
     weight: "2-3.4 kg (4.4-7.5 lb)",
-    status: "Vulnerable",
-    description: "Rockhopper Penguins are among the smallest species of penguin in the world. They are the most aggressive and numerous of all crested penguins. Rockhopper Penguins are distinguished by the straight, yellow feathers that rise from their heads. They have blood-red eyes, a red-orange beak, and pink webbed feet.",
+    status: "Endangered",
+    description: "The Northern Rockhopper Penguin is distinguished by its spiky yellow crest feathers that are more dramatic than those of its southern relative. They are among the most aggressive and numerous of all crested penguins. Like other rockhoppers, they get their name from their habit of hopping from rock to rock. They have blood-red eyes, a red-orange beak, and pink webbed feet.",
     imageUrl: "/images/penguins/Northern-Rockhopper-Headshot-Antoine-Lamielle-Wikimedia-600x403.jpg.jpeg",
     bwImageUrl: "/images/penguins/Northern-Rockhopper-Headshot-Antoine-Lamielle-Wikimedia-600x403.jpg.jpeg"
   },
