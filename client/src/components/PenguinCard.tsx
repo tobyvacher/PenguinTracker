@@ -26,14 +26,16 @@ export default function PenguinCard({
       rotate: [0, 1, 0, -1, 0],
       transition: {
         y: {
-          repeat: Infinity,
+          repeat: 2, // 3 repetitions (initial + 2 repeats)
           duration: 3,
           ease: "easeInOut",
+          repeatType: "loop"
         },
         rotate: {
-          repeat: Infinity,
+          repeat: 2, // 3 repetitions (initial + 2 repeats)
           duration: 4,
           ease: "easeInOut",
+          repeatType: "loop"
         }
       }
     },
@@ -119,10 +121,11 @@ export default function PenguinCard({
               opacity: { duration: 0.3 },
               scale: { duration: 0.3 },
               rotate: { 
-                repeat: Infinity, 
+                repeat: 2, // 3 repetitions (initial + 2 repeats)
                 duration: 2,
                 ease: "easeInOut",
-                delay: 0.3 
+                delay: 0.3,
+                repeatType: "loop"
               }
             }
           } : { 
