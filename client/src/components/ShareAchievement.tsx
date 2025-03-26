@@ -36,24 +36,13 @@ export default function ShareAchievement({
 
   if (!isOpen) return null;
 
-  const shareToTwitter = () => {
-    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
-    window.open(url, '_blank');
-  };
-
-  const shareToFacebook = () => {
-    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
-    window.open(url, '_blank');
-  };
-
-  const shareToWhatsApp = () => {
-    const url = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
-    window.open(url, '_blank');
-  };
-
-  const shareToLinkedIn = () => {
-    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`;
-    window.open(url, '_blank');
+  // Helper function to safely open a URL
+  const safeWindowOpen = (url: string) => {
+    try {
+      window.open(url, '_blank');
+    } catch (err) {
+      console.error('Error opening URL:', err);
+    }
   };
 
   const copyToClipboard = () => {
@@ -171,46 +160,25 @@ export default function ShareAchievement({
             </div>
           </div>
           
-          {/* Sharing Options */}
-          <div className="grid grid-cols-5 gap-2 mb-6">
-            <button 
-              onClick={shareToTwitter}
-              className="flex flex-col items-center justify-center bg-[#1DA1F2] text-white p-2 rounded-lg hover:bg-[#1a91da] transition-colors"
-            >
-              <Twitter className="h-6 w-6" />
-              <span className="text-xs mt-1">Twitter</span>
-            </button>
+          {!imageSrc && (
+            <div className="mb-6 p-4 border border-blue-100 rounded-lg bg-blue-50">
+              <p className="text-sm text-blue-700 mb-1">
+                <strong>Step 1:</strong> Generate an image using the button below to share on social media.
+              </p>
+              <p className="text-xs text-blue-600">
+                After generating, you'll be able to download the image or share it directly.
+              </p>
+            </div>
+          )}
             
-            <button 
-              onClick={shareToFacebook}
-              className="flex flex-col items-center justify-center bg-[#4267B2] text-white p-2 rounded-lg hover:bg-[#3a5a99] transition-colors"
-            >
-              <Facebook className="h-6 w-6" />
-              <span className="text-xs mt-1">Facebook</span>
-            </button>
-            
-            <button 
-              onClick={shareToWhatsApp}
-              className="flex flex-col items-center justify-center bg-[#25D366] text-white p-2 rounded-lg hover:bg-[#20c35a] transition-colors"
-            >
-              <FaWhatsapp className="h-6 w-6" />
-              <span className="text-xs mt-1">WhatsApp</span>
-            </button>
-            
-            <button 
-              onClick={shareToLinkedIn}
-              className="flex flex-col items-center justify-center bg-[#0077B5] text-white p-2 rounded-lg hover:bg-[#0069a1] transition-colors"
-            >
-              <Linkedin className="h-6 w-6" />
-              <span className="text-xs mt-1">LinkedIn</span>
-            </button>
-            
+          {/* Copy Text Link - Always visible */}
+          <div className="flex justify-center mb-4">
             <button 
               onClick={copyToClipboard}
-              className="flex flex-col items-center justify-center bg-gray-700 text-white p-2 rounded-lg hover:bg-gray-600 transition-colors"
+              className="flex items-center justify-center gap-2 bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
             >
-              {copied ? <Check className="h-6 w-6" /> : <Copy className="h-6 w-6" />}
-              <span className="text-xs mt-1">{copied ? 'Copied!' : 'Copy'}</span>
+              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              <span>{copied ? 'Link Copied!' : 'Copy Link'}</span>
             </button>
           </div>
           
@@ -240,7 +208,7 @@ export default function ShareAchievement({
             ) : (
               <div className="flex flex-col items-center">
                 <img src={imageSrc} alt="Shareable achievement" className="mb-4 rounded-lg max-w-full max-h-36 object-contain" />
-                <div className="flex gap-3">
+                <div className="flex gap-3 mb-4">
                   <button
                     onClick={downloadImage}
                     className="flex items-center justify-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
@@ -289,6 +257,71 @@ export default function ShareAchievement({
                     </button>
                   )}
                 </div>
+                
+                {/* Social sharing with image */}
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  <button 
+                    onClick={async () => {
+                      try {
+                        const blob = await (await fetch(imageSrc)).blob();
+                        const file = new File([blob], 
+                          penguin ? `penguin-${penguin.name}.png` : `penguin-achievement-${count}.png`, 
+                          { type: 'image/png' }
+                        );
+                        
+                        // Twitter doesn't support direct image sharing via URL
+                        // So we'll open Twitter sharing with text and let them attach the image manually
+                        const shareText = penguin 
+                          ? `I spotted the ${penguin.name} on Penguin Tracker! ${window.location.href}`
+                          : `I've spotted ${count} out of ${total} penguin species on Penguin Tracker! ${window.location.href}`;
+                          
+                        safeWindowOpen(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`);
+                      } catch (err) {
+                        console.error('Error sharing to Twitter:', err);
+                      }
+                    }}
+                    className="flex flex-col items-center justify-center bg-[#1DA1F2] text-white p-2 rounded-lg hover:bg-[#1a91da] transition-colors"
+                  >
+                    <Twitter className="h-5 w-5" />
+                    <span className="text-xs mt-1">Share</span>
+                  </button>
+                  
+                  <button 
+                    onClick={async () => {
+                      try {
+                        // For Facebook, we'll use the image sharing URL
+                        const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(shareText)}`;
+                        safeWindowOpen(shareUrl);
+                      } catch (err) {
+                        console.error('Error sharing to Facebook:', err);
+                      }
+                    }}
+                    className="flex flex-col items-center justify-center bg-[#4267B2] text-white p-2 rounded-lg hover:bg-[#3a5a99] transition-colors"
+                  >
+                    <Facebook className="h-5 w-5" />
+                    <span className="text-xs mt-1">Share</span>
+                  </button>
+                  
+                  <button 
+                    onClick={async () => {
+                      try {
+                        const shareText = penguin 
+                          ? `I spotted the ${penguin.name} on Penguin Tracker! Check out my screenshot. ${window.location.href}`
+                          : `I've spotted ${count} out of ${total} penguin species on Penguin Tracker! Check out my achievement. ${window.location.href}`;
+                        
+                        const shareUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+                        safeWindowOpen(shareUrl);
+                      } catch (err) {
+                        console.error('Error sharing to WhatsApp:', err);
+                      }
+                    }}
+                    className="flex flex-col items-center justify-center bg-[#25D366] text-white p-2 rounded-lg hover:bg-[#20c35a] transition-colors"
+                  >
+                    <FaWhatsapp className="h-5 w-5" />
+                    <span className="text-xs mt-1">Share</span>
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500 text-center">These platforms may ask you to add the image manually</p>
               </div>
             )}
           </div>
