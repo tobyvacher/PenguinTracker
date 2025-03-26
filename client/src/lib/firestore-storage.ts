@@ -4,14 +4,14 @@ import {
   getDoc, 
   getDocs, 
   setDoc, 
-  addDoc, 
   updateDoc, 
   deleteDoc, 
   query, 
   where,
-  Timestamp,
   serverTimestamp,
-  writeBatch
+  writeBatch,
+  limit,
+  orderBy
 } from "firebase/firestore";
 import { db } from "./firebase";
 import type { 
@@ -33,6 +33,11 @@ const COLLECTIONS = {
   JOURNAL_ENTRIES: 'journal_entries',
 };
 
+// Caching maps for better performance
+const userCache = new Map<number, User>();
+const penguinCache = new Map<number, Penguin>();
+const journalCache = new Map<string, SightingJournal[]>(); // userId_penguinId as key
+
 // Error handling helper
 const handleFirestoreError = (operation: string, error: any): never => {
   console.error(`Firestore error during ${operation}:`, error);
@@ -40,6 +45,12 @@ const handleFirestoreError = (operation: string, error: any): never => {
 };
 
 export class FirestoreStorage {
+  // ID counters to avoid fetching all documents
+  private userIdCounter = 0;
+  private penguinIdCounter = 0;
+  private seenPenguinIdCounter = 0;
+  private journalIdCounter = 0;
+  
   // Initialize with penguins data
   constructor(initialPenguins?: InsertPenguin[]) {
     // If we have initial penguin data, initialize it
@@ -63,21 +74,30 @@ export class FirestoreStorage {
       // Add all penguins to the collection
       const batch = writeBatch(db);
       for (const penguin of penguins) {
-        // Ensure we have an ID for each penguin (should always have one from our data)
+        // Ensure we have an ID for each penguin
         const penguinId = (penguin as any).id ? (penguin as any).id : penguins.indexOf(penguin) + 1;
         const docRef = doc(penguinsCollection, penguinId.toString());
-        batch.set(docRef, {
+        
+        // Ensure required fields for Penguin type
+        const penguinWithRequiredFields = {
           ...penguin,
           id: penguinId,
-          // Add any additional fields needed
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        });
+          bwImageUrl: penguin.bwImageUrl || null,
+          // Add timestamps
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        
+        batch.set(docRef, penguinWithRequiredFields);
+        
+        // Update the counter
+        if (penguinId > this.penguinIdCounter) {
+          this.penguinIdCounter = penguinId;
+        }
       }
       
       await batch.commit();
       console.log(`Initialized ${penguins.length} penguins in Firestore`);
-      return; // Explicit return for clarity
     } catch (error) {
       handleFirestoreError('initialize penguins', error);
     }
@@ -85,18 +105,25 @@ export class FirestoreStorage {
 
   // User methods
   async getUser(id: number): Promise<User | undefined> {
+    // Check cache first
+    if (userCache.has(id)) {
+      return userCache.get(id);
+    }
+    
     if (!db) throw new Error("Firestore not initialized");
     
     try {
       const userDoc = await getDoc(doc(db, COLLECTIONS.USERS, id.toString()));
       if (!userDoc.exists()) return undefined;
       
-      return userDoc.data() as User;
+      const userData = userDoc.data() as User;
+      userCache.set(id, userData); // Cache the result
+      return userData;
     } catch (error) {
       handleFirestoreError('get user', error);
     }
     
-    return undefined; // Explicit return for TypeScript
+    return undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
@@ -105,17 +132,21 @@ export class FirestoreStorage {
     try {
       const usersQuery = query(
         collection(db, COLLECTIONS.USERS), 
-        where("username", "==", username)
+        where("username", "==", username),
+        limit(1) // Only need first match
       );
       
       const snapshot = await getDocs(usersQuery);
       if (snapshot.empty) return undefined;
       
-      // Return the first match
-      return snapshot.docs[0].data() as User;
+      const userData = snapshot.docs[0].data() as User;
+      userCache.set(userData.id, userData); // Cache the result
+      return userData;
     } catch (error) {
       handleFirestoreError('get user by username', error);
     }
+    
+    return undefined;
   }
 
   async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
@@ -124,16 +155,50 @@ export class FirestoreStorage {
     try {
       const usersQuery = query(
         collection(db, COLLECTIONS.USERS), 
-        where("firebaseUid", "==", firebaseUid)
+        where("firebaseUid", "==", firebaseUid),
+        limit(1) // Only need first match
       );
       
       const snapshot = await getDocs(usersQuery);
       if (snapshot.empty) return undefined;
       
-      // Return the first match
-      return snapshot.docs[0].data() as User;
+      const userData = snapshot.docs[0].data() as User;
+      userCache.set(userData.id, userData); // Cache the result
+      return userData;
     } catch (error) {
       handleFirestoreError('get user by firebase UID', error);
+    }
+    
+    return undefined;
+  }
+
+  // Get the next user ID
+  private async getNextUserId(): Promise<number> {
+    if (this.userIdCounter > 0) {
+      return this.userIdCounter + 1;
+    }
+    
+    if (!db) throw new Error("Firestore not initialized");
+    
+    try {
+      const usersQuery = query(
+        collection(db, COLLECTIONS.USERS),
+        orderBy("id", "desc"),
+        limit(1)
+      );
+      
+      const snapshot = await getDocs(usersQuery);
+      if (snapshot.empty) {
+        this.userIdCounter = 0;
+        return 1;
+      }
+      
+      const maxId = snapshot.docs[0].data().id;
+      this.userIdCounter = maxId;
+      return maxId + 1;
+    } catch (error) {
+      console.error("Error getting next user ID:", error);
+      return 1;
     }
   }
 
@@ -146,23 +211,29 @@ export class FirestoreStorage {
       if (existingUser) return existingUser;
       
       // Generate a new ID for the user
-      const usersCollection = collection(db, COLLECTIONS.USERS);
-      const snapshot = await getDocs(usersCollection);
-      const id = snapshot.size + 1;
+      const id = await this.getNextUserId();
+      this.userIdCounter = id;
       
-      // Create the user document
+      // Create the user document with required fields
       const newUser: User = {
         ...user,
         id,
+        displayName: user.displayName || null,
+        email: user.email || null,
+        photoURL: user.photoURL || null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
       
       await setDoc(doc(db, COLLECTIONS.USERS, id.toString()), newUser);
+      userCache.set(id, newUser); // Cache the new user
       return newUser;
     } catch (error) {
       handleFirestoreError('create user', error);
     }
+    
+    // TypeScript won't reach here due to handleFirestoreError, but needs this for type safety
+    throw new Error("Failed to create user");
   }
 
   // Penguin methods
@@ -173,23 +244,40 @@ export class FirestoreStorage {
       const penguinsCollection = collection(db, COLLECTIONS.PENGUINS);
       const snapshot = await getDocs(penguinsCollection);
       
-      return snapshot.docs.map(doc => doc.data() as Penguin);
+      const penguins = snapshot.docs.map(doc => {
+        const data = doc.data() as Penguin;
+        penguinCache.set(data.id, data); // Cache each penguin
+        return data;
+      });
+      
+      return penguins;
     } catch (error) {
       handleFirestoreError('get all penguins', error);
     }
+    
+    return [];
   }
 
   async getPenguin(id: number): Promise<Penguin | undefined> {
+    // Check cache first
+    if (penguinCache.has(id)) {
+      return penguinCache.get(id);
+    }
+    
     if (!db) throw new Error("Firestore not initialized");
     
     try {
       const penguinDoc = await getDoc(doc(db, COLLECTIONS.PENGUINS, id.toString()));
       if (!penguinDoc.exists()) return undefined;
       
-      return penguinDoc.data() as Penguin;
+      const penguinData = penguinDoc.data() as Penguin;
+      penguinCache.set(id, penguinData); // Cache the result
+      return penguinData;
     } catch (error) {
       handleFirestoreError('get penguin', error);
     }
+    
+    return undefined;
   }
 
   async createPenguin(penguin: InsertPenguin & { id?: number }): Promise<Penguin> {
@@ -199,23 +287,28 @@ export class FirestoreStorage {
       // If ID is provided, use it, otherwise generate a new one
       let id = penguin.id;
       if (!id) {
-        const penguinsCollection = collection(db, COLLECTIONS.PENGUINS);
-        const snapshot = await getDocs(penguinsCollection);
-        id = snapshot.size + 1;
+        id = this.penguinIdCounter + 1;
+        this.penguinIdCounter = id;
       }
       
+      // Create with required fields for Penguin type
       const newPenguin: Penguin = {
         ...penguin,
         id,
+        bwImageUrl: penguin.bwImageUrl || null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
       
       await setDoc(doc(db, COLLECTIONS.PENGUINS, id.toString()), newPenguin);
+      penguinCache.set(id, newPenguin); // Cache the new penguin
       return newPenguin;
     } catch (error) {
       handleFirestoreError('create penguin', error);
     }
+    
+    // TypeScript won't reach here due to handleFirestoreError, but needs this for type safety
+    throw new Error("Failed to create penguin");
   }
 
   // Seen penguin methods
@@ -233,6 +326,8 @@ export class FirestoreStorage {
     } catch (error) {
       handleFirestoreError('get seen penguins', error);
     }
+    
+    return [];
   }
 
   async addSeenPenguin(seenPenguin: InsertSeenPenguin): Promise<SeenPenguin> {
@@ -243,7 +338,8 @@ export class FirestoreStorage {
       const seenPenguinsQuery = query(
         collection(db, COLLECTIONS.SEEN_PENGUINS),
         where("userId", "==", seenPenguin.userId),
-        where("penguinId", "==", seenPenguin.penguinId)
+        where("penguinId", "==", seenPenguin.penguinId),
+        limit(1)
       );
       
       const snapshot = await getDocs(seenPenguinsQuery);
@@ -253,9 +349,8 @@ export class FirestoreStorage {
       }
       
       // Generate a new ID
-      const seenPenguinsCollection = collection(db, COLLECTIONS.SEEN_PENGUINS);
-      const allSnapshot = await getDocs(seenPenguinsCollection);
-      const id = allSnapshot.size + 1;
+      const id = this.seenPenguinIdCounter + 1;
+      this.seenPenguinIdCounter = id;
       
       // Create the seen penguin entry
       const newSeenPenguin: SeenPenguin = {
@@ -269,6 +364,9 @@ export class FirestoreStorage {
     } catch (error) {
       handleFirestoreError('add seen penguin', error);
     }
+    
+    // TypeScript won't reach here due to handleFirestoreError, but needs this for type safety
+    throw new Error("Failed to add seen penguin");
   }
 
   async removeSeenPenguin(userId: number, penguinId: number): Promise<void> {
@@ -279,7 +377,8 @@ export class FirestoreStorage {
       const seenPenguinsQuery = query(
         collection(db, COLLECTIONS.SEEN_PENGUINS),
         where("userId", "==", userId),
-        where("penguinId", "==", penguinId)
+        where("penguinId", "==", penguinId),
+        limit(1)
       );
       
       const snapshot = await getDocs(seenPenguinsQuery);
@@ -297,57 +396,129 @@ export class FirestoreStorage {
     if (!db) throw new Error("Firestore not initialized");
     
     try {
+      const cacheKey = `user_${userId}`;
+      
+      // Check cache first
+      if (journalCache.has(cacheKey)) {
+        return journalCache.get(cacheKey) || [];
+      }
+      
       const journalQuery = query(
         collection(db, COLLECTIONS.JOURNAL_ENTRIES),
-        where("userId", "==", userId)
+        where("userId", "==", userId),
+        orderBy("createdAt", "desc") // Most recent first
       );
       
+      console.time('getUserJournalEntries');
       const snapshot = await getDocs(journalQuery);
-      return snapshot.docs.map(doc => doc.data() as SightingJournal);
+      console.timeEnd('getUserJournalEntries');
+      
+      const entries = snapshot.docs.map(doc => doc.data() as SightingJournal);
+      journalCache.set(cacheKey, entries); // Cache the results
+      
+      return entries;
     } catch (error) {
       handleFirestoreError('get user journal entries', error);
     }
+    
+    return [];
   }
 
   async getPenguinJournalEntries(userId: number, penguinId: number): Promise<SightingJournal[]> {
     if (!db) throw new Error("Firestore not initialized");
     
     try {
+      const cacheKey = `user_${userId}_penguin_${penguinId}`;
+      
+      // Check cache first
+      if (journalCache.has(cacheKey)) {
+        return journalCache.get(cacheKey) || [];
+      }
+      
       const journalQuery = query(
         collection(db, COLLECTIONS.JOURNAL_ENTRIES),
         where("userId", "==", userId),
-        where("penguinId", "==", penguinId)
+        where("penguinId", "==", penguinId),
+        orderBy("createdAt", "desc") // Most recent first
       );
       
+      console.time('getPenguinJournalEntries');
       const snapshot = await getDocs(journalQuery);
-      return snapshot.docs.map(doc => doc.data() as SightingJournal);
+      console.timeEnd('getPenguinJournalEntries');
+      
+      const entries = snapshot.docs.map(doc => doc.data() as SightingJournal);
+      journalCache.set(cacheKey, entries); // Cache the results
+      
+      return entries;
     } catch (error) {
       handleFirestoreError('get penguin journal entries', error);
     }
+    
+    return [];
   }
 
+  // Get the maximum journal ID from Firestore
+  private async getNextJournalId(): Promise<number> {
+    if (this.journalIdCounter > 0) {
+      return this.journalIdCounter + 1;
+    }
+    
+    if (!db) throw new Error("Firestore not initialized");
+    
+    try {
+      // Use orderBy and limit for efficient querying
+      const journalQuery = query(
+        collection(db, COLLECTIONS.JOURNAL_ENTRIES),
+        orderBy("id", "desc"),
+        limit(1)
+      );
+      
+      const snapshot = await getDocs(journalQuery);
+      if (snapshot.empty) {
+        return 1;
+      }
+      
+      const maxId = snapshot.docs[0].data().id;
+      this.journalIdCounter = maxId;
+      return maxId + 1;
+    } catch (error) {
+      console.error("Error getting next journal ID:", error);
+      return 1;
+    }
+  }
+  
   async addJournalEntry(entry: InsertSightingJournal): Promise<SightingJournal> {
     if (!db) throw new Error("Firestore not initialized");
     
     try {
-      // Generate a new ID
-      const journalCollection = collection(db, COLLECTIONS.JOURNAL_ENTRIES);
-      const allSnapshot = await getDocs(journalCollection);
-      const id = allSnapshot.size + 1;
+      // Get the next ID
+      const id = await this.getNextJournalId();
+      this.journalIdCounter = id;
       
-      // Create the journal entry
+      // Create the journal entry with required fields for SightingJournal type
       const newEntry: SightingJournal = {
         ...entry,
         id,
+        notes: entry.notes || null,
+        coordinates: entry.coordinates || null,
+        sightingDate: entry.sightingDate as Date, // Already validated by the form
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
       
+      // Add the document with the ID as its key for faster lookup
       await setDoc(doc(db, COLLECTIONS.JOURNAL_ENTRIES, id.toString()), newEntry);
+      
+      // Update cache
+      this.invalidateJournalCache(entry.userId, entry.penguinId);
+      
       return newEntry;
     } catch (error) {
       handleFirestoreError('add journal entry', error);
     }
+    
+    // TypeScript won't reach here due to handleFirestoreError, but needs this for type safety
+    throw new Error("Failed to add journal entry");
   }
 
   async updateJournalEntry(id: number, updates: Partial<InsertSightingJournal>): Promise<SightingJournal | undefined> {
@@ -358,28 +529,58 @@ export class FirestoreStorage {
       const entryDoc = await getDoc(doc(db, COLLECTIONS.JOURNAL_ENTRIES, id.toString()));
       if (!entryDoc.exists()) return undefined;
       
-      // Update the entry
+      const existingEntry = entryDoc.data() as SightingJournal;
+      
+      // Update the entry with required fields
       const updatedEntry: SightingJournal = {
-        ...(entryDoc.data() as SightingJournal),
+        ...existingEntry,
         ...updates,
+        notes: updates.notes !== undefined ? updates.notes : existingEntry.notes,
+        coordinates: updates.coordinates !== undefined ? updates.coordinates : existingEntry.coordinates,
+        sightingDate: updates.sightingDate as Date || existingEntry.sightingDate,
         updatedAt: new Date().toISOString()
       };
       
       await updateDoc(doc(db, COLLECTIONS.JOURNAL_ENTRIES, id.toString()), updatedEntry);
+      
+      // Update cache
+      this.invalidateJournalCache(existingEntry.userId, existingEntry.penguinId);
+      
       return updatedEntry;
     } catch (error) {
       handleFirestoreError('update journal entry', error);
     }
+    
+    return undefined;
   }
 
   async deleteJournalEntry(id: number): Promise<void> {
     if (!db) throw new Error("Firestore not initialized");
     
     try {
+      // Get the entry first to know which caches to invalidate
+      const entryDoc = await getDoc(doc(db, COLLECTIONS.JOURNAL_ENTRIES, id.toString()));
+      if (!entryDoc.exists()) return;
+      
+      const entry = entryDoc.data() as SightingJournal;
+      
+      // Delete the document
       await deleteDoc(doc(db, COLLECTIONS.JOURNAL_ENTRIES, id.toString()));
+      
+      // Update cache
+      this.invalidateJournalCache(entry.userId, entry.penguinId);
     } catch (error) {
       handleFirestoreError('delete journal entry', error);
     }
+  }
+  
+  // Helper to invalidate journal caches
+  private invalidateJournalCache(userId: number, penguinId: number): void {
+    // Clear the specific penguin journal cache
+    journalCache.delete(`user_${userId}_penguin_${penguinId}`);
+    
+    // Clear the user's overall journal cache
+    journalCache.delete(`user_${userId}`);
   }
 }
 

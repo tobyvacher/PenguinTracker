@@ -53,21 +53,8 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
 
   // Handle delete
   const handleDelete = (entryId: number) => {
-    deleteJournalEntry(entryId, {
-      onSuccess: () => {
-        toast({
-          title: "Entry deleted",
-          description: "Journal entry has been deleted successfully.",
-        });
-      },
-      onError: () => {
-        toast({
-          title: "Delete failed",
-          description: "There was an error deleting the journal entry.",
-          variant: "destructive",
-        });
-      }
-    });
+    // Pass the penguin ID for better cache invalidation
+    deleteJournalEntry(entryId, penguin.id);
   };
 
   // Form handlers
@@ -82,8 +69,14 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
   // Show loading state
   if (isLoading) {
     return (
-      <div className="p-4 text-center">
-        <p>Loading journal entries...</p>
+      <div className="p-4 text-center space-y-4">
+        <div className="animate-pulse flex flex-col items-center">
+          <div className="h-5 w-32 bg-gray-200 rounded mb-4"></div>
+          <div className="h-24 w-full bg-gray-100 rounded mb-2"></div>
+          <div className="h-24 w-full bg-gray-100 rounded mb-2"></div>
+          <div className="h-24 w-full bg-gray-100 rounded"></div>
+        </div>
+        <p className="text-gray-500">Loading journal entries...</p>
       </div>
     );
   }
