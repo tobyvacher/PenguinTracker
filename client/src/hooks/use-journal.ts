@@ -16,7 +16,7 @@ export function useJournal() {
 
   // Fetch journal entries for a specific penguin
   const getPenguinJournalEntries = (penguinId: number) => {
-    return useQuery<SightingJournal[]>({
+    return useQuery({
       queryKey: ["/api/journal/penguin", penguinId],
       queryFn: getQueryFn({ on401: "returnNull" }),
       enabled: isAuthenticated && !!penguinId,
@@ -26,7 +26,7 @@ export function useJournal() {
   // Add a new journal entry
   const addJournalEntryMutation = useMutation({
     mutationFn: async (data: Omit<InsertSightingJournal, "userId">) => {
-      const response = await apiRequest<SightingJournal>("/api/journal", {
+      const response = await apiRequest("/api/journal", {
         method: "POST",
         body: JSON.stringify(data),
       });
@@ -48,7 +48,7 @@ export function useJournal() {
       id: number;
       data: Partial<Omit<InsertSightingJournal, "userId">>;
     }) => {
-      const response = await apiRequest<SightingJournal>(`/api/journal/${id}`, {
+      const response = await apiRequest(`/api/journal/${id}`, {
         method: "PATCH",
         body: JSON.stringify(data),
       });
@@ -66,9 +66,7 @@ export function useJournal() {
   // Delete a journal entry
   const deleteJournalEntryMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest(`/api/journal/${id}`, {
-        method: "DELETE",
-      });
+      await apiRequest(`/api/journal/${id}`, "DELETE");
       return id;
     },
     onSuccess: () => {

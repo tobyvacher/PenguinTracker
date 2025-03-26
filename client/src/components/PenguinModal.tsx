@@ -1,10 +1,12 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Penguin } from "@shared/schema";
-import { Share2 } from "lucide-react";
+import { Share2, Info, Book } from "lucide-react";
 import { useState } from "react";
 import ShareAchievement from "./ShareAchievement";
 import SocialShareButtons from "./SocialShareButtons";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import JournalEntryList from "./JournalEntryList";
 
 interface PenguinModalProps {
   penguin: Penguin;
@@ -135,12 +137,33 @@ export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalP
           </div>
           
           <div className="mt-6">
-            <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-2">Description</h3>
-            <p className="text-[#334155] mb-4">{penguin.description}</p>
-            
-            <p className="text-[#334155]">
-              {getAdditionalInfo(penguin.name)}
-            </p>
+            <Tabs defaultValue="info" className="w-full">
+              <TabsList className="w-full mb-4">
+                <TabsTrigger value="info" className="flex-1 flex items-center justify-center">
+                  <Info className="mr-2 h-4 w-4" />
+                  Information
+                </TabsTrigger>
+                <TabsTrigger value="journal" className="flex-1 flex items-center justify-center">
+                  <Book className="mr-2 h-4 w-4" />
+                  Journal
+                </TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="info" className="space-y-4">
+                <div>
+                  <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-2">Description</h3>
+                  <p className="text-[#334155] mb-4">{penguin.description}</p>
+                  
+                  <p className="text-[#334155]">
+                    {getAdditionalInfo(penguin.name)}
+                  </p>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="journal">
+                <JournalEntryList penguin={penguin} />
+              </TabsContent>
+            </Tabs>
           </div>
           
           <div className="mt-6 flex justify-between">

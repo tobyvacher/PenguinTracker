@@ -1,0 +1,248 @@
+import React, { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon, Map, Save, X } from "lucide-react";
+import { format } from "date-fns";
+import { InsertSightingJournal, Penguin, SightingJournal } from "@shared/schema";
+import { cn } from "@/lib/utils";
+import { useJournal } from "@/hooks/use-journal";
+import { useToast } from "@/hooks/use-toast";
+
+interface JournalEntryFormProps {
+  penguin: Penguin;
+  entry?: SightingJournal; // Optional for editing existing entry
+  onComplete: () => void;
+  onCancel: () => void;
+}
+
+export default function JournalEntryForm({ 
+  penguin, 
+  entry, 
+  onComplete, 
+  onCancel 
+}: JournalEntryFormProps) {
+  const { toast } = useToast();
+  const { addJournalEntry, updateJournalEntry, isAddingJournalEntry, isUpdatingJournalEntry } = useJournal();
+  const isEditing = !!entry;
+  
+  // Form state
+  const [date, setDate] = useState<Date>(entry?.sightingDate ? new Date(entry.sightingDate) : new Date());
+  const [location, setLocation] = useState(entry?.location || '');
+  const [notes, setNotes] = useState(entry?.notes || '');
+  const [coordinates, setCoordinates] = useState(entry?.coordinates || '');
+  
+  // Track form validity
+  const isValid = location.trim().length > 0;
+  
+  // Handle getting current location
+  const handleGetLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setCoordinates(`${latitude},${longitude}`);
+          toast({
+            title: "Location detected",
+            description: "Your current location has been added to the journal entry.",
+          });
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          toast({
+            title: "Location error",
+            description: "Unable to get your current location. Please enter location manually.",
+            variant: "destructive",
+          });
+        }
+      );
+    } else {
+      toast({
+        title: "Location not supported",
+        description: "Geolocation is not supported by your browser. Please enter location manually.",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  // Handle form submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!isValid) {
+      toast({
+        title: "Invalid form",
+        description: "Please provide a location for your sighting.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const journalData: Omit<InsertSightingJournal, "userId"> = {
+      penguinId: penguin.id,
+      sightingDate: date,
+      location,
+      notes: notes || null,
+      coordinates: coordinates || null,
+    };
+    
+    if (isEditing && entry) {
+      updateJournalEntry(
+        { 
+          id: entry.id, 
+          data: journalData 
+        },
+        {
+          onSuccess: () => {
+            toast({
+              title: "Journal updated",
+              description: `Your sighting of the ${penguin.name} has been updated.`,
+            });
+            onComplete();
+          },
+          onError: () => {
+            toast({
+              title: "Update failed",
+              description: "There was an error updating your journal entry. Please try again.",
+              variant: "destructive",
+            });
+          }
+        }
+      );
+    } else {
+      addJournalEntry(
+        journalData,
+        {
+          onSuccess: () => {
+            toast({
+              title: "Journal entry added",
+              description: `Your sighting of the ${penguin.name} has been recorded.`,
+            });
+            onComplete();
+          },
+          onError: () => {
+            toast({
+              title: "Submission failed",
+              description: "There was an error saving your journal entry. Please try again.",
+              variant: "destructive",
+            });
+          }
+        }
+      );
+    }
+  };
+  
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <h3 className="text-lg font-medium">
+          {isEditing ? "Edit Journal Entry" : "Add Journal Entry"}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          Record when and where you spotted the {penguin.name}.
+        </p>
+      </div>
+      
+      {/* Date selector */}
+      <div className="space-y-2">
+        <label htmlFor="date" className="text-sm font-medium">
+          Date of Sighting
+        </label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className={cn(
+                "w-full justify-start text-left font-normal",
+                !date && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {date ? format(date, "PPP") : "Select date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(date) => date && setDate(date)}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+      
+      {/* Location input */}
+      <div className="space-y-2">
+        <label htmlFor="location" className="text-sm font-medium">
+          Location <span className="text-red-500">*</span>
+        </label>
+        <div className="flex space-x-2">
+          <Input
+            id="location"
+            placeholder="e.g., Boulders Beach, South Africa"
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            required
+            className="flex-1"
+          />
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handleGetLocation}
+            title="Use current location"
+          >
+            <Map className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      
+      {/* Notes textarea */}
+      <div className="space-y-2">
+        <label htmlFor="notes" className="text-sm font-medium">
+          Notes
+        </label>
+        <Textarea
+          id="notes"
+          placeholder="Add any details about your sighting..."
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          rows={4}
+        />
+      </div>
+      
+      {/* Coordinates (hidden but set by geolocation) */}
+      <input
+        type="hidden"
+        id="coordinates"
+        value={coordinates}
+      />
+      
+      {/* Show coordinates if they exist */}
+      {coordinates && (
+        <div className="text-sm text-muted-foreground">
+          <span className="font-medium">GPS Coordinates:</span> {coordinates}
+        </div>
+      )}
+      
+      {/* Form actions */}
+      <div className="flex justify-end space-x-2 pt-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          <X className="mr-2 h-4 w-4" />
+          Cancel
+        </Button>
+        
+        <Button 
+          type="submit" 
+          disabled={!isValid || isAddingJournalEntry || isUpdatingJournalEntry}
+          className="bg-[#22C55E] hover:bg-[#16A34A] text-white"
+        >
+          <Save className="mr-2 h-4 w-4" />
+          {isEditing ? "Update" : "Save"}
+        </Button>
+      </div>
+    </form>
+  );
+}
