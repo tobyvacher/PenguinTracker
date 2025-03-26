@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Share2, Instagram, Facebook, Linkedin, Copy, Check, Download } from 'lucide-react';
-import { FaWhatsapp } from 'react-icons/fa';
+import { Share2, Facebook, Copy, Check, Download, Mail } from 'lucide-react';
+import { FaWhatsapp, FaXTwitter } from 'react-icons/fa6';
 import { Penguin } from '@shared/schema';
 import html2canvas from 'html2canvas';
 
@@ -279,35 +279,31 @@ export default function ShareAchievement({
                   <div className="mb-2 mt-1 text-center">
                     <p className="text-sm font-medium text-gray-700 mb-2">Share on social media</p>
                   </div>
-                  <div className="grid grid-cols-3 gap-3 mb-3">
+                  <div className="grid grid-cols-5 gap-3 mb-3">
+                    {/* X (formerly Twitter) */}
                     <button 
                       onClick={async () => {
                         try {
-                          // Prepare the user to share the image on Instagram
-                          // Instagram doesn't have a web API for sharing, but we can download and prompt
-                          downloadImage();
+                          const twitterText = penguin 
+                            ? `I spotted the ${penguin.name} on Penguin Tracker! Check out my screenshot.`
+                            : `I've spotted ${count} out of ${total} penguin species on Penguin Tracker! Check out my achievement.`;
                           
-                          // Show a tooltip or message
-                          alert("Image downloaded. Please share it on Instagram manually.");
-                          
-                          // Alternative: Open Instagram if on mobile
-                          if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                            safeWindowOpen('instagram://');
-                          }
+                          const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(twitterText)}&url=${encodeURIComponent(window.location.href)}`;
+                          safeWindowOpen(shareUrl);
                         } catch (err) {
-                          console.error('Error preparing for Instagram:', err);
+                          console.error('Error sharing to X (Twitter):', err);
                         }
                       }}
-                      className="flex flex-col items-center justify-center bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] text-white p-3 rounded-lg hover:opacity-90 transition-opacity shadow-md"
+                      className="flex flex-col items-center justify-center bg-black text-white p-3 rounded-lg hover:opacity-90 transition-opacity shadow-md"
                     >
-                      <Instagram className="h-6 w-6" />
-                      <span className="text-xs font-medium mt-1">Instagram</span>
+                      <FaXTwitter className="h-6 w-6" />
+                      <span className="text-xs font-medium mt-1">X</span>
                     </button>
                     
+                    {/* Facebook */}
                     <button 
                       onClick={async () => {
                         try {
-                          // For Facebook, we'll use the image sharing URL
                           const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(shareText)}`;
                           safeWindowOpen(shareUrl);
                         } catch (err) {
@@ -320,13 +316,10 @@ export default function ShareAchievement({
                       <span className="text-xs font-medium mt-1">Facebook</span>
                     </button>
                     
+                    {/* WhatsApp */}
                     <button 
                       onClick={async () => {
                         try {
-                          const shareText = penguin 
-                            ? `I spotted the ${penguin.name} on Penguin Tracker! Check out my screenshot. ${window.location.href}`
-                            : `I've spotted ${count} out of ${total} penguin species on Penguin Tracker! Check out my achievement. ${window.location.href}`;
-                          
                           const shareUrl = `https://wa.me/?text=${encodeURIComponent(shareText)}`;
                           safeWindowOpen(shareUrl);
                         } catch (err) {
@@ -338,8 +331,37 @@ export default function ShareAchievement({
                       <FaWhatsapp className="h-6 w-6" />
                       <span className="text-xs font-medium mt-1">WhatsApp</span>
                     </button>
+                    
+                    {/* Copy Link */}
+                    <button 
+                      onClick={copyToClipboard}
+                      className="flex flex-col items-center justify-center bg-gradient-to-r from-gray-600 to-gray-800 text-white p-3 rounded-lg hover:opacity-90 transition-opacity shadow-md"
+                    >
+                      {copied ? <Check className="h-6 w-6" /> : <Copy className="h-6 w-6" />}
+                      <span className="text-xs font-medium mt-1">{copied ? "Copied!" : "Copy"}</span>
+                    </button>
+                    
+                    {/* Email */}
+                    <button 
+                      onClick={async () => {
+                        try {
+                          const subject = penguin 
+                            ? `I spotted the ${penguin.name} on Penguin Tracker!`
+                            : `I've spotted ${count} out of ${total} penguin species on Penguin Tracker!`;
+                          
+                          const emailUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shareText)}`;
+                          safeWindowOpen(emailUrl);
+                        } catch (err) {
+                          console.error('Error sharing via email:', err);
+                        }
+                      }}
+                      className="flex flex-col items-center justify-center bg-gradient-to-r from-red-500 to-red-600 text-white p-3 rounded-lg hover:opacity-90 transition-opacity shadow-md"
+                    >
+                      <Mail className="h-6 w-6" />
+                      <span className="text-xs font-medium mt-1">Email</span>
+                    </button>
                   </div>
-                  <p className="text-xs text-gray-500 text-center mt-1">These platforms may ask you to add the downloaded image manually</p>
+                  <p className="text-xs text-gray-500 text-center mt-1">Some platforms may ask you to add the downloaded image manually</p>
                 </div>
               )}
             </div>
