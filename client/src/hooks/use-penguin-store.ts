@@ -19,7 +19,18 @@ export function usePenguinStore() {
     const storedSeenPenguins = localStorage.getItem(storageKey);
     
     if (storedSeenPenguins) {
-      setSeenPenguins(JSON.parse(storedSeenPenguins));
+      try {
+        const parsedData = JSON.parse(storedSeenPenguins);
+        if (Array.isArray(parsedData)) {
+          setSeenPenguins(parsedData);
+        } else {
+          console.error('Invalid format in localStorage:', storedSeenPenguins);
+          setSeenPenguins([]);
+        }
+      } catch (e) {
+        console.error('Failed to parse localStorage data:', e);
+        setSeenPenguins([]);
+      }
     } else {
       // If we switched users and there's no data for this user, reset the state
       setSeenPenguins([]);
@@ -27,19 +38,37 @@ export function usePenguinStore() {
     
     // Then fetch from API if authenticated
     const fetchSeenPenguins = async () => {
+      console.log('Fetching seen penguins from API');
       try {
+        let authHeader = '';
+        if (currentUser) {
+          try {
+            authHeader = `Bearer ${await currentUser.getIdToken()}`;
+          } catch (tokenError) {
+            console.error('Error getting auth token:', tokenError);
+          }
+        }
+        
         const response = await fetch('/api/seen-penguins', {
           credentials: 'include',
           headers: {
-            'Authorization': currentUser ? `Bearer ${await currentUser.getIdToken()}` : '',
+            'Authorization': authHeader,
           }
         });
         
         if (response.ok) {
           const data = await response.json();
-          setSeenPenguins(data);
-          // Update localStorage
-          localStorage.setItem(storageKey, JSON.stringify(data));
+          console.log('Received seen penguins from API:', data);
+          
+          if (Array.isArray(data)) {
+            setSeenPenguins(data);
+            // Update localStorage
+            localStorage.setItem(storageKey, JSON.stringify(data));
+          } else {
+            console.error('API returned non-array data for seen penguins:', data);
+          }
+        } else {
+          console.error('Failed to fetch seen penguins, status:', response.status);
         }
       } catch (error) {
         console.error('Failed to fetch seen penguins:', error);
@@ -58,15 +87,11 @@ export function usePenguinStore() {
       const isCurrentlySeen = seenPenguins.includes(penguinId);
       
       if (isCurrentlySeen) {
-        // Remove from seen - make API call for all users (authenticated or not)
-        // First update state optimistically
-        const updatedSeenPenguins = seenPenguins.filter(id => id !== penguinId);
-        setSeenPenguins(updatedSeenPenguins);
-        localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
+        // REMOVE PENGUIN FLOW
+        console.log(`Attempting to remove penguin ${penguinId} from seen list`);
         
-        // Then make API call
         try {
-          console.log(`Attempting to remove penguin ${penguinId} from seen list`);
+          // First make the API call
           const response = await fetch(`/api/seen-penguins/${penguinId}`, {
             method: 'DELETE',
             headers: {
@@ -78,6 +103,12 @@ export function usePenguinStore() {
           
           if (response.status === 204) {
             console.log(`Successfully removed penguin ${penguinId} from seen list`);
+            
+            // Then update state after successful API call
+            const updatedSeenPenguins = seenPenguins.filter(id => id !== penguinId);
+            setSeenPenguins(updatedSeenPenguins);
+            localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
+            
             // Invalidate queries to refresh data
             queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
           } else {
@@ -85,20 +116,14 @@ export function usePenguinStore() {
           }
         } catch (deleteError) {
           console.error(`Failed to remove penguin ${penguinId} from seen list:`, deleteError);
-          // Revert the optimistic update if the API call fails
-          setSeenPenguins([...seenPenguins]);
-          localStorage.setItem(storageKey, JSON.stringify(seenPenguins));
+          // Do not update state on error - keep it as seen
         }
       } else {
-        // Add to seen - make API call for all users (authenticated or not)
-        // First update state optimistically
-        const updatedSeenPenguins = [...seenPenguins, penguinId];
-        setSeenPenguins(updatedSeenPenguins);
-        localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
+        // ADD PENGUIN FLOW
+        console.log(`Attempting to add penguin ${penguinId} to seen list`);
         
-        // Then make API call
         try {
-          console.log(`Attempting to add penguin ${penguinId} to seen list`);
+          // First make the API call
           const response = await fetch('/api/seen-penguins', {
             method: 'POST',
             headers: {
@@ -111,6 +136,12 @@ export function usePenguinStore() {
           
           if (response.ok) {
             console.log(`Successfully added penguin ${penguinId} to seen list`);
+            
+            // Then update state after successful API call
+            const updatedSeenPenguins = [...seenPenguins, penguinId];
+            setSeenPenguins(updatedSeenPenguins);
+            localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
+            
             // Invalidate queries to refresh data
             queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
           } else {
@@ -118,18 +149,13 @@ export function usePenguinStore() {
           }
         } catch (postError) {
           console.error(`Failed to add penguin ${penguinId} to seen list:`, postError);
-          // Revert the optimistic update if the API call fails
-          const filteredPenguins = updatedSeenPenguins.filter(id => id !== penguinId);
-          setSeenPenguins(filteredPenguins);
-          localStorage.setItem(storageKey, JSON.stringify(filteredPenguins));
-          // Invalidate queries to refresh data
-          queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
+          // Do not update state on error - keep it as unseen
         }
       }
     } catch (error) {
       console.error('Failed to toggle penguin seen status:', error);
       
-      // Try to revert the optimistic update by fetching current data
+      // Refresh the data from the server to ensure consistency
       try {
         const response = await fetch('/api/seen-penguins', {
           credentials: 'include',
@@ -142,20 +168,10 @@ export function usePenguinStore() {
           const data = await response.json();
           setSeenPenguins(data);
           localStorage.setItem(storageKey, JSON.stringify(data));
-        } else {
-          // If API call fails, revert to the previous localStorage state
-          const storedSeenPenguins = localStorage.getItem(storageKey);
-          if (storedSeenPenguins) {
-            setSeenPenguins(JSON.parse(storedSeenPenguins));
-          }
         }
       } catch (fetchError) {
         console.error('Failed to fetch current seen penguins:', fetchError);
-        // Last resort: revert to the previous localStorage state
-        const storedSeenPenguins = localStorage.getItem(storageKey);
-        if (storedSeenPenguins) {
-          setSeenPenguins(JSON.parse(storedSeenPenguins));
-        }
+        // No state changes on error
       }
     }
   };
