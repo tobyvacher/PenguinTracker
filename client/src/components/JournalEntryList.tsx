@@ -42,10 +42,10 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
   
   // Get journal entries for this penguin
   const { 
-    data: journalEntries = [] as SightingJournal[],
+    data: journalEntries = [],
     isLoading,
     isError 
-  } = getPenguinJournalEntries(penguin.id);
+  } = getPenguinJournalEntries(penguin.id) || { data: [], isLoading: false, isError: false };
   
   // UI states
   const [showAddForm, setShowAddForm] = useState(false);

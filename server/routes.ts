@@ -195,9 +195,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all journal entries for the current user
   apiRouter.get("/journal", async (req, res) => {
     try {
-      // If user is not authenticated, return error
+      // If user is not authenticated, return empty array instead of error
       if (!req.user) {
-        return res.status(401).json({ message: "Authentication required" });
+        return res.json([]);
       }
 
       // Get user by firebase uid
@@ -217,9 +217,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get journal entries for a specific penguin
   apiRouter.get("/journal/penguin/:penguinId", async (req, res) => {
     try {
-      // If user is not authenticated, return error
+      // If user is not authenticated, return empty array instead of error
       if (!req.user) {
-        return res.status(401).json({ message: "Authentication required" });
+        return res.json([]);
       }
 
       // Get user by firebase uid
