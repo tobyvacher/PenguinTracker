@@ -8,11 +8,11 @@ export function useJournal() {
   const queryClient = useQueryClient();
 
   // Fetch all journal entries for current user
-  const getUserJournalQuery = useQuery<SightingJournal[]>({
+  const getUserJournalQuery = useQuery({
     queryKey: ["/api/journal"],
     queryFn: getQueryFn({ on401: "returnNull" }),
     enabled: isAuthenticated,
-  });
+  } as any);
 
   // Fetch journal entries for a specific penguin
   const getPenguinJournalEntries = (penguinId: number) => {
@@ -20,16 +20,13 @@ export function useJournal() {
       queryKey: ["/api/journal/penguin", penguinId],
       queryFn: getQueryFn({ on401: "returnNull" }),
       enabled: isAuthenticated && !!penguinId,
-    });
+    } as any);
   };
 
   // Add a new journal entry
   const addJournalEntryMutation = useMutation({
     mutationFn: async (data: Omit<InsertSightingJournal, "userId">) => {
-      const response = await apiRequest("/api/journal", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest("/api/journal", "POST", data);
       return response;
     },
     onSuccess: () => {
@@ -48,10 +45,7 @@ export function useJournal() {
       id: number;
       data: Partial<Omit<InsertSightingJournal, "userId">>;
     }) => {
-      const response = await apiRequest(`/api/journal/${id}`, {
-        method: "PATCH",
-        body: JSON.stringify(data),
-      });
+      const response = await apiRequest(`/api/journal/${id}`, "PATCH", data);
       return response;
     },
     onSuccess: (_, variables) => {

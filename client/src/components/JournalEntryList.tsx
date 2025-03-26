@@ -42,7 +42,7 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
   
   // Get journal entries for this penguin
   const { 
-    data: journalEntries = [],
+    data: journalEntries = [] as SightingJournal[],
     isLoading,
     isError 
   } = getPenguinJournalEntries(penguin.id);
@@ -148,7 +148,7 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
       
       <Separator />
       
-      {journalEntries.length === 0 ? (
+      {(journalEntries as SightingJournal[]).length === 0 ? (
         <div className="py-8 text-center bg-gray-50 rounded-lg">
           <p className="text-gray-500 mb-2">No journal entries yet</p>
           <p className="text-sm text-gray-400">
@@ -164,9 +164,9 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
         </div>
       ) : (
         <div className="space-y-3">
-          {journalEntries
-            .sort((a, b) => new Date(b.sightingDate).getTime() - new Date(a.sightingDate).getTime())
-            .map((entry) => (
+          {(journalEntries as SightingJournal[])
+            .sort((a: SightingJournal, b: SightingJournal) => new Date(b.sightingDate).getTime() - new Date(a.sightingDate).getTime())
+            .map((entry: SightingJournal) => (
               <Card key={entry.id} className="overflow-hidden">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
