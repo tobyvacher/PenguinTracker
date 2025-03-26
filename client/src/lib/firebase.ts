@@ -7,6 +7,20 @@ import {
   onAuthStateChanged, 
   User 
 } from "firebase/auth";
+import { 
+  getFirestore, 
+  collection, 
+  doc, 
+  getDoc, 
+  getDocs, 
+  setDoc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  query, 
+  where,
+  Timestamp
+} from "firebase/firestore";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -34,6 +48,7 @@ console.log("Environment variables present:", envCheck);
 // Initialize Firebase
 let app: ReturnType<typeof initializeApp> | undefined;
 let auth: ReturnType<typeof getAuth> | undefined;
+let db: ReturnType<typeof getFirestore> | undefined;
 let googleProvider: GoogleAuthProvider | undefined;
 
 try {
@@ -43,6 +58,7 @@ try {
   } else {
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
+    db = getFirestore(app);
     googleProvider = new GoogleAuthProvider();
     console.log("Firebase initialized successfully");
     // Log auth domain for debugging
@@ -104,4 +120,4 @@ export const onAuthStateChange = (callback: (user: User | null) => void) => {
   return onAuthStateChanged(auth, callback);
 };
 
-export { auth };
+export { auth, db };

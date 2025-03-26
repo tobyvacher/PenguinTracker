@@ -2,6 +2,12 @@ import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Extended types for Firestore persistence
+export type WithTimestamps = {
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 export const penguins = pgTable("penguins", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -75,10 +81,10 @@ export const insertSightingJournalSchema = createInsertSchema(sightingJournal).p
 });
 
 export type InsertPenguin = z.infer<typeof insertPenguinSchema>;
-export type Penguin = typeof penguins.$inferSelect;
+export type Penguin = typeof penguins.$inferSelect & WithTimestamps;
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export type User = typeof users.$inferSelect & WithTimestamps;
 export type InsertSeenPenguin = z.infer<typeof insertSeenPenguinSchema>;
-export type SeenPenguin = typeof seenPenguins.$inferSelect;
+export type SeenPenguin = typeof seenPenguins.$inferSelect & WithTimestamps;
 export type InsertSightingJournal = z.infer<typeof insertSightingJournalSchema>;
-export type SightingJournal = typeof sightingJournal.$inferSelect;
+export type SightingJournal = typeof sightingJournal.$inferSelect & WithTimestamps;

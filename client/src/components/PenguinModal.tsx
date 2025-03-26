@@ -1,12 +1,13 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Penguin } from "@shared/schema";
-import { Share2, Info, Book } from "lucide-react";
+import { Penguin, SightingJournal } from "@shared/schema";
+import { Share2, Info, Book, Plus } from "lucide-react";
 import { useState } from "react";
 import ShareAchievement from "./ShareAchievement";
 import SocialShareButtons from "./SocialShareButtons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import JournalEntryList from "./JournalEntryList";
+import JournalEntryForm from "./JournalEntryForm";
 
 interface PenguinModalProps {
   penguin: Penguin;
