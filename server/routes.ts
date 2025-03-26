@@ -277,9 +277,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Parse and validate the request body
-      const journalData = insertSightingJournalSchema
-        .omit({ userId: true }) // userId will be set from the authenticated user
-        .parse(req.body);
+      let journalData;
+      try {
+        // Convert sightingDate string to Date if it's a string
+        const formData = { ...req.body };
+        if (typeof formData.sightingDate === 'string') {
+          formData.sightingDate = new Date(formData.sightingDate);
+        }
+        
+        journalData = insertSightingJournalSchema
+          .omit({ userId: true }) // userId will be set from the authenticated user
+          .parse(formData);
+      } catch (err) {
+        console.error("Validation error:", err);
+        return res.status(400).json({ 
+          message: "Invalid request data", 
+          errors: err instanceof z.ZodError ? err.errors : [{ message: "Failed to parse data" }]
+        });
+      }
       
       // Add the journal entry with the user's ID
       const journalEntry = await storage.addJournalEntry({
@@ -325,10 +340,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const entryId = parseInt(req.params.id);
       
       // Parse and validate the request body (allow partial updates)
-      const updateData = insertSightingJournalSchema
-        .omit({ userId: true }) // userId should not be updated
-        .partial() // Make all fields optional for PATCH
-        .parse(req.body);
+      let updateData;
+      try {
+        // Convert sightingDate string to Date if it's a string
+        const formData = { ...req.body };
+        if (typeof formData.sightingDate === 'string') {
+          formData.sightingDate = new Date(formData.sightingDate);
+        }
+        
+        updateData = insertSightingJournalSchema
+          .omit({ userId: true }) // userId should not be updated
+          .partial() // Make all fields optional for PATCH
+          .parse(formData);
+      } catch (err) {
+        console.error("Validation error:", err);
+        return res.status(400).json({ 
+          message: "Invalid request data", 
+          errors: err instanceof z.ZodError ? err.errors : [{ message: "Failed to parse data" }]
+        });
+      }
       
       // Update the journal entry
       const updatedEntry = await storage.updateJournalEntry(entryId, updateData);
