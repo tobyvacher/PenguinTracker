@@ -3,9 +3,10 @@ import { motion } from "framer-motion";
 
 interface AchievementBadgeProps {
   count: number;
+  onClick?: () => void;
 }
 
-export default function AchievementBadge({ count }: AchievementBadgeProps) {
+export default function AchievementBadge({ count, onClick }: AchievementBadgeProps) {
   const getBadgeColor = () => {
     if (count >= 18) return "bg-gradient-to-r from-purple-600 to-indigo-600 border-purple-300";
     if (count >= 15) return "bg-gradient-to-r from-blue-600 to-indigo-600 border-blue-300";
@@ -22,7 +23,10 @@ export default function AchievementBadge({ count }: AchievementBadgeProps) {
         stiffness: 260,
         damping: 20
       }}
-      className={`flex items-center gap-1 px-2 py-1 rounded-full text-white text-sm font-semibold shadow-lg border-2 ${getBadgeColor()}`}
+      className={`flex items-center gap-1 px-2 py-1 rounded-full text-white text-sm font-semibold shadow-lg border-2 ${getBadgeColor()} ${onClick ? 'cursor-pointer hover:brightness-110 active:scale-95 transition-all' : ''}`}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      aria-label={onClick && count === 18 ? "Show congratulations for finding all penguins" : undefined}
     >
       <Trophy className="w-4 h-4" />
       <span>{count}</span>

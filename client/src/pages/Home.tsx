@@ -134,9 +134,12 @@ export default function Home() {
               )}
               {/* Achievement Badge */}
               {seenPenguins.length >= 5 && (
-                <AchievementBadge count={seenPenguins.length >= 18 ? 18 : 
-                                         seenPenguins.length >= 15 ? 15 : 
-                                         seenPenguins.length >= 10 ? 10 : 5} />
+                <AchievementBadge 
+                  count={seenPenguins.length >= 18 ? 18 : 
+                         seenPenguins.length >= 15 ? 15 : 
+                         seenPenguins.length >= 10 ? 10 : 5} 
+                  onClick={seenPenguins.length >= 18 ? () => setShowCongratsModal(true) : undefined}
+                />
               )}
               <ProgressCounter count={seenPenguins.length} total={penguins.length} />
               <AuthButton />
