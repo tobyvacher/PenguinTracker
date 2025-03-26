@@ -65,18 +65,20 @@ export function useJournal() {
 
   // Delete a journal entry
   const deleteJournalEntryMutation = useMutation({
-    mutationFn: async ({ id, penguinId }: { id: number; penguinId: number }) => {
-      await apiRequest(`/api/journal/${id}`, "DELETE");
-      return { id, penguinId };
+    mutationFn: async (entryId: number) => {
+      await apiRequest(`/api/journal/${entryId}`, "DELETE");
+      return entryId;
     },
-    onSuccess: (_, variables) => {
-      // Invalidate queries to refetch data
+    onSuccess: () => {
+      // Invalidate all journal queries since we don't know which penguin it was for
       queryClient.invalidateQueries({ queryKey: ["/api/journal"] });
-      if (variables.penguinId) {
-        queryClient.invalidateQueries({ 
-          queryKey: [`/api/journal/penguin/${variables.penguinId}`] 
-        });
-      }
+      // Any query that starts with /api/journal/penguin will be invalidated
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          const queryKey = query.queryKey[0];
+          return typeof queryKey === 'string' && queryKey.startsWith('/api/journal/penguin/'); 
+        }
+      });
     },
   });
 
