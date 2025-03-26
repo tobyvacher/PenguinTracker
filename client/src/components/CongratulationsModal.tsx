@@ -36,7 +36,7 @@ export default function CongratulationsModal({ isOpen, onClose }: Congratulation
               }}
               className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 rounded-full shadow-lg border-4 border-purple-300"
             >
-              <Trophy className="h-16 w-16 text-yellow-300" />
+              <Trophy className="h-16 w-16 text-amber-400" />
             </motion.div>
             
             {/* Sparkles */}
@@ -57,7 +57,7 @@ export default function CongratulationsModal({ isOpen, onClose }: Congratulation
             </motion.div>
           </div>
           
-          <h3 className="text-xl font-bold text-slate-800 mb-2">Master Penguin Spotter</h3>
+          <h3 className="text-xl font-bold text-slate-800 mb-2">Master Penguin Tracker</h3>
           <p className="text-center text-slate-600 mb-6">
             You're now a penguin expert! Share your knowledge and continue your journey exploring the fascinating world of penguins.
           </p>

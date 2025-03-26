@@ -117,8 +117,8 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
             {/* Logo and title - centered on mobile, left-aligned on desktop */}
             <div className="flex items-center justify-center sm:justify-start mb-3 sm:mb-0">
-              <img src="/logo.png" alt="Penguin Spotter Logo" className="w-10 h-10 mr-3" />
-              <h1 className="text-2xl font-bold text-[#1E3A8A]">Penguin Spotter</h1>
+              <img src="/logo.png" alt="Penguin Tracker Logo" className="w-10 h-10 mr-3" />
+              <h1 className="text-2xl font-bold text-[#1E3A8A]">Penguin Tracker</h1>
             </div>
             
             {/* Action buttons - centered on mobile, right-aligned on desktop */}

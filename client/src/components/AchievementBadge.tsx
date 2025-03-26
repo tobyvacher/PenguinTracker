@@ -28,7 +28,7 @@ export default function AchievementBadge({ count, onClick }: AchievementBadgePro
       role={onClick ? "button" : undefined}
       aria-label={onClick && count === 18 ? "Show congratulations for finding all penguins" : undefined}
     >
-      <Trophy className="w-4 h-4" />
+      <Trophy className={`w-4 h-4 ${count >= 18 ? 'text-amber-400' : ''}`} />
       <span>{count}</span>
     </motion.div>
   );
