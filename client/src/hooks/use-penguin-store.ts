@@ -46,10 +46,8 @@ export function usePenguinStore() {
       }
     };
     
-    // Only fetch from API if user is authenticated
-    if (isAuthenticated) {
-      fetchSeenPenguins();
-    }
+    // Always fetch from API for all users (authenticated or not)
+    fetchSeenPenguins();
   }, [currentUser, isAuthenticated]);
   
   // Toggle penguin seen status
@@ -60,28 +58,24 @@ export function usePenguinStore() {
       const isCurrentlySeen = seenPenguins.includes(penguinId);
       
       if (isCurrentlySeen) {
-        // Remove from seen
-        if (isAuthenticated) {
-          await apiRequest(`/api/seen-penguins/${penguinId}`, 'DELETE', null, {
-            headers: {
-              'Authorization': currentUser ? `Bearer ${await currentUser.getIdToken()}` : '',
-            }
-          });
-        }
+        // Remove from seen - make API call for all users (authenticated or not)
+        await apiRequest(`/api/seen-penguins/${penguinId}`, 'DELETE', null, {
+          headers: {
+            'Authorization': currentUser ? `Bearer ${await currentUser.getIdToken()}` : '',
+          }
+        });
         
         // Optimistically update state
         const updatedSeenPenguins = seenPenguins.filter(id => id !== penguinId);
         setSeenPenguins(updatedSeenPenguins);
         localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
       } else {
-        // Add to seen
-        if (isAuthenticated) {
-          await apiRequest('/api/seen-penguins', 'POST', { penguinId }, {
-            headers: {
-              'Authorization': currentUser ? `Bearer ${await currentUser.getIdToken()}` : '',
-            }
-          });
-        }
+        // Add to seen - make API call for all users (authenticated or not)
+        await apiRequest('/api/seen-penguins', 'POST', { penguinId }, {
+          headers: {
+            'Authorization': currentUser ? `Bearer ${await currentUser.getIdToken()}` : '',
+          }
+        });
         
         // Optimistically update state
         const updatedSeenPenguins = [...seenPenguins, penguinId];
@@ -90,13 +84,12 @@ export function usePenguinStore() {
       }
       
       // Invalidate queries to refresh data
-      if (isAuthenticated) {
-        queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
-      }
+      queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
     } catch (error) {
       console.error('Failed to toggle penguin seen status:', error);
-      // Revert optimistic update if authenticated
-      if (isAuthenticated) {
+      
+      // Try to revert the optimistic update by fetching current data
+      try {
         const response = await fetch('/api/seen-penguins', {
           credentials: 'include',
           headers: {
@@ -108,9 +101,16 @@ export function usePenguinStore() {
           const data = await response.json();
           setSeenPenguins(data);
           localStorage.setItem(storageKey, JSON.stringify(data));
+        } else {
+          // If API call fails, revert to the previous localStorage state
+          const storedSeenPenguins = localStorage.getItem(storageKey);
+          if (storedSeenPenguins) {
+            setSeenPenguins(JSON.parse(storedSeenPenguins));
+          }
         }
-      } else {
-        // If not authenticated, just revert to the previous localStorage state
+      } catch (fetchError) {
+        console.error('Failed to fetch current seen penguins:', fetchError);
+        // Last resort: revert to the previous localStorage state
         const storedSeenPenguins = localStorage.getItem(storageKey);
         if (storedSeenPenguins) {
           setSeenPenguins(JSON.parse(storedSeenPenguins));
