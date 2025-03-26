@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Trophy, Sparkles } from "lucide-react";
+import { Trophy, Sparkles, Share2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface CongratulationsModalProps {
@@ -61,6 +61,36 @@ export default function CongratulationsModal({ isOpen, onClose }: Congratulation
           <p className="text-center text-slate-600 mb-6">
             You're now a penguin expert! Share your knowledge and continue your journey exploring the fascinating world of penguins.
           </p>
+          
+          <div className="flex gap-4 mb-6">
+            <Button 
+              className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-6 flex items-center gap-2"
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: 'Penguin Tracker Achievement',
+                    text: 'I\'ve spotted all 18 penguin species in the Penguin Tracker app! 🐧',
+                    url: window.location.href,
+                  }).catch(error => {
+                    console.log('Sharing failed', error);
+                  });
+                } else {
+                  // Fallback for browsers that don't support navigator.share
+                  const shareText = 'I\'ve spotted all 18 penguin species in the Penguin Tracker app! 🐧';
+                  navigator.clipboard.writeText(shareText)
+                    .then(() => {
+                      alert('Share text copied to clipboard!');
+                    })
+                    .catch(err => {
+                      console.error('Could not copy text: ', err);
+                    });
+                }
+              }}
+            >
+              <Share2 className="h-4 w-4" />
+              Share Achievement
+            </Button>
+          </div>
           
           <Button 
             className="bg-[#1E3A8A] hover:bg-[#3B82F6] text-white rounded-full px-6"
