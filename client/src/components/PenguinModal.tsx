@@ -75,9 +75,15 @@ export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalP
     }
   };
 
+  // Handle opening the share modal
+  const handleOpenShareModal = () => {
+    setShowShareModal(true);
+    onClose(); // Close the penguin modal when opening the share modal
+  };
+
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
+      <Dialog open={isOpen && !showShareModal} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-[#1E3A8A] text-center">
@@ -140,7 +146,7 @@ export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalP
           <div className="mt-6 flex justify-between">
             <Button 
               className="bg-[#22C55E] hover:bg-[#16A34A] text-white rounded-full px-6 flex items-center gap-2"
-              onClick={() => setShowShareModal(true)}
+              onClick={handleOpenShareModal}
             >
               <Share2 className="h-4 w-4" />
               Share
