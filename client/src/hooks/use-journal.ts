@@ -17,9 +17,9 @@ export function useJournal() {
   // Fetch journal entries for a specific penguin
   const getPenguinJournalEntries = (penguinId: number) => {
     return useQuery({
-      queryKey: ["/api/journal/penguin", penguinId],
+      queryKey: [`/api/journal/penguin/${penguinId}`],
       queryFn: getQueryFn({ on401: "returnNull" }),
-      enabled: isAuthenticated && !!penguinId,
+      enabled: !!penguinId,
     } as any);
   };
 
@@ -34,7 +34,7 @@ export function useJournal() {
       queryClient.invalidateQueries({ queryKey: ["/api/journal"] });
       if (variables.penguinId) {
         queryClient.invalidateQueries({ 
-          queryKey: ["/api/journal/penguin", variables.penguinId]
+          queryKey: [`/api/journal/penguin/${variables.penguinId}`]
         });
       }
     },
@@ -57,7 +57,7 @@ export function useJournal() {
       queryClient.invalidateQueries({ queryKey: ["/api/journal"] });
       if (variables.data.penguinId) {
         queryClient.invalidateQueries({ 
-          queryKey: ["/api/journal/penguin", variables.data.penguinId]
+          queryKey: [`/api/journal/penguin/${variables.data.penguinId}`]
         });
       }
     },
@@ -76,7 +76,7 @@ export function useJournal() {
       queryClient.invalidateQueries({ 
         predicate: (query) => {
           const queryKey = query.queryKey[0];
-          return typeof queryKey === 'string' && queryKey === '/api/journal/penguin'; 
+          return typeof queryKey === 'string' && queryKey.startsWith('/api/journal/penguin/'); 
         }
       });
     },
