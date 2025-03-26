@@ -94,8 +94,8 @@ export default function PenguinCard({
     const deltaX = Math.abs(currentPos.x - touchStartPosRef.current.x);
     const deltaY = Math.abs(currentPos.y - touchStartPosRef.current.y);
     
-    // If moved more than threshold, consider it scrolling
-    if (deltaX > 10 || deltaY > 10) {
+    // Lower the threshold to detect scrolling earlier
+    if (deltaX > 5 || deltaY > 5) {
       isScrollingRef.current = true;
       
       // Cancel the long press timer
@@ -107,10 +107,16 @@ export default function PenguinCard({
     }
   };
   
-  const touchEndHandler = () => {
-    // Only trigger click if we weren't scrolling and are still pressing
+  const touchEndHandler = (e: React.TouchEvent) => {
+    // Only handle touches that started on this component
+    if (!touchStartPosRef.current) return;
+    
+    // If the distance moved is very small and we're still pressing, consider it a tap
     if (!isScrollingRef.current && isPressing) {
-      onClick();
+      // Small delay to ensure the click happens after the touch end event completes
+      setTimeout(() => {
+        onClick();
+      }, 10);
     }
     
     // Reset state
@@ -138,6 +144,11 @@ export default function PenguinCard({
     onLongPress();
   };
 
+  // Add a direct click handler that doesn't rely on touch events
+  const handleDirectClick = () => {
+    onClick();
+  };
+
   return (
     <motion.div
       className="flex flex-col items-center cursor-pointer"
@@ -145,6 +156,7 @@ export default function PenguinCard({
       animate={isSeen ? "seen" : "unseen"}
       whileHover={{ y: -5 }}
       transition={{ duration: 0.2 }}
+      onClick={handleDirectClick}
       onMouseDown={mouseDownHandler}
       onMouseUp={mouseUpHandler}
       onMouseLeave={mouseUpHandler}
