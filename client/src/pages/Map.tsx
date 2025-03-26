@@ -1,5 +1,6 @@
 import React from 'react';
 import PenguinMap from '@/components/PenguinMap';
+import ProgressCounter from '@/components/ProgressCounter';
 import { usePenguinStore } from '@/hooks/use-penguin-store';
 import { useQuery } from '@tanstack/react-query';
 import { Penguin } from '@shared/schema';
@@ -31,6 +32,7 @@ export default function Map() {
               </Link>
               <h1 className="text-2xl font-bold text-[#1E3A8A]">Penguin Habitats</h1>
             </div>
+            <ProgressCounter count={seenPenguins.length} total={penguins.length} />
           </div>
         </div>
       </header>
