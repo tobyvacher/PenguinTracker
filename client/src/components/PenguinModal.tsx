@@ -4,6 +4,7 @@ import { Penguin } from "@shared/schema";
 import { Share2 } from "lucide-react";
 import { useState } from "react";
 import ShareAchievement from "./ShareAchievement";
+import SocialShareButtons from "./SocialShareButtons";
 
 interface PenguinModalProps {
   penguin: Penguin;

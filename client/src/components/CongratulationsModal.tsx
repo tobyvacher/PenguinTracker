@@ -1,10 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Trophy, Sparkles, Share2, Twitter, Mail, Check, Copy, Image } from "lucide-react";
-import { FaWhatsapp } from "react-icons/fa";
+import { Trophy, Sparkles, Share2, Image } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import ShareAchievement from "./ShareAchievement";
+import SocialShareButtons from "./SocialShareButtons";
 
 interface CongratulationsModalProps {
   isOpen: boolean;
@@ -14,7 +14,6 @@ interface CongratulationsModalProps {
 
 export default function CongratulationsModal({ isOpen, onClose, count = 18 }: CongratulationsModalProps) {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
-  const [isCopied, setIsCopied] = useState(false);
   const [showShareAchievement, setShowShareAchievement] = useState(false);
   
   // Get the appropriate share text based on the count
@@ -36,36 +35,6 @@ export default function CongratulationsModal({ isOpen, onClose, count = 18 }: Co
   
   const handleShare = () => {
     setIsShareDialogOpen(true);
-  };
-  
-  const handleSocialShare = (platform: string) => {
-    let shareUrl = '';
-    
-    switch(platform) {
-      case 'twitter':
-        shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(window.location.href)}`;
-        break;
-      case 'whatsapp':
-        shareUrl = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + window.location.href)}`;
-        break;
-      case 'email':
-        shareUrl = `mailto:?subject=${encodeURIComponent('My Penguin Tracking Achievement')}&body=${encodeURIComponent(shareText + '\n\n' + window.location.href)}`;
-        break;
-      default:
-        break;
-    }
-    
-    if (shareUrl) {
-      window.open(shareUrl, '_blank');
-    }
-  };
-  
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(shareText + ' ' + window.location.href)
-      .then(() => {
-        setIsCopied(true);
-        setTimeout(() => setIsCopied(false), 2000);
-      });
   };
   
   // Use Web Share API if available
@@ -197,34 +166,20 @@ export default function CongratulationsModal({ isOpen, onClose, count = 18 }: Co
               <p className="text-sm">{shareText}</p>
             </div>
             
-            <div className="flex flex-wrap gap-2 justify-center">
+            <div className="mb-3">
               {typeof navigator !== 'undefined' && 'share' in navigator && (
-                <Button onClick={useNativeShare} className="flex items-center gap-2">
+                <Button onClick={useNativeShare} className="flex items-center gap-2 mx-auto">
                   <Share2 size={18} />
-                  Share
+                  Native Share
                 </Button>
               )}
-              
-              <Button onClick={() => handleSocialShare('twitter')} variant="outline" className="flex items-center gap-2">
-                <Twitter size={18} className="text-[#1DA1F2]" />
-                Twitter
-              </Button>
-              
-              <Button onClick={() => handleSocialShare('whatsapp')} variant="outline" className="flex items-center gap-2">
-                <FaWhatsapp size={18} className="text-[#25D366]" />
-                WhatsApp
-              </Button>
-              
-              <Button onClick={() => handleSocialShare('email')} variant="outline" className="flex items-center gap-2">
-                <Mail size={18} className="text-gray-600" />
-                Email
-              </Button>
-              
-              <Button onClick={copyToClipboard} variant="outline" className="flex items-center gap-2">
-                {isCopied ? <Check size={18} className="text-green-600" /> : <Copy size={18} />}
-                {isCopied ? "Copied!" : "Copy"}
-              </Button>
             </div>
+            
+            <SocialShareButtons 
+              shareText={shareText} 
+              buttonStyle="grid"
+              className="mb-2"
+            />
           </div>
         </DialogContent>
       </Dialog>
