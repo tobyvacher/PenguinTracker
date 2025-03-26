@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import 'leaflet/dist/leaflet.css';
 import { Penguin } from '@shared/schema';
+import { createMap, addCircle, addMarker, removeMap } from '@/lib/mapLoader';
 
 // Type for penguin habitat data
 interface PenguinHabitat {
@@ -139,41 +139,23 @@ export default function PenguinMap({ penguins, seenPenguins }: PenguinMapProps) 
     // Only initialize once
     if (mapInitialized) return;
     
-    // Dynamically import Leaflet modules
     const initMap = async () => {
       try {
-        // Import Leaflet
-        const L = await import('leaflet');
-        
-        // Fix default icon issue
-        delete L.Icon.Default.prototype._getIconUrl;
-        L.Icon.Default.mergeOptions({
-          iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-          iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-        });
-        
-        // Create map
-        const map = L.map('penguin-map').setView([-40, 0], 2);
-        
-        // Add tile layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-          maxZoom: 19,
-        }).addTo(map);
+        // Create map using our utility
+        const map = await createMap('penguin-map', [-40, 0], 2);
         
         // Add habitat markers and circles
-        penguinHabitats.forEach(habitat => {
+        for (const habitat of penguinHabitats) {
           // Create circle
           const isSeen = isPenguinSeen(habitat.species);
           
-          const circle = L.circle(habitat.location, {
+          await addCircle(map, habitat.location, {
             radius: habitat.radius,
             color: isSeen ? habitat.color : "#888",
             fillColor: habitat.color,
             fillOpacity: isSeen ? 0.6 : 0.2,
             weight: isSeen ? 2 : 1
-          }).addTo(map);
+          });
           
           // Create popup
           const matchingPenguin = getMatchingPenguin(habitat.species);
@@ -187,7 +169,8 @@ export default function PenguinMap({ penguins, seenPenguins }: PenguinMapProps) 
             popupContent += `
               <div class="text-sm">
                 <p><strong>Scientific Name:</strong> ${matchingPenguin.scientificName}</p>
-                <p><strong>Height:</strong> ${matchingPenguin.height} cm</p>
+                <p><strong>Size:</strong> ${matchingPenguin.size}</p>
+                <p><strong>Weight:</strong> ${matchingPenguin.weight}</p>
                 <p><strong>Status:</strong> ${isSeen ? 'Spotted! ✓' : 'Not yet spotted'}</p>
               </div>
             `;
@@ -196,10 +179,8 @@ export default function PenguinMap({ penguins, seenPenguins }: PenguinMapProps) 
           popupContent += `</div>`;
           
           // Add marker with popup
-          L.marker(habitat.location)
-            .addTo(map)
-            .bindPopup(popupContent);
-        });
+          await addMarker(map, habitat.location, popupContent);
+        }
         
         setMapInitialized(true);
       } catch (error) {
@@ -211,10 +192,7 @@ export default function PenguinMap({ penguins, seenPenguins }: PenguinMapProps) 
     
     // Cleanup function
     return () => {
-      const mapElement = document.getElementById('penguin-map');
-      if (mapElement) {
-        mapElement.innerHTML = '';
-      }
+      removeMap('penguin-map');
     };
   }, [penguins, seenPenguins, mapInitialized]);
 
