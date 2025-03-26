@@ -1,9 +1,10 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Trophy, Sparkles, Share2, Twitter, Mail, Check, Copy } from "lucide-react";
+import { Trophy, Sparkles, Share2, Twitter, Mail, Check, Copy, Image } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import ShareAchievement from "./ShareAchievement";
 
 interface CongratulationsModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface CongratulationsModalProps {
 export default function CongratulationsModal({ isOpen, onClose, count = 18 }: CongratulationsModalProps) {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [showShareAchievement, setShowShareAchievement] = useState(false);
   
   // Get the appropriate share text based on the count
   const getShareText = () => {
@@ -21,6 +23,13 @@ export default function CongratulationsModal({ isOpen, onClose, count = 18 }: Co
     if (count >= 15) return `I've spotted 15 penguin species in the Penguin Tracker app! 🐧`;
     if (count >= 10) return `I've spotted 10 penguin species in the Penguin Tracker app! 🐧`;
     return `I've spotted 5 penguin species in the Penguin Tracker app! 🐧`;
+  };
+  
+  const getAchievementTitle = () => {
+    if (count >= 18) return "Master Penguin Tracker";
+    if (count >= 15) return "Advanced Penguin Tracker";
+    if (count >= 10) return "Intermediate Penguin Tracker";
+    return "Novice Penguin Tracker";
   };
   
   const shareText = getShareText();
@@ -142,13 +151,21 @@ export default function CongratulationsModal({ isOpen, onClose, count = 18 }: Co
                "Great start on your penguin spotting journey! Keep exploring to find more amazing penguin species."}
             </p>
             
-            <div className="flex gap-4 mb-6">
+            <div className="flex gap-3 mb-6">
               <Button 
-                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-6 flex items-center gap-2"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-5 flex items-center gap-2"
                 onClick={handleShare}
               >
                 <Share2 className="h-4 w-4" />
-                Share Achievement
+                Simple Share
+              </Button>
+              
+              <Button 
+                className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-5 flex items-center gap-2"
+                onClick={() => setShowShareAchievement(true)}
+              >
+                <Image className="h-4 w-4" />
+                Create Image
               </Button>
             </div>
             

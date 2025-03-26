@@ -1,6 +1,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Penguin } from "@shared/schema";
+import { Share2 } from "lucide-react";
+import { useState } from "react";
+import ShareAchievement from "./ShareAchievement";
 
 interface PenguinModalProps {
   penguin: Penguin;
@@ -9,6 +12,7 @@ interface PenguinModalProps {
 }
 
 export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalProps) {
+  const [showShareModal, setShowShareModal] = useState(false);
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "least concern":
@@ -71,75 +75,92 @@ export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalP
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-[#1E3A8A] text-center">
-            {penguin.name}
-          </DialogTitle>
-          <DialogDescription className="sr-only">
-            Details about the {penguin.name} penguin species
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-          <div>
-            <div className="rounded-full overflow-hidden shadow-md border-4 border-white mx-auto max-w-[280px] aspect-square">
-              <img 
-                src={penguin.imageUrl} 
-                alt={penguin.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-          <div>
-            <div className="mb-4">
-              <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-1">Scientific Name</h3>
-              <p className="text-[#334155]">{penguin.scientificName}</p>
-            </div>
-            
-            <div className="mb-4">
-              <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-1">Location</h3>
-              <p className="text-[#334155]">{penguin.location}</p>
-            </div>
-            
-            <div className="mb-4">
-              <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-1">Size</h3>
-              <p className="text-[#334155]">{penguin.size}</p>
-            </div>
-            
-            <div className="mb-4">
-              <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-1">Weight</h3>
-              <p className="text-[#334155]">{penguin.weight}</p>
-            </div>
-            
-            <div className="mb-4">
-              <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-1">Conservation Status</h3>
-              <p className={`inline-block px-4 py-1 rounded-full text-sm font-medium ${getStatusColor(penguin.status)}`}>
-                {penguin.status}
-              </p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="mt-6">
-          <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-2">Description</h3>
-          <p className="text-[#334155] mb-4">{penguin.description}</p>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-[#1E3A8A] text-center">
+              {penguin.name}
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Details about the {penguin.name} penguin species
+            </DialogDescription>
+          </DialogHeader>
           
-          <p className="text-[#334155]">
-            {getAdditionalInfo(penguin.name)}
-          </p>
-        </div>
-        
-        <div className="mt-6 flex justify-end">
-          <Button 
-            className="bg-[#1E3A8A] hover:bg-[#3B82F6] text-white rounded-full px-6"
-            onClick={onClose}
-          >
-            Close
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+            <div>
+              <div className="rounded-full overflow-hidden shadow-md border-4 border-white mx-auto max-w-[280px] aspect-square">
+                <img 
+                  src={penguin.imageUrl} 
+                  alt={penguin.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+            <div>
+              <div className="mb-4">
+                <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-1">Scientific Name</h3>
+                <p className="text-[#334155]">{penguin.scientificName}</p>
+              </div>
+              
+              <div className="mb-4">
+                <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-1">Location</h3>
+                <p className="text-[#334155]">{penguin.location}</p>
+              </div>
+              
+              <div className="mb-4">
+                <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-1">Size</h3>
+                <p className="text-[#334155]">{penguin.size}</p>
+              </div>
+              
+              <div className="mb-4">
+                <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-1">Weight</h3>
+                <p className="text-[#334155]">{penguin.weight}</p>
+              </div>
+              
+              <div className="mb-4">
+                <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-1">Conservation Status</h3>
+                <p className={`inline-block px-4 py-1 rounded-full text-sm font-medium ${getStatusColor(penguin.status)}`}>
+                  {penguin.status}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-6">
+            <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-2">Description</h3>
+            <p className="text-[#334155] mb-4">{penguin.description}</p>
+            
+            <p className="text-[#334155]">
+              {getAdditionalInfo(penguin.name)}
+            </p>
+          </div>
+          
+          <div className="mt-6 flex justify-between">
+            <Button 
+              className="bg-[#22C55E] hover:bg-[#16A34A] text-white rounded-full px-6 flex items-center gap-2"
+              onClick={() => setShowShareModal(true)}
+            >
+              <Share2 className="h-4 w-4" />
+              Share
+            </Button>
+            <Button 
+              className="bg-[#1E3A8A] hover:bg-[#3B82F6] text-white rounded-full px-6"
+              onClick={onClose}
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      <ShareAchievement
+        title="Share Your Penguin Sighting!"
+        message={`I spotted the ${penguin.name}!`}
+        penguin={penguin}
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+      />
+    </>
   );
 }
