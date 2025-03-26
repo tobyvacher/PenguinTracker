@@ -66,14 +66,23 @@ export function usePenguinStore() {
         
         // Then make API call
         try {
-          await apiRequest(`/api/seen-penguins/${penguinId}`, 'DELETE', undefined, {
+          console.log(`Attempting to remove penguin ${penguinId} from seen list`);
+          const response = await fetch(`/api/seen-penguins/${penguinId}`, {
+            method: 'DELETE',
             headers: {
               'Authorization': currentUser ? `Bearer ${await currentUser.getIdToken()}` : '',
-            }
+              'Content-Type': 'application/json'
+            },
+            credentials: 'include'
           });
-          console.log(`Successfully removed penguin ${penguinId} from seen list`);
-          // Invalidate queries to refresh data
-          queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
+          
+          if (response.status === 204) {
+            console.log(`Successfully removed penguin ${penguinId} from seen list`);
+            // Invalidate queries to refresh data
+            queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
+          } else {
+            throw new Error(`Failed with status: ${response.status}`);
+          }
         } catch (deleteError) {
           console.error(`Failed to remove penguin ${penguinId} from seen list:`, deleteError);
           // Revert the optimistic update if the API call fails
@@ -89,12 +98,24 @@ export function usePenguinStore() {
         
         // Then make API call
         try {
-          await apiRequest('/api/seen-penguins', 'POST', { penguinId }, {
+          console.log(`Attempting to add penguin ${penguinId} to seen list`);
+          const response = await fetch('/api/seen-penguins', {
+            method: 'POST',
             headers: {
               'Authorization': currentUser ? `Bearer ${await currentUser.getIdToken()}` : '',
-            }
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ penguinId }),
+            credentials: 'include'
           });
-          console.log(`Successfully added penguin ${penguinId} to seen list`);
+          
+          if (response.ok) {
+            console.log(`Successfully added penguin ${penguinId} to seen list`);
+            // Invalidate queries to refresh data
+            queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
+          } else {
+            throw new Error(`Failed with status: ${response.status}`);
+          }
         } catch (postError) {
           console.error(`Failed to add penguin ${penguinId} to seen list:`, postError);
           // Revert the optimistic update if the API call fails

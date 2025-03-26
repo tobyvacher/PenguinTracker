@@ -185,6 +185,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Remove a penguin from seen
   apiRouter.delete("/seen-penguins/:penguinId", async (req, res) => {
     try {
+      console.log(`DELETE request received for penguin ID: ${req.params.penguinId}`);
+      
       let user;
       if (!req.user) {
         // Get or create demo user
@@ -196,17 +198,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
             displayName: "Demo User"
           });
         }
+        console.log(`Using demo user with ID: ${user.id}`);
       } else {
         // Get user by firebase uid
         user = await storage.getUserByFirebaseUid(req.user.uid);
         if (!user) {
+          console.log(`User not found for firebase UID: ${req.user.uid}`);
           return res.status(404).json({ message: "User not found" });
         }
+        console.log(`Using authenticated user with ID: ${user.id}`);
       }
 
       const penguinId = parseInt(req.params.penguinId);
+      console.log(`Removing penguin ${penguinId} from seen list for user ${user.id}`);
+      
+      // Get current seen penguins before removing
+      const beforeRemove = await storage.getSeenPenguins(user.id);
+      console.log(`Penguins seen by user ${user.id} before removal: ${beforeRemove.join(', ')}`);
       
       await storage.removeSeenPenguin(user.id, penguinId);
+      
+      // Get seen penguins after removing to verify it worked
+      const afterRemove = await storage.getSeenPenguins(user.id);
+      console.log(`Penguins seen by user ${user.id} after removal: ${afterRemove.join(', ')}`);
+      
       res.status(204).send();
     } catch (error) {
       console.error("Error removing penguin from seen:", error);

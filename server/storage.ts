@@ -129,32 +129,51 @@ export class MemStorage implements IStorage {
   }
 
   async addSeenPenguin(insertSeenPenguin: InsertSeenPenguin): Promise<SeenPenguin> {
+    console.log(`Storage: Adding seen penguin for userId=${insertSeenPenguin.userId}, penguinId=${insertSeenPenguin.penguinId}`);
+    
     // Check if this penguin is already seen by the user
-    const exists = Array.from(this.seenPenguins.values()).some(
+    const existing = Array.from(this.seenPenguins.values()).find(
       sp => sp.userId === insertSeenPenguin.userId && sp.penguinId === insertSeenPenguin.penguinId
     );
 
-    if (exists) {
-      // Return the existing entry (this is a simplification)
-      const existing = Array.from(this.seenPenguins.values()).find(
-        sp => sp.userId === insertSeenPenguin.userId && sp.penguinId === insertSeenPenguin.penguinId
-      )!;
+    if (existing) {
+      console.log(`Storage: Penguin ${insertSeenPenguin.penguinId} already seen by user ${insertSeenPenguin.userId}, returning existing entry with ID=${existing.id}`);
       return existing;
     }
 
     const id = this.currentSeenPenguinId++;
     const seenPenguin: SeenPenguin = { ...insertSeenPenguin, id };
+    console.log(`Storage: Created new seen penguin entry with ID=${id}`);
+    
     this.seenPenguins.set(id, seenPenguin);
+    
+    // Log all entries in the seenPenguins map after adding
+    console.log(`Storage: All seen penguin entries after adding (${this.seenPenguins.size} total):`);
+    Array.from(this.seenPenguins.entries()).forEach(([mapId, sp]) => {
+      console.log(`Storage: - ID=${mapId}, userId=${sp.userId}, penguinId=${sp.penguinId}`);
+    });
+    
     return seenPenguin;
   }
 
   async removeSeenPenguin(userId: number, penguinId: number): Promise<void> {
+    console.log(`Storage: Finding seen penguin entry for userId=${userId}, penguinId=${penguinId}`);
+    
+    // Log all entries in the seenPenguins map for debugging
+    console.log(`Storage: All seen penguin entries (${this.seenPenguins.size} total):`);
+    Array.from(this.seenPenguins.entries()).forEach(([id, sp]) => {
+      console.log(`Storage: - ID=${id}, userId=${sp.userId}, penguinId=${sp.penguinId}`);
+    });
+    
     const entry = Array.from(this.seenPenguins.values()).find(
       sp => sp.userId === userId && sp.penguinId === penguinId
     );
 
     if (entry) {
+      console.log(`Storage: Found entry with ID=${entry.id}, removing it`);
       this.seenPenguins.delete(entry.id);
+    } else {
+      console.log(`Storage: No matching entry found to remove`);
     }
   }
   
