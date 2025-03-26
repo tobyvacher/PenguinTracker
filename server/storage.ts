@@ -1,7 +1,8 @@
 import { 
   users, type User, type InsertUser,
   penguins, type Penguin, type InsertPenguin,
-  seenPenguins, type SeenPenguin, type InsertSeenPenguin
+  seenPenguins, type SeenPenguin, type InsertSeenPenguin,
+  sightingJournal, type SightingJournal, type InsertSightingJournal
 } from "@shared/schema";
 
 export interface IStorage {
@@ -20,23 +21,34 @@ export interface IStorage {
   getSeenPenguins(userId: number): Promise<number[]>;
   addSeenPenguin(seenPenguin: InsertSeenPenguin): Promise<SeenPenguin>;
   removeSeenPenguin(userId: number, penguinId: number): Promise<void>;
+
+  // Sighting journal methods
+  getUserJournalEntries(userId: number): Promise<SightingJournal[]>;
+  getPenguinJournalEntries(userId: number, penguinId: number): Promise<SightingJournal[]>;
+  addJournalEntry(entry: InsertSightingJournal): Promise<SightingJournal>;
+  updateJournalEntry(id: number, entry: Partial<InsertSightingJournal>): Promise<SightingJournal | undefined>;
+  deleteJournalEntry(id: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private penguins: Map<number, Penguin>;
   private seenPenguins: Map<number, SeenPenguin>;
+  private sightingJournals: Map<number, SightingJournal>;
   currentUserId: number;
   currentPenguinId: number;
   currentSeenPenguinId: number;
+  currentJournalId: number;
 
   constructor() {
     this.users = new Map();
     this.penguins = new Map();
     this.seenPenguins = new Map();
+    this.sightingJournals = new Map();
     this.currentUserId = 1;
     this.currentPenguinId = 1;
     this.currentSeenPenguinId = 1;
+    this.currentJournalId = 1;
   }
 
   // User methods
@@ -144,6 +156,59 @@ export class MemStorage implements IStorage {
     if (entry) {
       this.seenPenguins.delete(entry.id);
     }
+  }
+  
+  // Sighting journal methods
+  async getUserJournalEntries(userId: number): Promise<SightingJournal[]> {
+    return Array.from(this.sightingJournals.values()).filter(
+      entry => entry.userId === userId
+    );
+  }
+  
+  async getPenguinJournalEntries(userId: number, penguinId: number): Promise<SightingJournal[]> {
+    return Array.from(this.sightingJournals.values()).filter(
+      entry => entry.userId === userId && entry.penguinId === penguinId
+    );
+  }
+  
+  async addJournalEntry(insertEntry: InsertSightingJournal): Promise<SightingJournal> {
+    const id = this.currentJournalId++;
+    
+    // Handle defaults for nullable fields
+    const entry: SightingJournal = {
+      id,
+      userId: insertEntry.userId,
+      penguinId: insertEntry.penguinId,
+      sightingDate: insertEntry.sightingDate || new Date(),
+      location: insertEntry.location,
+      notes: insertEntry.notes === undefined ? null : insertEntry.notes,
+      coordinates: insertEntry.coordinates === undefined ? null : insertEntry.coordinates
+    };
+    
+    this.sightingJournals.set(id, entry);
+    return entry;
+  }
+  
+  async updateJournalEntry(id: number, updates: Partial<InsertSightingJournal>): Promise<SightingJournal | undefined> {
+    const existingEntry = this.sightingJournals.get(id);
+    
+    if (!existingEntry) {
+      return undefined;
+    }
+    
+    // Create updated entry
+    const updatedEntry: SightingJournal = {
+      ...existingEntry,
+      ...updates,
+      id // Ensure id doesn't change
+    };
+    
+    this.sightingJournals.set(id, updatedEntry);
+    return updatedEntry;
+  }
+  
+  async deleteJournalEntry(id: number): Promise<void> {
+    this.sightingJournals.delete(id);
   }
 }
 

@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -29,6 +29,17 @@ export const seenPenguins = pgTable("seen_penguins", {
   penguinId: integer("penguin_id").notNull(),
 });
 
+// New table for journal entries to record sightings
+export const sightingJournal = pgTable("sighting_journal", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  penguinId: integer("penguin_id").notNull(),
+  sightingDate: timestamp("sighting_date").notNull().defaultNow(),
+  location: text("location").notNull(),
+  notes: text("notes"),
+  coordinates: text("coordinates"), // Format: "latitude,longitude"
+});
+
 export const insertPenguinSchema = createInsertSchema(penguins).pick({
   name: true,
   scientificName: true,
@@ -53,9 +64,21 @@ export const insertSeenPenguinSchema = createInsertSchema(seenPenguins).pick({
   penguinId: true,
 });
 
+// Schema for inserting journal entries
+export const insertSightingJournalSchema = createInsertSchema(sightingJournal).pick({
+  userId: true,
+  penguinId: true,
+  sightingDate: true,
+  location: true,
+  notes: true,
+  coordinates: true,
+});
+
 export type InsertPenguin = z.infer<typeof insertPenguinSchema>;
 export type Penguin = typeof penguins.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertSeenPenguin = z.infer<typeof insertSeenPenguinSchema>;
 export type SeenPenguin = typeof seenPenguins.$inferSelect;
+export type InsertSightingJournal = z.infer<typeof insertSightingJournalSchema>;
+export type SightingJournal = typeof sightingJournal.$inferSelect;

@@ -2,7 +2,11 @@ import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import express from "express";
-import { insertSeenPenguinSchema, insertUserSchema } from "@shared/schema";
+import { 
+  insertSeenPenguinSchema, 
+  insertUserSchema, 
+  insertSightingJournalSchema 
+} from "@shared/schema";
 import { z } from "zod";
 import { authenticate, isAuthenticated } from "./middleware/auth";
 
@@ -186,6 +190,170 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Journal Entries routes
+  
+  // Get all journal entries for the current user
+  apiRouter.get("/journal", async (req, res) => {
+    try {
+      // If user is not authenticated, return error
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      // Get user by firebase uid
+      const user = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const journalEntries = await storage.getUserJournalEntries(user.id);
+      res.json(journalEntries);
+    } catch (error) {
+      console.error("Error fetching journal entries:", error);
+      res.status(500).json({ message: "Failed to fetch journal entries" });
+    }
+  });
+
+  // Get journal entries for a specific penguin
+  apiRouter.get("/journal/penguin/:penguinId", async (req, res) => {
+    try {
+      // If user is not authenticated, return error
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      // Get user by firebase uid
+      const user = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const penguinId = parseInt(req.params.penguinId);
+      const journalEntries = await storage.getPenguinJournalEntries(user.id, penguinId);
+      res.json(journalEntries);
+    } catch (error) {
+      console.error("Error fetching penguin journal entries:", error);
+      res.status(500).json({ message: "Failed to fetch penguin journal entries" });
+    }
+  });
+
+  // Add a new journal entry
+  apiRouter.post("/journal", async (req, res) => {
+    try {
+      // If user is not authenticated, return error
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      // Get user by firebase uid
+      const user = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Parse and validate the request body
+      const journalData = insertSightingJournalSchema
+        .omit({ userId: true }) // userId will be set from the authenticated user
+        .parse(req.body);
+      
+      // Add the journal entry with the user's ID
+      const journalEntry = await storage.addJournalEntry({
+        ...journalData,
+        userId: user.id
+      });
+      
+      res.status(201).json(journalEntry);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid request data",
+          errors: error.errors 
+        });
+      }
+      console.error("Error adding journal entry:", error);
+      res.status(500).json({ message: "Failed to add journal entry" });
+    }
+  });
+
+  // Update an existing journal entry
+  apiRouter.patch("/journal/:id", async (req, res) => {
+    try {
+      // If user is not authenticated, return error
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      // Get user by firebase uid
+      const user = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const entryId = parseInt(req.params.id);
+      
+      // Parse and validate the request body (allow partial updates)
+      const updateData = insertSightingJournalSchema
+        .omit({ userId: true }) // userId should not be updated
+        .partial() // Make all fields optional for PATCH
+        .parse(req.body);
+      
+      // Update the journal entry
+      const updatedEntry = await storage.updateJournalEntry(entryId, updateData);
+      
+      if (!updatedEntry) {
+        return res.status(404).json({ message: "Journal entry not found" });
+      }
+      
+      // Check if the entry belongs to the current user
+      if (updatedEntry.userId !== user.id) {
+        return res.status(403).json({ message: "Not authorized to update this journal entry" });
+      }
+      
+      res.json(updatedEntry);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid request data",
+          errors: error.errors 
+        });
+      }
+      console.error("Error updating journal entry:", error);
+      res.status(500).json({ message: "Failed to update journal entry" });
+    }
+  });
+
+  // Delete a journal entry
+  apiRouter.delete("/journal/:id", async (req, res) => {
+    try {
+      // If user is not authenticated, return error
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      // Get user by firebase uid
+      const user = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const entryId = parseInt(req.params.id);
+      
+      // We need to check if the entry exists and belongs to the user
+      const journalEntries = await storage.getUserJournalEntries(user.id);
+      const entryToDelete = journalEntries.find(entry => entry.id === entryId);
+      
+      if (!entryToDelete) {
+        return res.status(404).json({ message: "Journal entry not found or not owned by the user" });
+      }
+      
+      await storage.deleteJournalEntry(entryId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting journal entry:", error);
+      res.status(500).json({ message: "Failed to delete journal entry" });
+    }
+  });
+  
   // Mount API routes
   app.use("/api", apiRouter);
 
