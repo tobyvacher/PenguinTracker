@@ -118,15 +118,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get seen penguins
   apiRouter.get("/seen-penguins", async (req, res) => {
     try {
-      // If user is not authenticated, return empty array
+      let user;
       if (!req.user) {
-        return res.json([]);
-      }
-
-      // Get user by firebase uid
-      const user = await storage.getUserByFirebaseUid(req.user.uid);
-      if (!user) {
-        return res.json([]);
+        // Get or create demo user
+        user = await storage.getUserByFirebaseUid("demo_uid");
+        if (!user) {
+          user = await storage.createUser({
+            firebaseUid: "demo_uid",
+            email: "demo@example.com",
+            displayName: "Demo User"
+          });
+        }
+      } else {
+        // Get user by firebase uid
+        user = await storage.getUserByFirebaseUid(req.user.uid);
+        if (!user) {
+          return res.json([]);
+        }
       }
 
       const seenPenguinIds = await storage.getSeenPenguins(user.id);
@@ -140,15 +148,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mark a penguin as seen
   apiRouter.post("/seen-penguins", async (req, res) => {
     try {
-      // If user is not authenticated, return error
+      let user;
       if (!req.user) {
-        return res.status(401).json({ message: "Authentication required to save progress" });
-      }
-
-      // Get user by firebase uid
-      const user = await storage.getUserByFirebaseUid(req.user.uid);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        // Get or create demo user
+        user = await storage.getUserByFirebaseUid("demo_uid");
+        if (!user) {
+          user = await storage.createUser({
+            firebaseUid: "demo_uid",
+            email: "demo@example.com",
+            displayName: "Demo User"
+          });
+        }
+      } else {
+        // Get user by firebase uid
+        user = await storage.getUserByFirebaseUid(req.user.uid);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
       }
       
       const { penguinId } = insertSeenPenguinSchema
@@ -169,15 +185,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Remove a penguin from seen
   apiRouter.delete("/seen-penguins/:penguinId", async (req, res) => {
     try {
-      // If user is not authenticated, return error
+      let user;
       if (!req.user) {
-        return res.status(401).json({ message: "Authentication required to save progress" });
-      }
-
-      // Get user by firebase uid
-      const user = await storage.getUserByFirebaseUid(req.user.uid);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        // Get or create demo user
+        user = await storage.getUserByFirebaseUid("demo_uid");
+        if (!user) {
+          user = await storage.createUser({
+            firebaseUid: "demo_uid",
+            email: "demo@example.com",
+            displayName: "Demo User"
+          });
+        }
+      } else {
+        // Get user by firebase uid
+        user = await storage.getUserByFirebaseUid(req.user.uid);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
       }
 
       const penguinId = parseInt(req.params.penguinId);
