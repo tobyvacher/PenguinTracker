@@ -225,6 +225,16 @@ export default function CongratulationsModal({ isOpen, onClose, count = 18 }: Co
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* ShareAchievement Modal */}
+      <ShareAchievement
+        title={`${getAchievementTitle()} Achievement!`}
+        message={shareText.replace(' 🐧', '')}
+        count={count}
+        total={18}
+        isOpen={showShareAchievement}
+        onClose={() => setShowShareAchievement(false)}
+      />
     </>
   );
 }
