@@ -17,7 +17,7 @@ export function useJournal() {
   // Fetch journal entries for a specific penguin
   const getPenguinJournalEntries = (penguinId: number) => {
     return useQuery({
-      queryKey: ["/api/journal/penguin", penguinId],
+      queryKey: [`/api/journal/penguin/${penguinId}`],
       queryFn: getQueryFn({ on401: "returnNull" }),
       enabled: isAuthenticated && !!penguinId,
     } as any);
@@ -29,10 +29,14 @@ export function useJournal() {
       const response = await apiRequest("/api/journal", "POST", data);
       return response;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: ["/api/journal"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/journal/penguin"] });
+      if (variables.penguinId) {
+        queryClient.invalidateQueries({ 
+          queryKey: [`/api/journal/penguin/${variables.penguinId}`] 
+        });
+      }
     },
   });
 
@@ -51,22 +55,28 @@ export function useJournal() {
     onSuccess: (_, variables) => {
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: ["/api/journal"] });
-      queryClient.invalidateQueries({ 
-        queryKey: ["/api/journal/penguin", variables.data.penguinId] 
-      });
+      if (variables.data.penguinId) {
+        queryClient.invalidateQueries({ 
+          queryKey: [`/api/journal/penguin/${variables.data.penguinId}`] 
+        });
+      }
     },
   });
 
   // Delete a journal entry
   const deleteJournalEntryMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async ({ id, penguinId }: { id: number; penguinId: number }) => {
       await apiRequest(`/api/journal/${id}`, "DELETE");
-      return id;
+      return { id, penguinId };
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: ["/api/journal"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/journal/penguin"] });
+      if (variables.penguinId) {
+        queryClient.invalidateQueries({ 
+          queryKey: [`/api/journal/penguin/${variables.penguinId}`] 
+        });
+      }
     },
   });
 

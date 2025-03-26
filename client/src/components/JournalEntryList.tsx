@@ -53,7 +53,7 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
 
   // Handle delete
   const handleDelete = (entryId: number) => {
-    deleteJournalEntry(entryId, {
+    deleteJournalEntry({ id: entryId, penguinId: penguin.id }, {
       onSuccess: () => {
         toast({
           title: "Entry deleted",
