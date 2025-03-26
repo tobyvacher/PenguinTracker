@@ -195,15 +195,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all journal entries for the current user
   apiRouter.get("/journal", async (req, res) => {
     try {
-      // If user is not authenticated, return empty array instead of error
+      let user;
       if (!req.user) {
-        return res.json([]);
-      }
-
-      // Get user by firebase uid
-      const user = await storage.getUserByFirebaseUid(req.user.uid);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        // Get or create demo user
+        user = await storage.getUserByFirebaseUid("demo_uid");
+        if (!user) {
+          user = await storage.createUser({
+            firebaseUid: "demo_uid",
+            email: "demo@example.com",
+            displayName: "Demo User"
+          });
+        }
+      } else {
+        // Get user by firebase uid
+        user = await storage.getUserByFirebaseUid(req.user.uid);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
       }
 
       const journalEntries = await storage.getUserJournalEntries(user.id);
@@ -217,15 +225,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get journal entries for a specific penguin
   apiRouter.get("/journal/penguin/:penguinId", async (req, res) => {
     try {
-      // If user is not authenticated, return empty array instead of error
+      let user;
       if (!req.user) {
-        return res.json([]);
-      }
-
-      // Get user by firebase uid
-      const user = await storage.getUserByFirebaseUid(req.user.uid);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        // Get or create demo user
+        user = await storage.getUserByFirebaseUid("demo_uid");
+        if (!user) {
+          user = await storage.createUser({
+            firebaseUid: "demo_uid",
+            email: "demo@example.com",
+            displayName: "Demo User"
+          });
+        }
+      } else {
+        // Get user by firebase uid
+        user = await storage.getUserByFirebaseUid(req.user.uid);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
       }
 
       const penguinId = parseInt(req.params.penguinId);
