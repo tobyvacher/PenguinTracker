@@ -21,6 +21,7 @@ export default function Home() {
   const [showToast, setShowToast] = useState(false);
   const [showInfoBanner, setShowInfoBanner] = useState(true);
   const [showCongratsModal, setShowCongratsModal] = useState(false);
+  const [congratsCount, setCongratsCount] = useState(18);
   
   // Track the last milestone reached to prevent showing the badge again for the same milestone
   const lastMilestoneRef = useRef<number>(0);
@@ -43,9 +44,11 @@ export default function Home() {
     if (count === 18 && lastMilestoneRef.current < 18) {
       lastMilestoneRef.current = 18;
       // Show congratulations modal when all 18 are collected
+      setCongratsCount(18);
       setShowCongratsModal(true);
     } else if (count >= 15 && lastMilestoneRef.current < 15) {
       lastMilestoneRef.current = 15;
+      // We don't automatically show the modal for 15, 10, or 5
     } else if (count >= 10 && lastMilestoneRef.current < 10) {
       lastMilestoneRef.current = 10;
     } else if (count >= 5 && lastMilestoneRef.current < 5) {
@@ -138,7 +141,13 @@ export default function Home() {
                   count={seenPenguins.length >= 18 ? 18 : 
                          seenPenguins.length >= 15 ? 15 : 
                          seenPenguins.length >= 10 ? 10 : 5} 
-                  onClick={() => setShowCongratsModal(true)}
+                  onClick={() => {
+                    const count = seenPenguins.length >= 18 ? 18 :
+                                  seenPenguins.length >= 15 ? 15 :
+                                  seenPenguins.length >= 10 ? 10 : 5;
+                    setCongratsCount(count);
+                    setShowCongratsModal(true);
+                  }}
                 />
               )}
               <ProgressCounter count={seenPenguins.length} total={penguins.length} />
@@ -197,7 +206,13 @@ export default function Home() {
               count={seenPenguins.length >= 18 ? 18 : 
                      seenPenguins.length >= 15 ? 15 : 
                      seenPenguins.length >= 10 ? 10 : 5} 
-              onClick={() => setShowCongratsModal(true)}
+              onClick={() => {
+                const count = seenPenguins.length >= 18 ? 18 :
+                              seenPenguins.length >= 15 ? 15 :
+                              seenPenguins.length >= 10 ? 10 : 5;
+                setCongratsCount(count);
+                setShowCongratsModal(true);
+              }}
             />
           )}
           <ProgressCounter count={seenPenguins.length} total={penguins.length} />
@@ -216,6 +231,7 @@ export default function Home() {
       <CongratulationsModal
         isOpen={showCongratsModal}
         onClose={closeCongratsModal}
+        count={congratsCount}
       />
       
       <SuccessToast 

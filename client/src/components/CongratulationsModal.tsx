@@ -8,13 +8,22 @@ import { useState } from "react";
 interface CongratulationsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  count?: number; // Optional count to determine which achievement to show
 }
 
-export default function CongratulationsModal({ isOpen, onClose }: CongratulationsModalProps) {
+export default function CongratulationsModal({ isOpen, onClose, count = 18 }: CongratulationsModalProps) {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   
-  const shareText = "I've spotted all 18 penguin species in the Penguin Tracker app! 🐧";
+  // Get the appropriate share text based on the count
+  const getShareText = () => {
+    if (count >= 18) return "I've spotted all 18 penguin species in the Penguin Tracker app! 🐧";
+    if (count >= 15) return `I've spotted 15 penguin species in the Penguin Tracker app! 🐧`;
+    if (count >= 10) return `I've spotted 10 penguin species in the Penguin Tracker app! 🐧`;
+    return `I've spotted 5 penguin species in the Penguin Tracker app! 🐧`;
+  };
+  
+  const shareText = getShareText();
   
   const handleShare = () => {
     setIsShareDialogOpen(true);
@@ -72,7 +81,10 @@ export default function CongratulationsModal({ isOpen, onClose }: Congratulation
               Congratulations!
             </DialogTitle>
             <DialogDescription className="text-slate-600">
-              You've spotted all 18 penguin species in the world!
+              {count >= 18 ? "You've spotted all 18 penguin species in the world!" :
+               count >= 15 ? "You've spotted 15 penguin species in the wild!" :
+               count >= 10 ? "You've spotted 10 penguin species in the wild!" :
+               "You've spotted 5 penguin species in the wild!"}
             </DialogDescription>
           </DialogHeader>
           
@@ -89,9 +101,14 @@ export default function CongratulationsModal({ isOpen, onClose }: Congratulation
                   repeat: Infinity,
                   repeatType: "loop"
                 }}
-                className="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 rounded-full shadow-lg border-4 border-purple-300"
+                className={`p-6 rounded-full shadow-lg border-4 ${
+                  count >= 18 ? "bg-gradient-to-r from-purple-600 to-indigo-600 border-purple-300" :
+                  count >= 15 ? "bg-gradient-to-r from-blue-600 to-indigo-600 border-blue-300" :
+                  count >= 10 ? "bg-gradient-to-r from-green-600 to-teal-600 border-green-300" :
+                  "bg-gradient-to-r from-amber-500 to-orange-500 border-amber-300"
+                }`}
               >
-                <Trophy className="h-16 w-16 text-amber-400" />
+                <Trophy className={`h-16 w-16 ${count >= 18 ? "text-amber-400" : "text-white"}`} />
               </motion.div>
               
               {/* Sparkles */}
@@ -112,9 +129,17 @@ export default function CongratulationsModal({ isOpen, onClose }: Congratulation
               </motion.div>
             </div>
             
-            <h3 className="text-xl font-bold text-slate-800 mb-2">Master Penguin Tracker</h3>
+            <h3 className="text-xl font-bold text-slate-800 mb-2">
+              {count >= 18 ? "Master Penguin Tracker" :
+               count >= 15 ? "Advanced Penguin Tracker" :
+               count >= 10 ? "Intermediate Penguin Tracker" :
+               "Novice Penguin Tracker"}
+            </h3>
             <p className="text-center text-slate-600 mb-6">
-              You're now a penguin expert! Share your knowledge and continue your journey exploring the fascinating world of penguins.
+              {count >= 18 ? "You're now a penguin expert! Share your knowledge and continue your journey exploring the fascinating world of penguins." :
+               count >= 15 ? "You're making amazing progress! Continue exploring and spotting the remaining penguin species." :
+               count >= 10 ? "You're getting better at penguin spotting! Keep going to discover more fascinating species." :
+               "Great start on your penguin spotting journey! Keep exploring to find more amazing penguin species."}
             </p>
             
             <div className="flex gap-4 mb-6">
