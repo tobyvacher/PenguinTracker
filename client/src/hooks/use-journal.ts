@@ -72,11 +72,11 @@ export function useJournal() {
     onSuccess: () => {
       // Invalidate all journal queries since we don't know which penguin it was for
       queryClient.invalidateQueries({ queryKey: ["/api/journal"] });
-      // Any query that starts with /api/journal/penguin will be invalidated
+      // Invalidate all penguin journal entries queries
       queryClient.invalidateQueries({ 
         predicate: (query) => {
           const queryKey = query.queryKey[0];
-          return typeof queryKey === 'string' && queryKey.startsWith('/api/journal/penguin/'); 
+          return typeof queryKey === 'string' && queryKey === '/api/journal/penguin'; 
         }
       });
     },
