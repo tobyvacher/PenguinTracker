@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye, HelpCircle } from "lucide-react";
+import { Eye } from "lucide-react";
 import { Penguin } from "@shared/schema";
 
 interface PenguinCardProps {
@@ -138,13 +138,6 @@ export default function PenguinCard({
     onLongPress();
   };
 
-  // Function to handle info button click
-  const handleInfoClick = (e: React.MouseEvent) => {
-    // Stop event propagation to prevent triggering the card click
-    e.stopPropagation();
-    onLongPress();
-  };
-
   return (
     <motion.div
       className="flex flex-col items-center cursor-pointer"
@@ -174,17 +167,6 @@ export default function PenguinCard({
             }`}
           />
         </div>
-        
-        {/* Info Button (Bottom Left) */}
-        <div 
-          className="absolute bottom-0 left-0 bg-blue-600 text-white rounded-full p-1.5 shadow-md border-2 border-white cursor-pointer z-10 hover:bg-blue-700 transition-colors"
-          onClick={handleInfoClick}
-          title="View penguin information"
-        >
-          <HelpCircle className="h-4 w-4" />
-        </div>
-        
-        {/* Seen Indicator (Bottom Right) */}
         <motion.div 
           className="absolute bottom-0 right-0 bg-[#FFD700] text-[#7B5800] rounded-full p-1.5 shadow-[0_0_8px_rgba(255,215,0,0.8)] border-2 border-white"
           initial={{ opacity: 0, scale: 0 }}
