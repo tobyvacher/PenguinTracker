@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Penguin } from '@shared/schema';
-import { createMap, addCircle, addMarker, removeMap } from '@/lib/mapLoader';
+import { MapContainer, TileLayer, Circle, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 
 // Type for penguin habitat data
 interface PenguinHabitat {
@@ -103,6 +105,41 @@ const penguinHabitats: PenguinHabitat[] = [
     radius: 300000, 
     color: '#f39c12',
     description: 'Endemic to New Zealand.'
+  },
+  { 
+    species: 'Fiordland Penguin', 
+    location: [-45.4167, 167.2500], 
+    radius: 300000, 
+    color: '#a55eea', 
+    description: 'Found in the Fiordland region on the southwest corner of New Zealand\'s South Island.'
+  },
+  { 
+    species: 'Snares Penguin', 
+    location: [-48.0167, 166.6000], 
+    radius: 200000, 
+    color: '#eb4d4b', 
+    description: 'Endemic to The Snares, a group of small islands off the south coast of New Zealand.' 
+  },
+  { 
+    species: 'Erect-crested Penguin', 
+    location: [-49.6833, 178.8167], 
+    radius: 250000, 
+    color: '#686de0', 
+    description: 'Breeds on the Bounty and Antipodes Islands of New Zealand.' 
+  },
+  { 
+    species: 'Northern Rockhopper Penguin', 
+    location: [-37.0500, -12.3000], 
+    radius: 400000, 
+    color: '#badc58', 
+    description: 'Found on Tristan da Cunha and Gough Island in the south Atlantic Ocean.' 
+  },
+  { 
+    species: 'Royal Penguin', 
+    location: [-54.6167, 158.8500], 
+    radius: 350000, 
+    color: '#ff9f43', 
+    description: 'Endemic to Macquarie Island, halfway between Australia and Antarctica.' 
   }
 ];
 
@@ -111,9 +148,68 @@ interface PenguinMapProps {
   seenPenguins: number[];
 }
 
+// Component for Circle+Marker combination
+const HabitatMarker = ({ 
+  habitat, 
+  isSeen, 
+  matchingPenguin 
+}: { 
+  habitat: PenguinHabitat; 
+  isSeen: boolean; 
+  matchingPenguin: Penguin | undefined; 
+}) => {
+  return (
+    <>
+      <Circle
+        center={habitat.location}
+        radius={habitat.radius}
+        pathOptions={{
+          fillColor: habitat.color,
+          fillOpacity: isSeen ? 0.6 : 0.2,
+          color: isSeen ? habitat.color : "#888",
+          weight: isSeen ? 2 : 1
+        }}
+      />
+      
+      <Marker position={habitat.location}>
+        <Popup>
+          <div className="p-2">
+            <h3 className="font-bold text-lg">{habitat.species}</h3>
+            <p className="text-sm mb-2">{habitat.description}</p>
+            
+            {matchingPenguin && (
+              <div className="text-sm">
+                <p><strong>Scientific Name:</strong> {matchingPenguin.scientificName}</p>
+                <p><strong>Size:</strong> {matchingPenguin.size}</p>
+                <p><strong>Weight:</strong> {matchingPenguin.weight}</p>
+                <p><strong>Status:</strong> {isSeen ? 'Spotted! ✓' : 'Not yet spotted'}</p>
+              </div>
+            )}
+          </div>
+        </Popup>
+      </Marker>
+    </>
+  );
+};
+
 export default function PenguinMap({ penguins, seenPenguins }: PenguinMapProps) {
   const [activeHabitat, setActiveHabitat] = useState<string | null>(null);
-  const [mapInitialized, setMapInitialized] = useState<boolean>(false);
+  
+  // Fix the Leaflet icon issue
+  useEffect(() => {
+    // Set default icon
+    const DefaultIcon = L.icon({
+      iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41],
+    });
+    
+    L.Marker.prototype.options.icon = DefaultIcon;
+  }, []);
   
   // Match a penguin from our data with a habitat by name
   const getMatchingPenguin = (speciesName: string) => {
@@ -131,77 +227,38 @@ export default function PenguinMap({ penguins, seenPenguins }: PenguinMapProps) 
     return penguin ? seenPenguins.includes(penguin.id) : false;
   };
 
-  // Initialize the map with Leaflet after component mounts
-  useEffect(() => {
-    // Skip during SSR
-    if (typeof window === 'undefined') return;
-    
-    // Only initialize once
-    if (mapInitialized) return;
-    
-    const initMap = async () => {
-      try {
-        // Create map using our utility
-        const map = await createMap('penguin-map', [-40, 0], 2);
-        
-        // Add habitat markers and circles
-        for (const habitat of penguinHabitats) {
-          // Create circle
-          const isSeen = isPenguinSeen(habitat.species);
-          
-          await addCircle(map, habitat.location, {
-            radius: habitat.radius,
-            color: isSeen ? habitat.color : "#888",
-            fillColor: habitat.color,
-            fillOpacity: isSeen ? 0.6 : 0.2,
-            weight: isSeen ? 2 : 1
-          });
-          
-          // Create popup
-          const matchingPenguin = getMatchingPenguin(habitat.species);
-          let popupContent = `
-            <div class="p-2">
-              <h3 class="font-bold text-lg">${habitat.species}</h3>
-              <p class="text-sm mb-2">${habitat.description}</p>
-          `;
-          
-          if (matchingPenguin) {
-            popupContent += `
-              <div class="text-sm">
-                <p><strong>Scientific Name:</strong> ${matchingPenguin.scientificName}</p>
-                <p><strong>Size:</strong> ${matchingPenguin.size}</p>
-                <p><strong>Weight:</strong> ${matchingPenguin.weight}</p>
-                <p><strong>Status:</strong> ${isSeen ? 'Spotted! ✓' : 'Not yet spotted'}</p>
-              </div>
-            `;
-          }
-          
-          popupContent += `</div>`;
-          
-          // Add marker with popup
-          await addMarker(map, habitat.location, popupContent);
-        }
-        
-        setMapInitialized(true);
-      } catch (error) {
-        console.error("Error initializing map:", error);
-      }
-    };
-    
-    initMap();
-    
-    // Cleanup function
-    return () => {
-      removeMap('penguin-map');
-    };
-  }, [penguins, seenPenguins, mapInitialized]);
-
   return (
     <div className="bg-white rounded-lg shadow-md p-4 mb-8">
       <h2 className="text-2xl font-bold text-[#1E3A8A] mb-4">Global Penguin Habitats</h2>
       
       {/* Map container */}
-      <div id="penguin-map" className="border rounded-lg overflow-hidden" style={{ height: "500px" }}></div>
+      <div className="border rounded-lg overflow-hidden" style={{ height: "500px" }}>
+        <MapContainer 
+          center={[-40, 0]} 
+          zoom={2} 
+          style={{ height: '100%', width: '100%' }}
+          scrollWheelZoom={true}
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          
+          {penguinHabitats.map((habitat, index) => {
+            const isSeen = isPenguinSeen(habitat.species);
+            const matchingPenguin = getMatchingPenguin(habitat.species);
+            
+            return (
+              <HabitatMarker
+                key={index}
+                habitat={habitat}
+                isSeen={isSeen}
+                matchingPenguin={matchingPenguin}
+              />
+            );
+          })}
+        </MapContainer>
+      </div>
       
       {/* Legend */}
       <div className="mt-4 flex flex-wrap gap-2">
