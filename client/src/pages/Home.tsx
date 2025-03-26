@@ -66,17 +66,21 @@ export default function Home() {
   const handlePenguinClick = (penguin: Penguin) => {
     const wasSeen = seenPenguins.includes(penguin.id);
     
-    // Always show toast regardless of previous seen status for better feedback
-    setToastMessage(`You've spotted the ${penguin.name}!`);
+    // Set appropriate toast message based on current status
+    if (wasSeen) {
+      setToastMessage(`Unmarked the ${penguin.name}`);
+    } else {
+      setToastMessage(`You've spotted the ${penguin.name}!`);
+    }
+    
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
     
-    // Only toggle if not already seen to avoid accidentally un-marking
-    if (!wasSeen) {
-      toggleSeen(penguin.id);
-      // No need to call anything here - useEffect will automatically
-      // check for achievements when seenPenguins.length changes
-    }
+    // Always toggle penguin status whether seen or not seen
+    toggleSeen(penguin.id);
+    
+    // No need to call anything here - useEffect will automatically
+    // check for achievements when seenPenguins.length changes
   };
 
   const handlePenguinLongPress = (penguin: Penguin) => {
