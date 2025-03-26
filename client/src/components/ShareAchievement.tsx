@@ -23,17 +23,18 @@ export default function ShareAchievement({
   isOpen,
   onClose
 }: ShareAchievementProps) {
+  const shareUrl = window.location.href;
+  const defaultShareText = penguin 
+    ? `I spotted the ${penguin.name} on Penguin Tracker! ${shareUrl}`
+    : `I've spotted ${count} out of ${total} penguin species on Penguin Tracker! ${shareUrl}`;
+    
   const [copied, setCopied] = useState(false);
   const shareCardRef = useRef<HTMLDivElement>(null);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [shareText, setShareText] = useState(defaultShareText);
 
   if (!isOpen) return null;
-
-  const shareUrl = window.location.href;
-  const [shareText, setShareText] = useState(penguin 
-    ? `I spotted the ${penguin.name} on Penguin Tracker! ${shareUrl}`
-    : `I've spotted ${count} out of ${total} penguin species on Penguin Tracker! ${shareUrl}`);
 
   const shareToTwitter = () => {
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
