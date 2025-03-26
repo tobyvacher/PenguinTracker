@@ -187,17 +187,6 @@ export default function Home() {
           </div>
         )}
         
-        {/* Map Link */}
-        <Link to="/map">
-          <div className="bg-white rounded-lg shadow-md p-4 mb-8 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer">
-            <div>
-              <h2 className="text-2xl font-bold text-[#1E3A8A]">Explore Penguin Habitats</h2>
-              <p className="text-slate-600">View the global distribution of all penguin species on an interactive map</p>
-            </div>
-            <MapPin className="text-[#1E3A8A] h-8 w-8" />
-          </div>
-        </Link>
-        
         {/* Penguin Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 py-4">
           {penguins.map((penguin: Penguin) => (
@@ -229,6 +218,17 @@ export default function Home() {
           )}
           <ProgressCounter count={seenPenguins.length} total={penguins.length} />
         </div>
+        
+        {/* Map Link */}
+        <Link to="/map">
+          <div className="bg-white rounded-lg shadow-md p-4 mb-8 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer">
+            <div>
+              <h2 className="text-2xl font-bold text-[#1E3A8A]">Explore Penguin Habitats</h2>
+              <p className="text-slate-600">View the global distribution of all penguin species on an interactive map</p>
+            </div>
+            <MapPin className="text-[#1E3A8A] h-8 w-8" />
+          </div>
+        </Link>
       </main>
 
       {/* Modals and Toasts */}
