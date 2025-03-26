@@ -8,10 +8,11 @@ import SuccessToast from "@/components/SuccessToast";
 import AuthButton from "@/components/AuthButton";
 import AchievementBadge from "@/components/AchievementBadge";
 import CongratulationsModal from "@/components/CongratulationsModal";
+import PenguinMap from "@/components/PenguinMap";
 import { usePenguinStore } from "@/hooks/use-penguin-store";
 import { useAuth } from "@/contexts/AuthContext";
 import { Penguin } from "@shared/schema";
-import { HelpCircle, AlertTriangle } from "lucide-react";
+import { HelpCircle, AlertTriangle, Map } from "lucide-react";
 import { firebaseConfigValid } from "@/lib/firebase";
 
 export default function Home() {
@@ -185,6 +186,12 @@ export default function Home() {
             </div>
           </div>
         )}
+        
+        {/* Penguin Map */}
+        <PenguinMap
+          penguins={penguins}
+          seenPenguins={seenPenguins}
+        />
         
         {/* Penguin Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 py-4">
