@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Share2, Twitter, Facebook, Linkedin, Copy, Check, Download } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import { Penguin } from '@shared/schema';
 import html2canvas from 'html2canvas';
 
@@ -41,6 +42,11 @@ export default function ShareAchievement({
 
   const shareToFacebook = () => {
     const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
+    window.open(url, '_blank');
+  };
+
+  const shareToWhatsApp = () => {
+    const url = `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`;
     window.open(url, '_blank');
   };
 
@@ -159,7 +165,7 @@ export default function ShareAchievement({
           </div>
           
           {/* Sharing Options */}
-          <div className="grid grid-cols-4 gap-3 mb-6">
+          <div className="grid grid-cols-5 gap-2 mb-6">
             <button 
               onClick={shareToTwitter}
               className="flex flex-col items-center justify-center bg-[#1DA1F2] text-white p-2 rounded-lg hover:bg-[#1a91da] transition-colors"
@@ -174,6 +180,14 @@ export default function ShareAchievement({
             >
               <Facebook className="h-6 w-6" />
               <span className="text-xs mt-1">Facebook</span>
+            </button>
+            
+            <button 
+              onClick={shareToWhatsApp}
+              className="flex flex-col items-center justify-center bg-[#25D366] text-white p-2 rounded-lg hover:bg-[#20c35a] transition-colors"
+            >
+              <FaWhatsapp className="h-6 w-6" />
+              <span className="text-xs mt-1">WhatsApp</span>
             </button>
             
             <button 

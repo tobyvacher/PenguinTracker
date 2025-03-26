@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Share2, Twitter, Mail, Check, Copy } from "lucide-react";
+import { Share2, Twitter, Mail, Check, Copy, Image } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
+import ShareAchievement from "./ShareAchievement";
 
 interface ProgressCounterProps {
   count: number;
@@ -14,6 +15,7 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
   const [progress, setProgress] = useState(0);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [showShareAchievement, setShowShareAchievement] = useState(false);
   
   useEffect(() => {
     // Avoid division by zero
@@ -124,7 +126,7 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
               <p className="text-sm">{shareText}</p>
             </div>
             
-            <div className="flex flex-wrap gap-2 justify-center">
+            <div className="flex flex-wrap gap-2 justify-center mb-4">
               {typeof navigator !== 'undefined' && 'share' in navigator && (
                 <Button onClick={useNativeShare} className="flex items-center gap-2">
                   <Share2 size={18} />
@@ -152,9 +154,32 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
                 {isCopied ? "Copied!" : "Copy"}
               </Button>
             </div>
+            
+            <div className="flex justify-center">
+              <Button 
+                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700"
+                onClick={() => {
+                  setIsShareDialogOpen(false);
+                  setShowShareAchievement(true);
+                }}
+              >
+                <Image size={18} />
+                Create Shareable Image
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* ShareAchievement Modal */}
+      <ShareAchievement
+        title="My Penguin Spotting Progress"
+        message={`I've spotted ${count} out of ${total} penguin species!`}
+        count={count}
+        total={total}
+        isOpen={showShareAchievement}
+        onClose={() => setShowShareAchievement(false)}
+      />
     </>
   );
 }
