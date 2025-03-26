@@ -170,17 +170,6 @@ export default function ShareAchievement({
               </p>
             </div>
           )}
-            
-          {/* Copy Text Link - Always visible */}
-          <div className="flex justify-center mb-4">
-            <button 
-              onClick={copyToClipboard}
-              className="flex items-center justify-center gap-2 bg-gray-700 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
-            >
-              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              <span>{copied ? 'Link Copied!' : 'Copy Link'}</span>
-            </button>
-          </div>
           
           {/* Image generation and download */}
           <div className="flex flex-col items-center">
