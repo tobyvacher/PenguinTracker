@@ -189,6 +189,19 @@ export default function Home() {
             />
           ))}
         </div>
+
+        {/* Bottom Progress Counter */}
+        <div className="mt-12 mb-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+          {seenPenguins.length >= 5 && (
+            <AchievementBadge 
+              count={seenPenguins.length >= 18 ? 18 : 
+                     seenPenguins.length >= 15 ? 15 : 
+                     seenPenguins.length >= 10 ? 10 : 5} 
+              onClick={seenPenguins.length >= 18 ? () => setShowCongratsModal(true) : undefined}
+            />
+          )}
+          <ProgressCounter count={seenPenguins.length} total={penguins.length} />
+        </div>
       </main>
 
       {/* Modals and Toasts */}
