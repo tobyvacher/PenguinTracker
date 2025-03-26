@@ -59,32 +59,52 @@ export function usePenguinStore() {
       
       if (isCurrentlySeen) {
         // Remove from seen - make API call for all users (authenticated or not)
-        await apiRequest(`/api/seen-penguins/${penguinId}`, 'DELETE', null, {
-          headers: {
-            'Authorization': currentUser ? `Bearer ${await currentUser.getIdToken()}` : '',
-          }
-        });
-        
-        // Optimistically update state
+        // First update state optimistically
         const updatedSeenPenguins = seenPenguins.filter(id => id !== penguinId);
         setSeenPenguins(updatedSeenPenguins);
         localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
+        
+        // Then make API call
+        try {
+          await apiRequest(`/api/seen-penguins/${penguinId}`, 'DELETE', undefined, {
+            headers: {
+              'Authorization': currentUser ? `Bearer ${await currentUser.getIdToken()}` : '',
+            }
+          });
+          console.log(`Successfully removed penguin ${penguinId} from seen list`);
+          // Invalidate queries to refresh data
+          queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
+        } catch (deleteError) {
+          console.error(`Failed to remove penguin ${penguinId} from seen list:`, deleteError);
+          // Revert the optimistic update if the API call fails
+          setSeenPenguins([...seenPenguins]);
+          localStorage.setItem(storageKey, JSON.stringify(seenPenguins));
+        }
       } else {
         // Add to seen - make API call for all users (authenticated or not)
-        await apiRequest('/api/seen-penguins', 'POST', { penguinId }, {
-          headers: {
-            'Authorization': currentUser ? `Bearer ${await currentUser.getIdToken()}` : '',
-          }
-        });
-        
-        // Optimistically update state
+        // First update state optimistically
         const updatedSeenPenguins = [...seenPenguins, penguinId];
         setSeenPenguins(updatedSeenPenguins);
         localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
+        
+        // Then make API call
+        try {
+          await apiRequest('/api/seen-penguins', 'POST', { penguinId }, {
+            headers: {
+              'Authorization': currentUser ? `Bearer ${await currentUser.getIdToken()}` : '',
+            }
+          });
+          console.log(`Successfully added penguin ${penguinId} to seen list`);
+        } catch (postError) {
+          console.error(`Failed to add penguin ${penguinId} to seen list:`, postError);
+          // Revert the optimistic update if the API call fails
+          const filteredPenguins = updatedSeenPenguins.filter(id => id !== penguinId);
+          setSeenPenguins(filteredPenguins);
+          localStorage.setItem(storageKey, JSON.stringify(filteredPenguins));
+          // Invalidate queries to refresh data
+          queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
+        }
       }
-      
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
     } catch (error) {
       console.error('Failed to toggle penguin seen status:', error);
       
