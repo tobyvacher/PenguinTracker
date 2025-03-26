@@ -138,7 +138,7 @@ export default function Home() {
                   count={seenPenguins.length >= 18 ? 18 : 
                          seenPenguins.length >= 15 ? 15 : 
                          seenPenguins.length >= 10 ? 10 : 5} 
-                  onClick={seenPenguins.length >= 18 ? () => setShowCongratsModal(true) : undefined}
+                  onClick={() => setShowCongratsModal(true)}
                 />
               )}
               <ProgressCounter count={seenPenguins.length} total={penguins.length} />
@@ -197,7 +197,7 @@ export default function Home() {
               count={seenPenguins.length >= 18 ? 18 : 
                      seenPenguins.length >= 15 ? 15 : 
                      seenPenguins.length >= 10 ? 10 : 5} 
-              onClick={seenPenguins.length >= 18 ? () => setShowCongratsModal(true) : undefined}
+              onClick={() => setShowCongratsModal(true)}
             />
           )}
           <ProgressCounter count={seenPenguins.length} total={penguins.length} />

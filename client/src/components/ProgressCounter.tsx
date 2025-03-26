@@ -26,7 +26,7 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
-  const shareText = `I've spotted ${count} out of ${total} penguin species in the wild with Penguin Spotter! 🐧`;
+  const shareText = `I've spotted ${count} out of ${total} penguin species in the wild with Penguin Tracker! 🐧`;
   const shareUrl = window.location.href;
 
   const handleShare = () => {
@@ -100,7 +100,7 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center text-sm font-medium">
-            {count}/{total}
+            {count}
           </div>
         </div>
         <div className="flex-1">
