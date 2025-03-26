@@ -162,7 +162,10 @@ export default function CongratulationsModal({ isOpen, onClose, count = 18 }: Co
               
               <Button 
                 className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-full px-5 flex items-center gap-2"
-                onClick={() => setShowShareAchievement(true)}
+                onClick={() => {
+                  onClose(); // Close the congratulations modal first
+                  setShowShareAchievement(true);
+                }}
               >
                 <Image className="h-4 w-4" />
                 Create Image

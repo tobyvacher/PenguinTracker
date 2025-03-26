@@ -31,9 +31,9 @@ export default function ShareAchievement({
   if (!isOpen) return null;
 
   const shareUrl = window.location.href;
-  const shareText = penguin 
+  const [shareText, setShareText] = useState(penguin 
     ? `I spotted the ${penguin.name} on Penguin Tracker! ${shareUrl}`
-    : `I've spotted ${count} out of ${total} penguin species on Penguin Tracker! ${shareUrl}`;
+    : `I've spotted ${count} out of ${total} penguin species on Penguin Tracker! ${shareUrl}`);
 
   const shareToTwitter = () => {
     const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
@@ -73,6 +73,12 @@ export default function ShareAchievement({
       });
       const image = canvas.toDataURL('image/png');
       setImageSrc(image);
+      
+      // Update the share text to include mention of the attached image
+      const imageText = penguin
+        ? `I spotted the ${penguin.name} on Penguin Tracker! Check out my screenshot. ${shareUrl}`
+        : `I've spotted ${count} out of ${total} penguin species on Penguin Tracker! Check out my achievement. ${shareUrl}`;
+      setShareText(imageText);
     } catch (err) {
       console.error('Error generating image:', err);
     } finally {
@@ -233,13 +239,55 @@ export default function ShareAchievement({
             ) : (
               <div className="flex flex-col items-center">
                 <img src={imageSrc} alt="Shareable achievement" className="mb-4 rounded-lg max-w-full max-h-36 object-contain" />
-                <button
-                  onClick={downloadImage}
-                  className="flex items-center justify-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  <Download className="mr-2 h-4 w-4" />
-                  Download Image
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={downloadImage}
+                    className="flex items-center justify-center bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download
+                  </button>
+                  
+                  {typeof navigator !== 'undefined' && 'share' in navigator && 'canShare' in navigator && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          // Convert base64 to blob
+                          const res = await fetch(imageSrc);
+                          const blob = await res.blob();
+                          
+                          const file = new File([blob], 
+                            penguin ? `penguin-${penguin.name}.png` : `penguin-achievement-${count}.png`, 
+                            { type: 'image/png' }
+                          );
+                          
+                          const shareData = {
+                            title: title,
+                            text: shareText,
+                            files: [file]
+                          };
+                          
+                          if (navigator.canShare && navigator.canShare(shareData)) {
+                            await navigator.share(shareData);
+                          } else {
+                            // Fallback to just sharing text if files aren't supported
+                            await navigator.share({
+                              title: title,
+                              text: shareText,
+                              url: window.location.href
+                            });
+                          }
+                        } catch (err) {
+                          console.error('Error sharing: ', err);
+                        }
+                      }}
+                      className="flex items-center justify-center bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
+                    >
+                      <Share2 className="mr-2 h-4 w-4" />
+                      Share
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>

@@ -159,7 +159,7 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
               <Button 
                 className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700"
                 onClick={() => {
-                  setIsShareDialogOpen(false);
+                  setIsShareDialogOpen(false); // Close the share dialog
                   setShowShareAchievement(true);
                 }}
               >
