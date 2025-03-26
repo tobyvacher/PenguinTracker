@@ -58,7 +58,7 @@ const penguinHabitats: PenguinHabitat[] = [
     description: 'Found on sub-Antarctic islands from the Indian to Atlantic Oceans.'
   },
   { 
-    species: 'Rockhopper Penguins', 
+    species: 'Southern Rockhopper Penguin', 
     location: [-52.0000, -59.5000], 
     radius: 800000, 
     color: '#1abc9c',
@@ -86,11 +86,11 @@ const penguinHabitats: PenguinHabitat[] = [
     description: 'Found along the coasts of Argentina, Chile, and the Falkland Islands.'
   },
   { 
-    species: 'Galapagos Penguin', 
+    species: 'Galápagos Penguin', 
     location: [-0.4304, -90.2853], 
     radius: 100000, 
     color: '#d35400',
-    description: 'Found exclusively in the Galapagos Islands, the only penguin species living at the equator.'
+    description: 'Found exclusively in the Galápagos Islands, the only penguin species living at the equator.'
   },
   { 
     species: 'Little Blue Penguin', 
@@ -213,18 +213,47 @@ export default function PenguinMap({ penguins, seenPenguins }: PenguinMapProps) 
   
   // Match a penguin from our data with a habitat by name
   const getMatchingPenguin = (speciesName: string) => {
-    return penguins.find(p => 
-      p.name.includes(speciesName) || 
-      speciesName.includes(p.name) ||
-      p.scientificName.includes(speciesName) ||
-      speciesName.includes(p.scientificName)
+    // First try exact match
+    const exactMatch = penguins.find(p => 
+      p.name === speciesName
     );
+    
+    if (exactMatch) return exactMatch;
+    
+    // Then try normalized match (remove diacritics, lowercase, etc.)
+    const normalizeString = (str: string) => 
+      str.toLowerCase()
+         .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accents
+         .replace(/[^\w\s]/g, ""); // remove punctuation
+    
+    const normalizedSpeciesName = normalizeString(speciesName);
+    
+    const partialMatch = penguins.find(p => {
+      const normalizedPenguinName = normalizeString(p.name);
+      const normalizedScientificName = normalizeString(p.scientificName);
+      
+      return normalizedPenguinName.includes(normalizedSpeciesName) || 
+             normalizedSpeciesName.includes(normalizedPenguinName) ||
+             normalizedScientificName.includes(normalizedSpeciesName) ||
+             normalizedSpeciesName.includes(normalizedScientificName);
+    });
+    
+    return partialMatch;
   };
 
   // Check if a penguin is in our "seen" list
   const isPenguinSeen = (speciesName: string) => {
     const penguin = getMatchingPenguin(speciesName);
-    return penguin ? seenPenguins.includes(penguin.id) : false;
+    const isSeen = penguin ? seenPenguins.includes(penguin.id) : false;
+    
+    // Add debugging to console for easier troubleshooting
+    if (!penguin) {
+      console.warn(`No matching penguin found for habitat: ${speciesName}`);
+    } else if (isSeen) {
+      console.log(`Penguin ${penguin.name} (ID: ${penguin.id}) matched with habitat ${speciesName} and is marked as seen.`);
+    }
+    
+    return isSeen;
   };
 
   return (
