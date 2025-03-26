@@ -8,10 +8,10 @@ interface AchievementBadgeProps {
 
 export default function AchievementBadge({ count, onClick }: AchievementBadgeProps) {
   const getBadgeColor = () => {
-    if (count >= 18) return "bg-gradient-to-r from-purple-600 to-indigo-600 border-purple-300";
+    if (count >= 18) return "bg-gradient-to-r from-amber-500 to-orange-500 border-amber-300";
     if (count >= 15) return "bg-gradient-to-r from-blue-600 to-indigo-600 border-blue-300";
     if (count >= 10) return "bg-gradient-to-r from-green-600 to-teal-600 border-green-300";
-    return "bg-gradient-to-r from-amber-500 to-orange-500 border-amber-300";
+    return "bg-gradient-to-r from-purple-600 to-indigo-600 border-purple-300";
   };
 
   return (

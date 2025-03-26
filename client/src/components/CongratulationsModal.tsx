@@ -102,10 +102,10 @@ export default function CongratulationsModal({ isOpen, onClose, count = 18 }: Co
                   repeatType: "loop"
                 }}
                 className={`p-6 rounded-full shadow-lg border-4 ${
-                  count >= 18 ? "bg-gradient-to-r from-purple-600 to-indigo-600 border-purple-300" :
+                  count >= 18 ? "bg-gradient-to-r from-amber-500 to-orange-500 border-amber-300" :
                   count >= 15 ? "bg-gradient-to-r from-blue-600 to-indigo-600 border-blue-300" :
                   count >= 10 ? "bg-gradient-to-r from-green-600 to-teal-600 border-green-300" :
-                  "bg-gradient-to-r from-amber-500 to-orange-500 border-amber-300"
+                  "bg-gradient-to-r from-purple-600 to-indigo-600 border-purple-300"
                 }`}
               >
                 <Trophy className={`h-16 w-16 ${count >= 18 ? "text-amber-400" : "text-white"}`} />
