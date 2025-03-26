@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, useEffect, useRef } from "react";
+import { Link } from "wouter";
 import PenguinCard from "@/components/PenguinCard";
 import PenguinModal from "@/components/PenguinModal";
 import ProgressCounter from "@/components/ProgressCounter";
@@ -8,11 +9,10 @@ import SuccessToast from "@/components/SuccessToast";
 import AuthButton from "@/components/AuthButton";
 import AchievementBadge from "@/components/AchievementBadge";
 import CongratulationsModal from "@/components/CongratulationsModal";
-import PenguinMap from "@/components/PenguinMap";
 import { usePenguinStore } from "@/hooks/use-penguin-store";
 import { useAuth } from "@/contexts/AuthContext";
 import { Penguin } from "@shared/schema";
-import { HelpCircle, AlertTriangle, Map } from "lucide-react";
+import { HelpCircle, AlertTriangle, MapPin } from "lucide-react";
 import { firebaseConfigValid } from "@/lib/firebase";
 
 export default function Home() {
@@ -187,11 +187,16 @@ export default function Home() {
           </div>
         )}
         
-        {/* Penguin Map */}
-        <PenguinMap
-          penguins={penguins}
-          seenPenguins={seenPenguins}
-        />
+        {/* Map Link */}
+        <Link to="/map">
+          <div className="bg-white rounded-lg shadow-md p-4 mb-8 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer">
+            <div>
+              <h2 className="text-2xl font-bold text-[#1E3A8A]">Explore Penguin Habitats</h2>
+              <p className="text-slate-600">View the global distribution of all penguin species on an interactive map</p>
+            </div>
+            <MapPin className="text-[#1E3A8A] h-8 w-8" />
+          </div>
+        </Link>
         
         {/* Penguin Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 py-4">

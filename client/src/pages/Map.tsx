@@ -1,0 +1,51 @@
+import React from 'react';
+import PenguinMap from '@/components/PenguinMap';
+import { usePenguinStore } from '@/hooks/use-penguin-store';
+import { useQuery } from '@tanstack/react-query';
+import { Penguin } from '@shared/schema';
+import { useAuth } from '@/contexts/AuthContext';
+import { Link } from 'wouter';
+import { ArrowLeft } from 'lucide-react';
+
+export default function Map() {
+  const { isAuthenticated } = useAuth();
+  const { seenPenguins } = usePenguinStore();
+
+  const { data: penguins = [] } = useQuery<Penguin[]>({
+    queryKey: ['/api/penguins'],
+    staleTime: 60 * 1000, // 1 minute
+  });
+
+  return (
+    <div className="bg-gradient-to-b from-[#F8FAFC] to-[#E2E8F0] min-h-screen font-sans text-[#334155]">
+      {/* Header */}
+      <header className="sticky top-0 bg-white/90 backdrop-blur-sm shadow-md z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-row justify-between items-center">
+            <div className="flex items-center">
+              <Link to="/">
+                <div className="flex items-center mr-8 hover:opacity-80 transition-opacity">
+                  <ArrowLeft className="h-5 w-5 mr-2" />
+                  <span>Back to Species</span>
+                </div>
+              </Link>
+              <h1 className="text-2xl font-bold text-[#1E3A8A]">Penguin Habitats</h1>
+            </div>
+          </div>
+        </div>
+      </header>
+      
+      <main className="container px-4 py-8 mx-auto">
+        <p className="text-center mb-8 max-w-2xl mx-auto">
+          Explore the global distribution of all 18 penguin species. Colored circles represent penguin 
+          habitats, with brighter colors indicating species you've already spotted.
+        </p>
+        
+        <PenguinMap 
+          penguins={penguins} 
+          seenPenguins={seenPenguins} 
+        />
+      </main>
+    </div>
+  );
+}
