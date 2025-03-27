@@ -80,11 +80,9 @@ export function usePenguinStore() {
             // Only update state if the component is still mounted
             if (isMounted) {
               setSeenPenguins(data);
-              // If authenticated, also update localStorage as a backup
-              if (isAuthenticated) {
-                const storageKey = getStorageKey();
-                localStorage.setItem(storageKey, JSON.stringify(data));
-              }
+              // Also update localStorage as a backup
+              const storageKey = getStorageKey();
+              localStorage.setItem(storageKey, JSON.stringify(data));
             }
             return data;
           } else {
@@ -103,20 +101,20 @@ export function usePenguinStore() {
     
     const init = async () => {
       try {
-        // Always load from localStorage first for immediate UI update
-        const localData = loadFromLocalStorage();
-        
         if (isAuthenticated && currentUser) {
-          // For authenticated users, fetch from the API which is the source of truth
+          // For authenticated users, get data from API which serves from Firestore
+          console.log('Authenticated user: fetching seen penguins from Firestore via API');
           const apiData = await fetchFromAPI();
           
-          // If API fetch failed but we have local data, keep using it
-          if (apiData === null && localData.length > 0) {
-            console.log('Using locally stored penguins as fallback');
+          // If API fetch failed, fall back to localStorage
+          if (apiData === null) {
+            console.log('API fetch failed, falling back to localStorage');
+            loadFromLocalStorage();
           }
         } else {
           // For unauthenticated users, only use localStorage
           console.log('Using only localStorage for unauthenticated user');
+          loadFromLocalStorage();
         }
       } finally {
         if (isMounted) setIsLoading(false);
