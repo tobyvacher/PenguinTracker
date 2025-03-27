@@ -119,6 +119,28 @@ export type PenguinSortType =
   | "genus"
   | "region";
 
+// Custom order for penguins in the default view
+const customPenguinOrder = [
+  "King Penguin",
+  "Macaroni Penguin",
+  "Emperor Penguin",
+  "Gentoo Penguin",
+  "Adélie Penguin",
+  "Chinstrap Penguin",
+  "Southern Rockhopper Penguin",
+  "Northern Rockhopper Penguin",
+  "African Penguin",
+  "Magellanic Penguin",
+  "Humboldt Penguin",
+  "Galápagos Penguin",
+  "Erect-crested Penguin",
+  "Snares Penguin",
+  "Fiordland Penguin",
+  "Royal Penguin",
+  "Yellow-eyed Penguin",
+  "Little Blue Penguin"
+];
+
 /**
  * Sorts penguins based on the specified sort type
  */
@@ -181,8 +203,12 @@ export function sortPenguins(penguins: Penguin[], sortType: PenguinSortType): Pe
       
     case "default":
     default:
-      // Default sorting is by ID (numerically ascending)
-      return penguinsCopy.sort((a, b) => a.id - b.id);
+      // Default sorting is now by the custom order defined above
+      return penguinsCopy.sort((a, b) => {
+        const indexA = customPenguinOrder.indexOf(a.name);
+        const indexB = customPenguinOrder.indexOf(b.name);
+        return indexA - indexB;
+      });
   }
 }
 
