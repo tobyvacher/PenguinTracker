@@ -159,20 +159,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .pick({ penguinId: true })
         .parse(req.body);
       
-      // First check if this penguin is already in the seen list
-      const currentSeenPenguins = await storage.getSeenPenguins(user.id);
-      
-      if (currentSeenPenguins.includes(penguinId)) {
-        // If already seen, return success but don't create a duplicate
-        console.log(`Penguin ${penguinId} is already marked as seen for user ${user.id}, skipping database update`);
-        return res.status(200).json({ 
-          message: "Penguin already marked as seen", 
-          userId: user.id, 
-          penguinId 
-        });
-      }
-      
-      // Only add to database if not already seen
       const seenPenguin = await storage.addSeenPenguin({ userId: user.id, penguinId });
       res.status(201).json(seenPenguin);
     } catch (error) {
