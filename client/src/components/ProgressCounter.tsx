@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Share2, Twitter, Mail, Check, Copy, Image } from "lucide-react";
 import { FaWhatsapp } from "react-icons/fa";
 import ShareAchievement from "./ShareAchievement";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface ProgressCounterProps {
   count: number;
@@ -16,6 +17,8 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [showShareAchievement, setShowShareAchievement] = useState(false);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   
   useEffect(() => {
     // Avoid division by zero
@@ -81,12 +84,12 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
   return (
     <>
       <div 
-        className="flex items-center bg-white rounded-full px-4 py-2 shadow cursor-pointer hover:bg-gray-50 transition-colors"
+        className={`flex items-center ${isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-50'} rounded-full px-4 py-2 shadow cursor-pointer transition-colors`}
         onClick={handleShare}
       >
         <div className="relative h-10 w-10 mr-3">
           <svg className="h-10 w-10" viewBox="0 0 36 36">
-            <circle cx="18" cy="18" r="16" fill="none" stroke="#E2E8F0" strokeWidth="2"></circle>
+            <circle cx="18" cy="18" r="16" fill="none" stroke={isDark ? "#4B5563" : "#E2E8F0"} strokeWidth="2"></circle>
             <motion.circle 
               cx="18" 
               cy="18" 
@@ -101,28 +104,28 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
               transform="rotate(-90 18 18)"
             />
           </svg>
-          <div className="absolute inset-0 flex items-center justify-center text-sm font-medium">
+          <div className={`absolute inset-0 flex items-center justify-center text-sm font-medium ${isDark ? 'text-white' : ''}`}>
             {count}
           </div>
         </div>
         <div className="flex-1">
-          <p className="text-[#334155] font-medium">{count}/{total} penguins</p>
-          <p className="text-xs text-[#94A3B8]">seen in the wild</p>
+          <p className={`${isDark ? 'text-white' : 'text-[#334155]'} font-medium`}>{count}/{total} penguins</p>
+          <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-[#94A3B8]'}`}>seen in the wild</p>
         </div>
-        <Share2 size={18} className="text-gray-500 ml-2" />
+        <Share2 size={18} className={`${isDark ? 'text-gray-400' : 'text-gray-500'} ml-2`} />
       </div>
 
       <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className={`sm:max-w-md ${isDark ? 'bg-gray-800 border-gray-700 text-white' : ''}`}>
           <DialogHeader>
-            <DialogTitle>Share your progress</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className={isDark ? 'text-white' : ''}>Share your progress</DialogTitle>
+            <DialogDescription className={isDark ? 'text-gray-300' : ''}>
               Let others know about your penguin spotting adventures!
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
-            <div className="p-4 bg-gray-50 rounded-md">
+            <div className={`p-4 ${isDark ? 'bg-gray-700 text-gray-200' : 'bg-gray-50'} rounded-md`}>
               <p className="text-sm">{shareText}</p>
             </div>
             
@@ -134,24 +137,24 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
                 </Button>
               )}
               
-              <Button onClick={() => handleSocialShare('twitter')} variant="outline" className="flex items-center gap-2">
+              <Button onClick={() => handleSocialShare('twitter')} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700' : ''}`}>
                 <Twitter size={18} className="text-[#1DA1F2]" />
-                Twitter
+                <span className={isDark ? 'text-gray-200' : ''}>Twitter</span>
               </Button>
               
-              <Button onClick={() => handleSocialShare('whatsapp')} variant="outline" className="flex items-center gap-2">
+              <Button onClick={() => handleSocialShare('whatsapp')} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700' : ''}`}>
                 <FaWhatsapp size={18} className="text-[#25D366]" />
-                WhatsApp
+                <span className={isDark ? 'text-gray-200' : ''}>WhatsApp</span>
               </Button>
               
-              <Button onClick={() => handleSocialShare('email')} variant="outline" className="flex items-center gap-2">
-                <Mail size={18} className="text-gray-600" />
-                Email
+              <Button onClick={() => handleSocialShare('email')} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700' : ''}`}>
+                <Mail size={18} className={isDark ? 'text-gray-300' : 'text-gray-600'} />
+                <span className={isDark ? 'text-gray-200' : ''}>Email</span>
               </Button>
               
-              <Button onClick={copyToClipboard} variant="outline" className="flex items-center gap-2">
-                {isCopied ? <Check size={18} className="text-green-600" /> : <Copy size={18} />}
-                {isCopied ? "Copied!" : "Copy"}
+              <Button onClick={copyToClipboard} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700' : ''}`}>
+                {isCopied ? <Check size={18} className="text-green-600" /> : <Copy size={18} className={isDark ? 'text-gray-300' : ''} />}
+                <span className={isDark ? 'text-gray-200' : ''}>{isCopied ? "Copied!" : "Copy"}</span>
               </Button>
             </div>
             

@@ -3,6 +3,7 @@ import { Share2, Facebook, Copy, Check, Download, Mail } from 'lucide-react';
 import { FaWhatsapp, FaXTwitter } from 'react-icons/fa6';
 import { Penguin } from '@shared/schema';
 import html2canvas from 'html2canvas';
+import { useTheme } from '@/contexts/ThemeContext';
 
 interface ShareAchievementProps {
   title: string;
@@ -23,6 +24,9 @@ export default function ShareAchievement({
   isOpen,
   onClose
 }: ShareAchievementProps) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  
   const shareUrl = window.location.href;
   const defaultShareText = penguin 
     ? `I spotted the ${penguin.name} on Penguin Tracker! ${shareUrl}`
@@ -101,11 +105,11 @@ export default function ShareAchievement({
   return (
     <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm overflow-y-auto">
       <div className="flex min-h-full items-center justify-center p-4 py-12">
-        <div className="relative w-full max-w-lg bg-white rounded-xl shadow-2xl my-8">
+        <div className={`relative w-full max-w-lg ${isDark ? 'bg-gray-800 text-white' : 'bg-white'} rounded-xl shadow-2xl my-8`}>
           {/* Close button in the corner */}
           <div className="absolute top-3 right-3 z-10">
             <button 
-              className="bg-white rounded-full p-1.5 shadow-md text-gray-500 hover:text-gray-700 transition-colors"
+              className={`${isDark ? 'bg-gray-700 text-gray-300 hover:text-white' : 'bg-white text-gray-500 hover:text-gray-700'} rounded-full p-1.5 shadow-md transition-colors`}
               onClick={onClose}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -115,7 +119,7 @@ export default function ShareAchievement({
           </div>
           
           <div className="p-6">
-            <h2 className="text-2xl font-bold text-center mb-4 pr-6">{title}</h2>
+            <h2 className={`text-2xl font-bold text-center mb-4 pr-6 ${isDark ? 'text-white' : ''}`}>{title}</h2>
           
             {/* Shareable Card Preview */}
             <div 
@@ -187,11 +191,13 @@ export default function ShareAchievement({
             </div>
             
             {!imageSrc && (
-              <div className="mb-6 p-4 border border-blue-100 rounded-lg bg-blue-50">
-                <p className="text-sm text-blue-700 mb-1">
+              <div className={`mb-6 p-4 rounded-lg ${isDark 
+                ? 'border border-blue-800 bg-blue-900/30 text-blue-100' 
+                : 'border border-blue-100 bg-blue-50 text-blue-700'}`}>
+                <p className={`text-sm ${isDark ? 'text-blue-100' : 'text-blue-700'} mb-1`}>
                   <strong>Step 1:</strong> Generate an image using the button below to share on social media.
                 </p>
-                <p className="text-xs text-blue-600">
+                <p className={`text-xs ${isDark ? 'text-blue-200' : 'text-blue-600'}`}>
                   After generating, you'll be able to download the image or share it directly.
                 </p>
               </div>
@@ -222,7 +228,9 @@ export default function ShareAchievement({
                 </button>
               ) : (
                 <div className="flex flex-col items-center">
-                  <div className="mb-4 p-2 bg-gradient-to-r from-indigo-100 to-blue-100 rounded-lg shadow-sm">
+                  <div className={`mb-4 p-2 rounded-lg shadow-sm ${isDark 
+                  ? 'bg-gradient-to-r from-indigo-900/50 to-blue-900/50' 
+                  : 'bg-gradient-to-r from-indigo-100 to-blue-100'}`}>
                     <img src={imageSrc} alt="Shareable achievement" className="rounded-lg max-w-full max-h-48 object-contain shadow-md" />
                   </div>
                   <div className="flex gap-3 mb-4">
@@ -277,7 +285,7 @@ export default function ShareAchievement({
                   
                   {/* Social sharing with image */}
                   <div className="mb-2 mt-1 text-center">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Share on social media</p>
+                    <p className={`text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Share on social media</p>
                   </div>
                   <div className="grid grid-cols-5 gap-3 mb-3">
                     {/* X (formerly Twitter) */}
@@ -361,7 +369,7 @@ export default function ShareAchievement({
                       <span className="text-xs font-medium mt-1">Email</span>
                     </button>
                   </div>
-                  <p className="text-xs text-gray-500 text-center mt-1">Some platforms may ask you to add the downloaded image manually</p>
+                  <p className={`text-xs text-center mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Some platforms may ask you to add the downloaded image manually</p>
                 </div>
               )}
             </div>

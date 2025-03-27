@@ -1,5 +1,5 @@
 import { Info, X } from "lucide-react";
-// No useState or useEffect needed
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface InfoBannerProps {
   isVisible: boolean;
@@ -7,14 +7,17 @@ interface InfoBannerProps {
 }
 
 export default function InfoBanner({ isVisible, onClose }: InfoBannerProps) {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  
   if (!isVisible) return null;
   
   return (
-    <div className="bg-[#1E3A8A]/10 rounded-full p-4 mb-8 text-[#334155]">
+    <div className={`${isDark ? 'bg-blue-900/20 text-gray-200' : 'bg-[#1E3A8A]/10 text-[#334155]'} rounded-full p-4 mb-8`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center flex-1">
-          <div className="flex-shrink-0 bg-white rounded-full p-2 shadow">
-            <Info className="text-[#1E3A8A] h-5 w-5" />
+          <div className={`flex-shrink-0 ${isDark ? 'bg-gray-800' : 'bg-white'} rounded-full p-2 shadow`}>
+            <Info className={`${isDark ? 'text-blue-400' : 'text-[#1E3A8A]'} h-5 w-5`} />
           </div>
           <div className="ml-4">
             <h3 className="text-sm font-medium">How to use Penguin Tracker</h3>
@@ -25,10 +28,10 @@ export default function InfoBanner({ isVisible, onClose }: InfoBannerProps) {
         </div>
         <button 
           onClick={onClose}
-          className="rounded-full p-2 hover:bg-white/50 transition-colors"
+          className={`rounded-full p-2 ${isDark ? 'hover:bg-gray-700' : 'hover:bg-white/50'} transition-colors`}
           aria-label="Close information banner"
         >
-          <X className="h-5 w-5 text-[#1E3A8A]" />
+          <X className={`h-5 w-5 ${isDark ? 'text-gray-300' : 'text-[#1E3A8A]'}`} />
         </button>
       </div>
     </div>
