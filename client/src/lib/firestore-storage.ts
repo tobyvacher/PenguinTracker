@@ -403,6 +403,8 @@ export class FirestoreStorage {
         return journalCache.get(cacheKey) || [];
       }
       
+      console.log(`Fetching all journal entries for user ${userId} from Firestore`);
+      
       const journalQuery = query(
         collection(db, COLLECTIONS.JOURNAL_ENTRIES),
         where("userId", "==", userId),
@@ -413,11 +415,34 @@ export class FirestoreStorage {
       const snapshot = await getDocs(journalQuery);
       console.timeEnd('getUserJournalEntries');
       
-      const entries = snapshot.docs.map(doc => doc.data() as SightingJournal);
+      // Process entries to handle date conversions
+      const entries: SightingJournal[] = [];
+      
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        // Convert sightingDate from ISO string to Date if it's a string
+        if (data.sightingDate && typeof data.sightingDate === 'string') {
+          // Create a proper SightingJournal object with the Date object for the app
+          const entry: SightingJournal = {
+            ...data,
+            sightingDate: new Date(data.sightingDate) 
+          } as SightingJournal;
+          entries.push(entry);
+        } else {
+          entries.push(data as SightingJournal);
+        }
+      });
+      
+      console.log(`Found ${entries.length} total journal entries for user ${userId}`);
+      
       journalCache.set(cacheKey, entries); // Cache the results
       
       return entries;
     } catch (error) {
+      console.error("Error fetching user journal entries:", error);
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+      }
       handleFirestoreError('get user journal entries', error);
     }
     
@@ -435,6 +460,8 @@ export class FirestoreStorage {
         return journalCache.get(cacheKey) || [];
       }
       
+      console.log(`Fetching journal entries for user ${userId} and penguin ${penguinId} from Firestore`);
+      
       const journalQuery = query(
         collection(db, COLLECTIONS.JOURNAL_ENTRIES),
         where("userId", "==", userId),
@@ -446,11 +473,34 @@ export class FirestoreStorage {
       const snapshot = await getDocs(journalQuery);
       console.timeEnd('getPenguinJournalEntries');
       
-      const entries = snapshot.docs.map(doc => doc.data() as SightingJournal);
+      // Process entries to handle date conversions
+      const entries: SightingJournal[] = [];
+      
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        // Convert sightingDate from ISO string to Date if it's a string
+        if (data.sightingDate && typeof data.sightingDate === 'string') {
+          // Create a proper SightingJournal object with the Date object for the app
+          const entry: SightingJournal = {
+            ...data,
+            sightingDate: new Date(data.sightingDate) 
+          } as SightingJournal;
+          entries.push(entry);
+        } else {
+          entries.push(data as SightingJournal);
+        }
+      });
+      
+      console.log(`Found ${entries.length} journal entries for penguin ${penguinId}`);
+      
       journalCache.set(cacheKey, entries); // Cache the results
       
       return entries;
     } catch (error) {
+      console.error("Error fetching penguin journal entries:", error);
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+      }
       handleFirestoreError('get penguin journal entries', error);
     }
     
@@ -491,29 +541,67 @@ export class FirestoreStorage {
     if (!db) throw new Error("Firestore not initialized");
     
     try {
+      console.log("Adding journal entry with data:", JSON.stringify({
+        userId: entry.userId,
+        penguinId: entry.penguinId,
+        hasDate: !!entry.sightingDate,
+        dateType: entry.sightingDate ? typeof entry.sightingDate : 'undefined',
+        location: entry.location
+      }));
+      
       // Get the next ID
       const id = await this.getNextJournalId();
       this.journalIdCounter = id;
       
-      // Create the journal entry with required fields for SightingJournal type
+      // Create the firestore document object (with string dates)
+      const firestoreDoc = {
+        ...entry,
+        id,
+        notes: entry.notes || null,
+        coordinates: entry.coordinates || null,
+        sightingDate: entry.sightingDate 
+          ? (entry.sightingDate instanceof Date 
+              ? entry.sightingDate.toISOString() 
+              : new Date(entry.sightingDate).toISOString())
+          : new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Then create the SightingJournal object that matches the schema type
       const newEntry: SightingJournal = {
         ...entry,
         id,
         notes: entry.notes || null,
         coordinates: entry.coordinates || null,
-        sightingDate: entry.sightingDate ? (entry.sightingDate instanceof Date ? entry.sightingDate : new Date(entry.sightingDate)) : new Date(), // Convert to Date if needed
+        // For the app, convert ISO string back to Date if needed
+        sightingDate: entry.sightingDate || new Date(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
       
+      console.log("Prepared journal entry for Firestore:", JSON.stringify({
+        id: firestoreDoc.id,
+        userId: firestoreDoc.userId,
+        penguinId: firestoreDoc.penguinId,
+        location: firestoreDoc.location,
+        sightingDate: firestoreDoc.sightingDate
+      }));
+      
       // Add the document with the ID as its key for faster lookup
-      await setDoc(doc(db, COLLECTIONS.JOURNAL_ENTRIES, id.toString()), newEntry);
+      await setDoc(doc(db, COLLECTIONS.JOURNAL_ENTRIES, id.toString()), firestoreDoc);
+      console.log("Journal entry saved to Firestore successfully with ID:", id);
       
       // Update cache
       this.invalidateJournalCache(entry.userId, entry.penguinId);
       
       return newEntry;
     } catch (error) {
+      console.error("Detailed Firestore error adding journal entry:", error);
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+      }
       handleFirestoreError('add journal entry', error);
     }
     
@@ -525,29 +613,77 @@ export class FirestoreStorage {
     if (!db) throw new Error("Firestore not initialized");
     
     try {
+      console.log("Updating journal entry", id, "with data:", JSON.stringify({
+        hasDate: !!updates.sightingDate,
+        dateType: updates.sightingDate ? typeof updates.sightingDate : 'undefined',
+        location: updates.location,
+        notes: updates.notes?.substring(0, 20) + (updates.notes && updates.notes.length > 20 ? '...' : '')
+      }));
+      
       // Get the existing entry
       const entryDoc = await getDoc(doc(db, COLLECTIONS.JOURNAL_ENTRIES, id.toString()));
-      if (!entryDoc.exists()) return undefined;
+      if (!entryDoc.exists()) {
+        console.error(`Entry with ID ${id} not found in Firestore`);
+        return undefined;
+      }
       
-      const existingEntry = entryDoc.data() as SightingJournal;
+      const existingEntry = entryDoc.data() as any; // Use any temporarily to avoid type issues
       
-      // Update the entry with required fields
+      // Process sightingDate - convert to ISO string for Firestore
+      let firestoreSightingDate = existingEntry.sightingDate; // Get string from Firestore
+      if (updates.sightingDate) {
+        firestoreSightingDate = updates.sightingDate instanceof Date 
+          ? updates.sightingDate.toISOString() 
+          : new Date(updates.sightingDate).toISOString();
+      }
+      
+      // Create Firestore document object (with string dates for storage)
+      const firestoreDoc = {
+        ...existingEntry,
+        ...updates,
+        notes: updates.notes !== undefined ? updates.notes : existingEntry.notes,
+        coordinates: updates.coordinates !== undefined ? updates.coordinates : existingEntry.coordinates,
+        sightingDate: firestoreSightingDate,
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Create the return object that matches the schema types
       const updatedEntry: SightingJournal = {
         ...existingEntry,
         ...updates,
         notes: updates.notes !== undefined ? updates.notes : existingEntry.notes,
         coordinates: updates.coordinates !== undefined ? updates.coordinates : existingEntry.coordinates,
-        sightingDate: updates.sightingDate ? (updates.sightingDate instanceof Date ? updates.sightingDate : new Date(updates.sightingDate)) : existingEntry.sightingDate,
+        // For the app, use the Date object
+        sightingDate: updates.sightingDate || 
+                     (existingEntry.sightingDate ? 
+                      typeof existingEntry.sightingDate === 'string' ? 
+                      new Date(existingEntry.sightingDate) : 
+                      existingEntry.sightingDate : 
+                      new Date()),
         updatedAt: new Date().toISOString()
       };
       
-      await updateDoc(doc(db, COLLECTIONS.JOURNAL_ENTRIES, id.toString()), updatedEntry);
+      console.log("Prepared updated entry for Firestore:", JSON.stringify({
+        id: firestoreDoc.id,
+        userId: firestoreDoc.userId,
+        penguinId: firestoreDoc.penguinId,
+        location: firestoreDoc.location,
+        sightingDate: firestoreDoc.sightingDate
+      }));
+      
+      await updateDoc(doc(db, COLLECTIONS.JOURNAL_ENTRIES, id.toString()), firestoreDoc);
+      console.log("Journal entry updated successfully");
       
       // Update cache
       this.invalidateJournalCache(existingEntry.userId, existingEntry.penguinId);
       
       return updatedEntry;
     } catch (error) {
+      console.error("Detailed Firestore error updating journal entry:", error);
+      if (error instanceof Error) {
+        console.error("Error message:", error.message);
+        console.error("Error stack:", error.stack);
+      }
       handleFirestoreError('update journal entry', error);
     }
     
