@@ -23,9 +23,9 @@ export default function ThemeToggle({
         pressed={isDark}
         onPressedChange={toggleTheme}
         aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
-        className={className}
+        className={`${className} ${!isDark ? 'border border-gray-300 shadow-sm' : ''}`}
       >
-        {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+        {isDark ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4 text-amber-500" />}
       </Toggle>
     );
   }
@@ -41,7 +41,7 @@ export default function ThemeToggle({
       {isDark ? (
         <Sun className="h-4 w-4 text-amber-300" />
       ) : (
-        <Moon className="h-4 w-4" />
+        <Moon className="h-4 w-4 text-indigo-100" />
       )}
     </Button>
   );

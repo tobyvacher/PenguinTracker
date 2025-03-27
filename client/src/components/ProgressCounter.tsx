@@ -104,7 +104,7 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
               transform="rotate(-90 18 18)"
             />
           </svg>
-          <div className={`absolute inset-0 flex items-center justify-center text-sm font-medium ${isDark ? 'text-white' : ''}`}>
+          <div className={`absolute inset-0 flex items-center justify-center text-sm font-medium ${isDark ? 'text-white' : 'text-gray-800'}`}>
             {count}
           </div>
         </div>

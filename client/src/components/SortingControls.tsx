@@ -41,7 +41,7 @@ export default function SortingControls({
 
   return (
     <div className="flex items-center space-x-2">
-      <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Sort by:</span>
+      <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700 font-medium'}`}>Sort by:</span>
       <Select 
         value={currentSort} 
         onValueChange={(value) => onSortChange(value as PenguinSortType)}

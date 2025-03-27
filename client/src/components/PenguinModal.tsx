@@ -144,11 +144,11 @@ export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalP
           <div className="mt-6">
             <Tabs defaultValue="info" className="w-full">
               <TabsList className={`w-full mb-4 ${isDark ? '' : 'bg-gray-100'}`}>
-                <TabsTrigger value="info" className={`flex-1 flex items-center justify-center ${isDark ? '' : 'data-[state=active]:bg-white'}`}>
+                <TabsTrigger value="info" className={`flex-1 flex items-center justify-center ${isDark ? '' : 'data-[state=active]:bg-white text-gray-700 data-[state=active]:text-gray-900 font-medium'}`}>
                   <Info className="mr-2 h-4 w-4" />
                   Information
                 </TabsTrigger>
-                <TabsTrigger value="journal" className={`flex-1 flex items-center justify-center ${isDark ? '' : 'data-[state=active]:bg-white'}`}>
+                <TabsTrigger value="journal" className={`flex-1 flex items-center justify-center ${isDark ? '' : 'data-[state=active]:bg-white text-gray-700 data-[state=active]:text-gray-900 font-medium'}`}>
                   <Book className="mr-2 h-4 w-4" />
                   Journal
                 </TabsTrigger>
