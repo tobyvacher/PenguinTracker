@@ -10,6 +10,7 @@ import { InsertSightingJournal, Penguin, SightingJournal } from "@shared/schema"
 import { cn } from "@/lib/utils";
 import { useJournal } from "@/hooks/use-journal";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface JournalEntryFormProps {
   penguin: Penguin;
@@ -26,6 +27,8 @@ export default function JournalEntryForm({
 }: JournalEntryFormProps) {
   const { toast } = useToast();
   const { addJournalEntry, updateJournalEntry, isAddingJournalEntry, isUpdatingJournalEntry } = useJournal();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const isEditing = !!entry;
   
   // Form state
@@ -140,17 +143,17 @@ export default function JournalEntryForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <h3 className="text-lg font-medium">
+        <h3 className={`text-lg font-medium ${isDark ? '' : 'text-gray-800'}`}>
           {isEditing ? "Edit Journal Entry" : "Add Journal Entry"}
         </h3>
-        <p className="text-sm text-muted-foreground">
+        <p className={`text-sm ${isDark ? 'text-muted-foreground' : 'text-gray-600'}`}>
           Record when and where you spotted the {penguin.name}.
         </p>
       </div>
       
       {/* Date selector */}
       <div className="space-y-2">
-        <label htmlFor="date" className="text-sm font-medium">
+        <label htmlFor="date" className={`text-sm font-medium ${isDark ? '' : 'text-gray-700'}`}>
           Date of Sighting
         </label>
         <Popover>
@@ -159,19 +162,21 @@ export default function JournalEntryForm({
               variant="outline"
               className={cn(
                 "w-full justify-start text-left font-normal",
-                !date && "text-muted-foreground"
+                !date && "text-muted-foreground",
+                !isDark && "border-gray-300 text-gray-800 hover:bg-gray-100"
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {date ? format(date, "PPP") : "Select date"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0">
+          <PopoverContent className={`w-auto p-0 ${!isDark && 'bg-white border-gray-200'}`}>
             <Calendar
               mode="single"
               selected={date}
               onSelect={(date) => date && setDate(date)}
               initialFocus
+              className={!isDark ? 'bg-white text-gray-800' : ''}
             />
           </PopoverContent>
         </Popover>
@@ -179,7 +184,7 @@ export default function JournalEntryForm({
       
       {/* Location input */}
       <div className="space-y-2">
-        <label htmlFor="location" className="text-sm font-medium">
+        <label htmlFor="location" className={`text-sm font-medium ${isDark ? '' : 'text-gray-700'}`}>
           Location <span className="text-red-500">*</span>
         </label>
         <div className="flex space-x-2">
@@ -189,13 +194,14 @@ export default function JournalEntryForm({
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             required
-            className="flex-1"
+            className={`flex-1 ${!isDark && 'border-gray-300 text-gray-800 placeholder:text-gray-500'}`}
           />
           <Button 
             type="button" 
             variant="outline" 
             onClick={handleGetLocation}
             title="Use current location"
+            className={!isDark ? 'border-gray-300 text-gray-700 hover:bg-gray-100' : ''}
           >
             <Map className="h-4 w-4" />
           </Button>
@@ -204,7 +210,7 @@ export default function JournalEntryForm({
       
       {/* Notes textarea */}
       <div className="space-y-2">
-        <label htmlFor="notes" className="text-sm font-medium">
+        <label htmlFor="notes" className={`text-sm font-medium ${isDark ? '' : 'text-gray-700'}`}>
           Notes
         </label>
         <Textarea
@@ -213,6 +219,7 @@ export default function JournalEntryForm({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={4}
+          className={!isDark ? 'border-gray-300 text-gray-800 placeholder:text-gray-500' : ''}
         />
       </div>
       
@@ -225,14 +232,19 @@ export default function JournalEntryForm({
       
       {/* Show coordinates if they exist */}
       {coordinates && (
-        <div className="text-sm text-muted-foreground">
-          <span className="font-medium">GPS Coordinates:</span> {coordinates}
+        <div className={`text-sm ${isDark ? 'text-muted-foreground' : 'text-gray-600'}`}>
+          <span className={`font-medium ${!isDark && 'text-gray-700'}`}>GPS Coordinates:</span> {coordinates}
         </div>
       )}
       
       {/* Form actions */}
       <div className="flex justify-end space-x-2 pt-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button 
+          type="button" 
+          variant="outline" 
+          onClick={onCancel}
+          className={!isDark ? 'border-gray-300 text-gray-700 hover:bg-gray-100' : ''}
+        >
           <X className="mr-2 h-4 w-4" />
           Cancel
         </Button>
