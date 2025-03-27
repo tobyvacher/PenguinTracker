@@ -249,7 +249,7 @@ export class FirestoreStorage implements IStorage {
       const snapshot = await getDocs(usersQuery);
       if (snapshot.empty) return undefined;
       
-      const data = snapshot.docs[0].data();
+      const data = snapshot.docs[0].data() || {};
       // Ensure we have a properly typed User object with seenPenguins as an array or null
       const userData: User = {
         id: data.id,
@@ -283,7 +283,7 @@ export class FirestoreStorage implements IStorage {
       const snapshot = await getDocs(usersQuery);
       if (snapshot.empty) return undefined;
       
-      const data = snapshot.docs[0].data();
+      const data = snapshot.docs[0].data() || {};
       // Ensure we have a properly typed User object with seenPenguins as an array or null
       const userData: User = {
         id: data.id,
