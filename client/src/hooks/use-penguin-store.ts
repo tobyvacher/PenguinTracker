@@ -131,8 +131,14 @@ export function usePenguinStore() {
   
   // Toggle penguin seen status
   const toggleSeen = async (penguinId: number) => {
+    // Use a variable to track the current seen state for this function
+    // This prevents race conditions from state updates
     const storageKey = getStorageKey();
     const isCurrentlySeen = seenPenguins.includes(penguinId);
+    console.log(`Toggling penguin ${penguinId}, currently seen: ${isCurrentlySeen}`);
+    
+    // Create a debounce key to prevent duplicate operations
+    const operationKey = `toggle_${penguinId}_${Date.now()}`;
     
     // For unauthenticated users, only use localStorage
     if (!isAuthenticated || !currentUser) {
@@ -144,11 +150,15 @@ export function usePenguinStore() {
           localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
           console.log(`Removed penguin ${penguinId} from local seen list (unauthenticated)`);
         } else {
-          // Add to local seen list
-          const updatedSeenPenguins = [...seenPenguins, penguinId];
-          setSeenPenguins(updatedSeenPenguins);
-          localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
-          console.log(`Added penguin ${penguinId} to local seen list (unauthenticated)`);
+          // Add to local seen list (only if not already there - safeguard against duplicates)
+          if (!seenPenguins.includes(penguinId)) {
+            const updatedSeenPenguins = [...seenPenguins, penguinId];
+            setSeenPenguins(updatedSeenPenguins);
+            localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
+            console.log(`Added penguin ${penguinId} to local seen list (unauthenticated)`);
+          } else {
+            console.log(`Penguin ${penguinId} is already in the local seen list (unauthenticated)`);
+          }
         }
       } catch (error) {
         console.error('Error updating localStorage:', error);
@@ -165,49 +175,65 @@ export function usePenguinStore() {
         // REMOVE PENGUIN FLOW
         console.log(`Attempting to remove penguin ${penguinId} from seen list`);
         
+        // Update the UI state first (optimistic update)
+        const updatedSeenPenguins = seenPenguins.filter(id => id !== penguinId);
+        setSeenPenguins(updatedSeenPenguins);
+        localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
+        
         try {
           const response = await fetch(`/api/seen-penguins/${penguinId}`, {
             method: 'DELETE',
             headers: {
               'Authorization': `Bearer ${authToken}`,
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              // Add a unique operation ID to prevent duplicate requests
+              'X-Operation-ID': operationKey
             },
             credentials: 'include'
           });
           
           if (response.status === 204) {
             console.log(`Successfully removed penguin ${penguinId} from seen list`);
-            
-            // Update state after successful API call
-            const updatedSeenPenguins = seenPenguins.filter(id => id !== penguinId);
-            setSeenPenguins(updatedSeenPenguins);
-            localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
+            // State is already updated (optimistic update)
             
             // Invalidate queries to refresh data
             queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
           } else if (response.status === 401) {
-            // If unauthorized, fall back to local storage
+            // Already handled with optimistic update
             console.warn("Unauthorized to update server data - using local storage only");
-            const updatedSeenPenguins = seenPenguins.filter(id => id !== penguinId);
-            setSeenPenguins(updatedSeenPenguins);
-            localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
           } else {
             throw new Error(`Failed with status: ${response.status}`);
           }
         } catch (deleteError) {
           console.error(`Failed to remove penguin ${penguinId} from seen list:`, deleteError);
-          // Do not update state on error - keep it as seen
+          // Revert optimistic update on error
+          const originalSeenPenguins = [...seenPenguins];
+          setSeenPenguins(originalSeenPenguins);
+          localStorage.setItem(storageKey, JSON.stringify(originalSeenPenguins));
         }
       } else {
         // ADD PENGUIN FLOW
         console.log(`Attempting to add penguin ${penguinId} to seen list`);
+        
+        // Skip if the penguin is already in the list (double-click protection)
+        if (seenPenguins.includes(penguinId)) {
+          console.log(`Penguin ${penguinId} is already in the seen list, skipping add operation`);
+          return;
+        }
+        
+        // Update the UI state first (optimistic update)
+        const updatedSeenPenguins = [...seenPenguins, penguinId];
+        setSeenPenguins(updatedSeenPenguins);
+        localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
         
         try {
           const response = await fetch('/api/seen-penguins', {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${authToken}`,
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              // Add a unique operation ID to prevent duplicate requests
+              'X-Operation-ID': operationKey
             },
             body: JSON.stringify({ penguinId }),
             credentials: 'include'
@@ -215,26 +241,22 @@ export function usePenguinStore() {
           
           if (response.ok) {
             console.log(`Successfully added penguin ${penguinId} to seen list`);
-            
-            // Update state after successful API call
-            const updatedSeenPenguins = [...seenPenguins, penguinId];
-            setSeenPenguins(updatedSeenPenguins);
-            localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
+            // State is already updated (optimistic update)
             
             // Invalidate queries to refresh data
             queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
           } else if (response.status === 401) {
-            // If unauthorized, fall back to local storage
+            // Already handled with optimistic update
             console.warn("Unauthorized to update server data - using local storage only");
-            const updatedSeenPenguins = [...seenPenguins, penguinId];
-            setSeenPenguins(updatedSeenPenguins);
-            localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
           } else {
             throw new Error(`Failed with status: ${response.status}`);
           }
         } catch (postError) {
           console.error(`Failed to add penguin ${penguinId} to seen list:`, postError);
-          // Do not update state on error - keep it as unseen
+          // Revert optimistic update on error
+          const originalSeenPenguins = seenPenguins.filter(id => id !== penguinId);
+          setSeenPenguins(originalSeenPenguins);
+          localStorage.setItem(storageKey, JSON.stringify(originalSeenPenguins));
         }
       }
     } catch (error) {

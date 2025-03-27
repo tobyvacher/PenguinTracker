@@ -113,10 +113,8 @@ export default function PenguinCard({
     
     // If the distance moved is very small and we're still pressing, consider it a tap
     if (!isScrollingRef.current && isPressing) {
-      // Small delay to ensure the click happens after the touch end event completes
-      setTimeout(() => {
-        onClick();
-      }, 10);
+      // Execute click immediately without timeout to avoid potential race conditions
+      onClick();
     }
     
     // Reset state
