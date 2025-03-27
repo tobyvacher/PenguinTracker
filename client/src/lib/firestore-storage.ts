@@ -215,7 +215,7 @@ export class FirestoreStorage implements IStorage {
       const userDoc = await getDoc(doc(db, COLLECTIONS.USERS, id.toString()));
       if (!userDoc.exists()) return undefined;
       
-      const data = userDoc.data();
+      const data = userDoc.data() || {};
       // Ensure we have a properly typed User object with seenPenguins as an array or null
       const userData: User = {
         id: data.id,
@@ -458,7 +458,7 @@ export class FirestoreStorage implements IStorage {
         return [];
       }
       
-      const data = userDoc.data();
+      const data = userDoc.data() || {};
       // Ensure we have a properly typed User object with seenPenguins as an array or null
       const userData: User = {
         id: data.id,
@@ -498,7 +498,7 @@ export class FirestoreStorage implements IStorage {
         throw new Error(`User ${seenPenguin.userId} not found`);
       }
       
-      const data = userDoc.data();
+      const data = userDoc.data() || {};
       // Ensure we have a properly typed User object with seenPenguins as an array or null
       const userData: User = {
         id: data.id,
@@ -573,7 +573,18 @@ export class FirestoreStorage implements IStorage {
         return;
       }
       
-      const userData = userDoc.data() as User;
+      const data = userDoc.data() || {};
+      // Ensure we have a properly typed User object with seenPenguins as an array or null
+      const userData: User = {
+        id: data.id,
+        firebaseUid: data.firebaseUid,
+        displayName: data.displayName || null,
+        email: data.email || null,
+        photoURL: data.photoURL || null,
+        seenPenguins: data.seenPenguins || [],
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
+      };
       
       // Get current seen penguins
       const seenPenguinIds = userData.seenPenguins || [];

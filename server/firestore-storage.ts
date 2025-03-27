@@ -121,7 +121,18 @@ export class FirestoreServerStorage implements IStorage {
       const userDoc = await db.collection(COLLECTIONS.USERS).doc(id.toString()).get();
       if (!userDoc.exists) return undefined;
       
-      const userData = userDoc.data() as User;
+      const data = userDoc.data() || {};
+      // Ensure we have a properly typed User object with seenPenguins as an array or null
+      const userData: User = {
+        id: data.id,
+        firebaseUid: data.firebaseUid,
+        displayName: data.displayName || null,
+        email: data.email || null,
+        photoURL: data.photoURL || null,
+        seenPenguins: data.seenPenguins || [],
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
+      };
       userCache.set(id, userData); // Cache the result
       return userData;
     } catch (error) {
@@ -142,7 +153,18 @@ export class FirestoreServerStorage implements IStorage {
       const snapshot = await usersQuery.get();
       if (snapshot.empty) return undefined;
       
-      const userData = snapshot.docs[0].data() as User;
+      const data = snapshot.docs[0].data() || {};
+      // Ensure we have a properly typed User object with seenPenguins as an array or null
+      const userData: User = {
+        id: data.id,
+        firebaseUid: data.firebaseUid,
+        displayName: data.displayName || null,
+        email: data.email || null,
+        photoURL: data.photoURL || null,
+        seenPenguins: data.seenPenguins || [],
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
+      };
       userCache.set(userData.id, userData); // Cache the result
       return userData;
     } catch (error) {
@@ -163,7 +185,18 @@ export class FirestoreServerStorage implements IStorage {
       const snapshot = await usersQuery.get();
       if (snapshot.empty) return undefined;
       
-      const userData = snapshot.docs[0].data() as User;
+      const data = snapshot.docs[0].data() || {};
+      // Ensure we have a properly typed User object with seenPenguins as an array or null
+      const userData: User = {
+        id: data.id,
+        firebaseUid: data.firebaseUid,
+        displayName: data.displayName || null,
+        email: data.email || null,
+        photoURL: data.photoURL || null,
+        seenPenguins: data.seenPenguins || [],
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
+      };
       userCache.set(userData.id, userData); // Cache the result
       return userData;
     } catch (error) {
@@ -324,7 +357,18 @@ export class FirestoreServerStorage implements IStorage {
         return [];
       }
       
-      const userData = userDoc.data() as User;
+      const data = userDoc.data() || {};
+      // Ensure we have a properly typed User object with seenPenguins as an array or null
+      const userData: User = {
+        id: data.id,
+        firebaseUid: data.firebaseUid,
+        displayName: data.displayName || null,
+        email: data.email || null,
+        photoURL: data.photoURL || null,
+        seenPenguins: data.seenPenguins || [],
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
+      };
       
       // Get seenPenguins from user document
       const seenPenguinIds = userData.seenPenguins || [];
@@ -353,7 +397,18 @@ export class FirestoreServerStorage implements IStorage {
         throw new Error(`User ${seenPenguin.userId} not found`);
       }
       
-      const userData = userDoc.data() as User;
+      const data = userDoc.data() || {};
+      // Ensure we have a properly typed User object with seenPenguins as an array or null
+      const userData: User = {
+        id: data.id,
+        firebaseUid: data.firebaseUid,
+        displayName: data.displayName || null,
+        email: data.email || null,
+        photoURL: data.photoURL || null,
+        seenPenguins: data.seenPenguins || [],
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
+      };
       
       // Get current seen penguins
       const seenPenguinIds = userData.seenPenguins || [];
@@ -420,7 +475,18 @@ export class FirestoreServerStorage implements IStorage {
         return;
       }
       
-      const userData = userDoc.data() as User;
+      const data = userDoc.data() || {};
+      // Ensure we have a properly typed User object with seenPenguins as an array or null
+      const userData: User = {
+        id: data.id,
+        firebaseUid: data.firebaseUid,
+        displayName: data.displayName || null,
+        email: data.email || null,
+        photoURL: data.photoURL || null,
+        seenPenguins: data.seenPenguins || [],
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
+      };
       
       // Get current seen penguins
       const seenPenguinIds = userData.seenPenguins || [];
