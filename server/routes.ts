@@ -9,7 +9,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { authenticate, isAuthenticated } from "./middleware/auth";
-import { debugFirestore } from "./firebase-admin";
+import { debugFirestore, db } from "./firebase-admin";
 
 // Initialize penguin data
 import { penguinData } from "../client/src/lib/penguin-data";
@@ -416,6 +416,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         message: "Error debugging Firestore", 
         error: error?.message || 'Unknown error' 
+      });
+    }
+  });
+  
+  // Dedicated route for merging seenPenguins and seen_penguins collections
+  apiRouter.get("/merge-seen-penguins", async (req, res) => {
+    try {
+      if (!db) {
+        return res.status(500).json({ 
+          success: false, 
+          message: "Firestore is not initialized!" 
+        });
+      }
+      
+      console.log('API: Starting merge of seenPenguins (camelCase) to seen_penguins (snake_case) collections');
+      
+      // Get all collections to check if both exist
+      const collections = await db.listCollections();
+      const collectionIds = collections.map(col => col.id);
+      
+      if (!collectionIds.includes('seenPenguins') || !collectionIds.includes('seen_penguins')) {
+        return res.json({ 
+          success: false, 
+          message: `One or both collections do not exist. Found collections: ${collectionIds.join(', ')}` 
+        });
+      }
+      
+      // Get documents from both collections
+      const camelCaseSnapshot = await db.collection('seenPenguins').get();
+      const snakeCaseSnapshot = await db.collection('seen_penguins').get();
+      
+      console.log(`API: seenPenguins (camelCase) has ${camelCaseSnapshot.size} documents`);
+      console.log(`API: seen_penguins (snake_case) has ${snakeCaseSnapshot.size} documents`);
+      
+      // If there are documents in the camelCase collection, copy them to snake_case
+      if (camelCaseSnapshot.size > 0) {
+        const batch = db.batch();
+        let copyCount = 0;
+        
+        camelCaseSnapshot.forEach(doc => {
+          const data = doc.data();
+          
+          // Check if this document already exists in snake_case collection by userId and penguinId
+          const existsInSnakeCase = snakeCaseSnapshot.docs.some(
+            snakeDoc => {
+              const snakeData = snakeDoc.data();
+              return snakeData.userId === data.userId && snakeData.penguinId === data.penguinId;
+            }
+          );
+          
+          if (!existsInSnakeCase) {
+            // Create a new document in the snake_case collection
+            const docRef = db.collection('seen_penguins').doc();
+            batch.set(docRef, {
+              ...data,
+              id: parseInt(doc.id) || copyCount + snakeCaseSnapshot.size + 1,
+              createdAt: data.createdAt || new Date().toISOString()
+            });
+            copyCount++;
+          }
+        });
+        
+        if (copyCount > 0) {
+          await batch.commit();
+          console.log(`API: Successfully copied ${copyCount} documents from camelCase to snake_case collection`);
+          
+          // Verify the copy worked by checking the snake_case collection again
+          const updatedSnakeCaseSnapshot = await db.collection('seen_penguins').get();
+          console.log(`API: After merge, seen_penguins (snake_case) now has ${updatedSnakeCaseSnapshot.size} documents`);
+          
+          return res.json({ 
+            success: true, 
+            message: `Successfully merged collections. Copied ${copyCount} documents from camelCase to snake_case collection. Total documents now: ${updatedSnakeCaseSnapshot.size}` 
+          });
+        } else {
+          return res.json({ 
+            success: true, 
+            message: "No new documents to copy. All camelCase entries already exist in snake_case collection." 
+          });
+        }
+      } else {
+        return res.json({ 
+          success: true, 
+          message: "No documents found in camelCase collection. Nothing to merge." 
+        });
+      }
+    } catch (error) {
+      console.error("Error during collection merge:", error);
+      return res.status(500).json({ 
+        success: false, 
+        message: "Error during collection merge", 
+        error: error instanceof Error ? error.message : String(error) 
       });
     }
   });

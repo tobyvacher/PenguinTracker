@@ -8,11 +8,13 @@ import { db } from "./firebase-admin";
 import { IStorage } from "./storage";
 
 // Collection names in Firestore - these must match exactly what appears in Firebase console
+// IMPORTANT: We found that both 'seenPenguins' and 'seen_penguins' collections exist, causing confusion
+// Standardizing on snake_case for all collection names
 const COLLECTIONS = {
   USERS: 'users',
   PENGUINS: 'penguins',
-  SEEN_PENGUINS: 'seen_penguins', // Changed to snake_case to match client-side collection name
-  JOURNAL_ENTRIES: 'journal_entries' // Changed to snake_case to match client-side collection name
+  SEEN_PENGUINS: 'seen_penguins', // Snake_case is the standard we're using
+  JOURNAL_ENTRIES: 'journal_entries' 
 };
 
 // Simple caching mechanism to reduce Firestore reads
