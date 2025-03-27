@@ -105,7 +105,7 @@ export default function ShareAchievement({
   return (
     <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm overflow-y-auto">
       <div className="flex min-h-full items-center justify-center p-4 py-12">
-        <div className={`relative w-full max-w-lg ${isDark ? 'bg-gray-800 text-white' : 'bg-white'} rounded-xl shadow-2xl my-8`}>
+        <div className={`relative w-full max-w-lg ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'} rounded-xl shadow-2xl my-8`}>
           {/* Close button in the corner */}
           <div className="absolute top-3 right-3 z-10">
             <button 
@@ -119,7 +119,7 @@ export default function ShareAchievement({
           </div>
           
           <div className="p-6">
-            <h2 className={`text-2xl font-bold text-center mb-4 pr-6 ${isDark ? 'text-white' : ''}`}>{title}</h2>
+            <h2 className={`text-2xl font-bold text-center mb-4 pr-6 ${isDark ? 'text-white' : 'text-gray-800'}`}>{title}</h2>
           
             {/* Shareable Card Preview */}
             <div 
