@@ -60,10 +60,22 @@ export default function ShareAchievement({
     
     setIsGeneratingImage(true);
     try {
+      // Add a small delay to allow the UI to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const canvas = await html2canvas(shareCardRef.current, {
         scale: 2,
         backgroundColor: null,
-        logging: false
+        logging: false,
+        // Adding these options to ensure the modal is captured properly
+        windowWidth: window.innerWidth,
+        windowHeight: window.innerHeight,
+        // Make sure the element is visible in the viewport
+        scrollX: 0,
+        scrollY: 0,
+        // Improve image quality
+        useCORS: true,
+        allowTaint: true
       });
       const image = canvas.toDataURL('image/png');
       setImageSrc(image);
@@ -103,7 +115,7 @@ export default function ShareAchievement({
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm overflow-y-auto">
+    <div className="fixed inset-0 z-[10000] bg-black/50 backdrop-blur-sm overflow-y-auto">
       <div className="flex min-h-full items-center justify-center p-4 py-12">
         <div className={`relative w-full max-w-lg ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'} rounded-xl shadow-2xl my-8`}>
           {/* Close button in the corner */}
