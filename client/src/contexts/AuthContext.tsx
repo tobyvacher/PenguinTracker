@@ -26,18 +26,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Create or get user in the backend when a user signs in
+  // Create or get user in both the backend API and Firestore when a user signs in
   const createOrGetUser = async (user: User) => {
     try {
+      console.log("Creating/getting user in backend and Firestore:", user.uid);
+      
+      // 1. First create user in the API backend
       const token = await user.getIdToken();
-      await apiRequest('/api/users', 'POST', {}, {
+      const apiUser = await apiRequest('/api/users', 'POST', {}, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });
+      
+      console.log("User created/retrieved in API backend:", apiUser);
+      
+      // 2. Also create the user in Firestore directly
+      try {
+        // Import firestoreStorage dynamically to avoid circular dependencies
+        const { firestoreStorage } = await import('@/lib/firestore-storage');
+        
+        if (firestoreStorage) {
+          // Create the user in Firestore if it doesn't exist
+          // Create user with the fields that match InsertUser type
+          await firestoreStorage.createUser({
+            firebaseUid: user.uid,
+            displayName: user.displayName || null,
+            email: user.email || null,
+            photoURL: user.photoURL || null
+          });
+          
+          console.log("User created/retrieved in Firestore successfully");
+        } else {
+          console.error("firestoreStorage is not available");
+        }
+      } catch (firestoreError) {
+        console.error("Error creating user in Firestore:", firestoreError);
+        // Don't throw here, we want to continue even if Firestore fails
+      }
+      
+      return apiUser;
     } catch (error) {
       console.error('Error creating/getting user:', error);
+      throw error; // Re-throw to handle in the UI
     }
   };
 

@@ -8,7 +8,7 @@ import {
 export interface IStorage {
   // User methods
   getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByDisplayName(displayName: string): Promise<User | undefined>;
   getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   
@@ -56,9 +56,9 @@ export class MemStorage implements IStorage {
     return this.users.get(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
+  async getUserByDisplayName(displayName: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
-      (user) => user.displayName === username,
+      (user) => user.displayName === displayName,
     );
   }
   

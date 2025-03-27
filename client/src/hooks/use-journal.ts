@@ -42,6 +42,7 @@ export function useJournal() {
   }, []);
 
   // Helper to get user ID from Firebase UID - with caching for performance
+  // Will create the user in Firestore if not found
   const getUserIdFromFirebase = useCallback(async (firebaseUid: string): Promise<number | null> => {
     // Check cache first
     if (userIdCache.current[firebaseUid]) {
@@ -49,23 +50,49 @@ export function useJournal() {
     }
     
     try {
+      // First try to get existing user
       const fbUser = await firestoreStorage.getUserByFirebaseUid(firebaseUid);
       if (fbUser) {
         // Cache the user ID for future use
         userIdCache.current[firebaseUid] = fbUser.id;
         return fbUser.id;
       }
+      
+      // If user not found but we have current Firebase user, create them in Firestore
+      if (currentUser) {
+        console.log("User not found in Firestore, creating now:", firebaseUid);
+        
+        try {
+          // Create the user in Firestore with fields matching InsertUser type
+          const newUser = await firestoreStorage.createUser({
+            firebaseUid: currentUser.uid,
+            displayName: currentUser.displayName || null,
+            email: currentUser.email || null,
+            photoURL: currentUser.photoURL || null
+          });
+          
+          console.log("Created new user in Firestore:", newUser);
+          
+          // Cache the new user ID
+          userIdCache.current[firebaseUid] = newUser.id;
+          return newUser.id;
+        } catch (createError) {
+          console.error("Error creating user in Firestore:", createError);
+          // Fall through to return null
+        }
+      }
+      
       return null;
     } catch (error) {
-      console.error("Error fetching user from Firestore:", error);
+      console.error("Error fetching/creating user in Firestore:", error);
       toast({
         title: "Error",
-        description: "Could not retrieve user information",
+        description: "Could not retrieve or create user information",
         variant: "destructive"
       });
       return null;
     }
-  }, [toast]);
+  }, [toast, currentUser]);
 
   // Fetch all journal entries for current user
   const getUserJournalQuery = useQuery({

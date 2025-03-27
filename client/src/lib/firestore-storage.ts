@@ -25,6 +25,32 @@ import type {
   InsertSightingJournal 
 } from "@shared/schema";
 
+// Define the storage interface type
+interface IStorage {
+  // User methods
+  getUser(id: number): Promise<User | undefined>;
+  getUserByDisplayName(displayName: string): Promise<User | undefined>;
+  getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  
+  // Penguin methods
+  getAllPenguins(): Promise<Penguin[]>;
+  getPenguin(id: number): Promise<Penguin | undefined>;
+  createPenguin(penguin: InsertPenguin & { id?: number }): Promise<Penguin>;
+  
+  // Seen penguin methods
+  getSeenPenguins(userId: number): Promise<number[]>;
+  addSeenPenguin(seenPenguin: InsertSeenPenguin): Promise<SeenPenguin>;
+  removeSeenPenguin(userId: number, penguinId: number): Promise<void>;
+
+  // Sighting journal methods
+  getUserJournalEntries(userId: number): Promise<SightingJournal[]>;
+  getPenguinJournalEntries(userId: number, penguinId: number): Promise<SightingJournal[]>;
+  addJournalEntry(entry: InsertSightingJournal): Promise<SightingJournal>;
+  updateJournalEntry(id: number, entry: Partial<InsertSightingJournal>): Promise<SightingJournal | undefined>;
+  deleteJournalEntry(id: number): Promise<void>;
+}
+
 // Collection names
 const COLLECTIONS = {
   USERS: 'users',
@@ -185,13 +211,13 @@ export class FirestoreStorage {
     return undefined;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
+  async getUserByDisplayName(displayName: string): Promise<User | undefined> {
     if (!db) throw new Error("Firestore not initialized");
     
     try {
       const usersQuery = query(
         collection(db, COLLECTIONS.USERS), 
-        where("username", "==", username),
+        where("displayName", "==", displayName),
         limit(1) // Only need first match
       );
       
@@ -202,7 +228,7 @@ export class FirestoreStorage {
       userCache.set(userData.id, userData); // Cache the result
       return userData;
     } catch (error) {
-      handleFirestoreError('get user by username', error);
+      handleFirestoreError('get user by display name', error);
     }
     
     return undefined;
