@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Share2, Twitter, Mail, Check, Copy, Image } from "lucide-react";
-import { FaWhatsapp } from "react-icons/fa";
+import { Share2, Mail, Check, Copy, Image } from "lucide-react";
+import { FaWhatsapp, FaXTwitter } from "react-icons/fa6";
 import ShareAchievement from "./ShareAchievement";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -139,10 +139,10 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
               
               <Button 
                 onClick={() => handleSocialShare('twitter')} 
-                className={`flex items-center gap-2 text-white ${isDark ? 'bg-black hover:bg-gray-900' : 'bg-[#1D9BF0] hover:bg-[#1A8CD8]'}`}
+                className="flex items-center gap-2 text-white bg-black hover:bg-gray-900"
               >
-                <Twitter size={18} />
-                <span>Twitter</span>
+                <FaXTwitter className="h-[18px] w-[18px]" />
+                <span>X</span>
               </Button>
               
               <Button 
