@@ -4,7 +4,7 @@ import { FaWhatsapp, FaXTwitter } from 'react-icons/fa6';
 import { Penguin } from '@shared/schema';
 import html2canvas from 'html2canvas';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 interface ShareAchievementProps {
   title: string;
@@ -118,6 +118,9 @@ export default function ShareAchievement({
       <DialogContent className={`sm:max-w-lg overflow-y-auto max-h-[90vh] ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
         <DialogHeader>
           <DialogTitle className={`text-xl font-bold text-center ${isDark ? 'text-white' : 'text-gray-800'}`}>{title}</DialogTitle>
+          <DialogDescription className={`text-center ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
+            Share your penguin discoveries with friends!
+          </DialogDescription>
         </DialogHeader>
         
         {/* Shareable Card Preview */}
