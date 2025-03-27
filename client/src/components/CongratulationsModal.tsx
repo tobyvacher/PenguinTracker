@@ -56,7 +56,7 @@ export default function CongratulationsModal({ isOpen, onClose, count = 18 }: Co
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className={`sm:max-w-md ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
           <DialogHeader className="text-center">
             <DialogTitle className={`text-2xl font-bold ${isDark ? 'text-blue-300' : 'text-[#1E3A8A]'}`}>
               Congratulations!
@@ -156,7 +156,7 @@ export default function CongratulationsModal({ isOpen, onClose, count = 18 }: Co
       
       {/* Share Dialog */}
       <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className={`sm:max-w-md ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
           <DialogHeader>
             <DialogTitle className={isDark ? 'text-white' : ''}>Share your achievement</DialogTitle>
             <DialogDescription className={isDark ? 'text-gray-300' : ''}>

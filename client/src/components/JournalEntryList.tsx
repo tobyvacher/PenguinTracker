@@ -26,6 +26,7 @@ import {
 import { useJournal } from "@/hooks/use-journal";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import JournalEntryForm from './JournalEntryForm';
 
 interface JournalEntryListProps {
@@ -36,6 +37,8 @@ interface JournalEntryListProps {
 export default function JournalEntryList({ penguin, onClose }: JournalEntryListProps) {
   const { toast } = useToast();
   const { currentUser, isAuthenticated, signIn } = useAuth();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const { 
     getPenguinJournalEntries,
     deleteJournalEntry,
@@ -250,7 +253,7 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
                             <Trash className="h-4 w-4" />
                           </Button>
                         </AlertDialogTrigger>
-                        <AlertDialogContent>
+                        <AlertDialogContent className={`${isDark ? 'bg-gray-800' : 'bg-white'}`}>
                           <AlertDialogHeader>
                             <AlertDialogTitle>Delete Journal Entry</AlertDialogTitle>
                             <AlertDialogDescription>

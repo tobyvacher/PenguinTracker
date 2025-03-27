@@ -91,7 +91,7 @@ export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalP
   return (
     <>
       <Dialog open={isOpen && !showShareModal} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-auto">
+        <DialogContent className={`sm:max-w-2xl max-h-[90vh] overflow-auto ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
           <DialogHeader>
             <DialogTitle className={`text-2xl font-bold ${isDark ? 'text-blue-300' : 'text-[#1E3A8A]'} text-center`}>
               {penguin.name}
@@ -143,12 +143,12 @@ export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalP
           
           <div className="mt-6">
             <Tabs defaultValue="info" className="w-full">
-              <TabsList className="w-full mb-4">
-                <TabsTrigger value="info" className="flex-1 flex items-center justify-center">
+              <TabsList className={`w-full mb-4 ${isDark ? '' : 'bg-gray-100'}`}>
+                <TabsTrigger value="info" className={`flex-1 flex items-center justify-center ${isDark ? '' : 'data-[state=active]:bg-white'}`}>
                   <Info className="mr-2 h-4 w-4" />
                   Information
                 </TabsTrigger>
-                <TabsTrigger value="journal" className="flex-1 flex items-center justify-center">
+                <TabsTrigger value="journal" className={`flex-1 flex items-center justify-center ${isDark ? '' : 'data-[state=active]:bg-white'}`}>
                   <Book className="mr-2 h-4 w-4" />
                   Journal
                 </TabsTrigger>
