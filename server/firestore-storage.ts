@@ -7,12 +7,12 @@ import {
 import { db } from "./firebase-admin";
 import { IStorage } from "./storage";
 
-// Collection names in Firestore
+// Collection names in Firestore - these must match exactly what appears in Firebase console
 const COLLECTIONS = {
   USERS: 'users',
   PENGUINS: 'penguins',
-  SEEN_PENGUINS: 'seen_penguins',
-  JOURNAL_ENTRIES: 'journal_entries'
+  SEEN_PENGUINS: 'seenPenguins', // Changed to camelCase to match common Firebase conventions
+  JOURNAL_ENTRIES: 'journalEntries' // Changed to camelCase to match common Firebase conventions
 };
 
 // Simple caching mechanism to reduce Firestore reads
