@@ -501,7 +501,7 @@ export class FirestoreStorage {
         id,
         notes: entry.notes || null,
         coordinates: entry.coordinates || null,
-        sightingDate: entry.sightingDate as Date, // Already validated by the form
+        sightingDate: entry.sightingDate ? (entry.sightingDate instanceof Date ? entry.sightingDate : new Date(entry.sightingDate)) : new Date(), // Convert to Date if needed
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -537,7 +537,7 @@ export class FirestoreStorage {
         ...updates,
         notes: updates.notes !== undefined ? updates.notes : existingEntry.notes,
         coordinates: updates.coordinates !== undefined ? updates.coordinates : existingEntry.coordinates,
-        sightingDate: updates.sightingDate as Date || existingEntry.sightingDate,
+        sightingDate: updates.sightingDate ? (updates.sightingDate instanceof Date ? updates.sightingDate : new Date(updates.sightingDate)) : existingEntry.sightingDate,
         updatedAt: new Date().toISOString()
       };
       

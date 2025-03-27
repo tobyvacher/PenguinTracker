@@ -102,7 +102,24 @@ export function useJournal() {
         ? [FIRESTORE_KEYS.ALL_ENTRIES, FIRESTORE_KEYS.PENGUIN_ENTRIES, penguinId] 
         : [API_KEYS.PENGUIN_ENTRIES(penguinId)],
       queryFn: async () => {
+        // Check if we can get from all entries cache first (faster)
         if (useFirestore && currentUser && penguinId) {
+          const existingAllEntries = queryClient.getQueryData<SightingJournal[]>(
+            [FIRESTORE_KEYS.ALL_ENTRIES]
+          );
+          
+          // If we already have all entries cached, filter them instead of fetching
+          if (existingAllEntries && existingAllEntries.length > 0) {
+            console.log(`Using cached entries for penguin ${penguinId}`);
+            const userId = await getUserIdFromFirebase(currentUser.uid);
+            if (userId) {
+              return existingAllEntries.filter(entry => 
+                entry.userId === userId && entry.penguinId === penguinId
+              );
+            }
+          }
+          
+          // Otherwise fetch as usual
           const userId = await getUserIdFromFirebase(currentUser.uid);
           if (userId) {
             console.time(`fetchPenguinJournal-${penguinId}`);
