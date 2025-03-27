@@ -9,7 +9,7 @@ export default function NotFound() {
       <Card className="w-full max-w-md mx-4">
         <CardContent className="pt-6">
           <div className="flex flex-col items-center mb-6">
-            <img src="/logo.png" alt="Penguin Spotter Logo" className="w-20 h-20 mb-4" />
+            <img src="/logo.png" alt="Penguin Tracker Logo" className="w-20 h-20 mb-4" />
             <div className="flex items-center gap-2">
               <AlertCircle className="h-8 w-8 text-red-500" />
               <h1 className="text-2xl font-bold text-gray-900">404 Page Not Found</h1>
