@@ -234,23 +234,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all journal entries for the current user
   apiRouter.get("/journal", async (req, res) => {
     try {
-      let user;
+      // Only allow authenticated users to access journal entries
       if (!req.user) {
-        // Get or create demo user
-        user = await storage.getUserByFirebaseUid("demo_uid");
-        if (!user) {
-          user = await storage.createUser({
-            firebaseUid: "demo_uid",
-            email: "demo@example.com",
-            displayName: "Demo User"
-          });
-        }
-      } else {
-        // Get user by firebase uid
-        user = await storage.getUserByFirebaseUid(req.user.uid);
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
-        }
+        return res.json([]);
+      }
+      
+      // Get user by firebase uid
+      const user = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!user) {
+        return res.json([]);
       }
 
       const journalEntries = await storage.getUserJournalEntries(user.id);
@@ -264,23 +256,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get journal entries for a specific penguin
   apiRouter.get("/journal/penguin/:penguinId", async (req, res) => {
     try {
-      let user;
+      // Only allow authenticated users to access journal entries
       if (!req.user) {
-        // Get or create demo user
-        user = await storage.getUserByFirebaseUid("demo_uid");
-        if (!user) {
-          user = await storage.createUser({
-            firebaseUid: "demo_uid",
-            email: "demo@example.com",
-            displayName: "Demo User"
-          });
-        }
-      } else {
-        // Get user by firebase uid
-        user = await storage.getUserByFirebaseUid(req.user.uid);
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
-        }
+        return res.json([]);
+      }
+      
+      // Get user by firebase uid
+      const user = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!user) {
+        return res.json([]);
       }
 
       const penguinId = parseInt(req.params.penguinId);
@@ -295,24 +279,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Add a new journal entry
   apiRouter.post("/journal", async (req, res) => {
     try {
-      // If user is not authenticated, use a demo user
-      let user;
+      // Only allow authenticated users to add journal entries
       if (!req.user) {
-        // Get or create demo user
-        user = await storage.getUserByFirebaseUid("demo_uid");
-        if (!user) {
-          user = await storage.createUser({
-            firebaseUid: "demo_uid",
-            email: "demo@example.com",
-            displayName: "Demo User"
-          });
-        }
-      } else {
-        // Get user by firebase uid
-        user = await storage.getUserByFirebaseUid(req.user.uid);
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
-        }
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      // Get user by firebase uid
+      const user = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
       }
 
       // Parse and validate the request body
@@ -357,23 +332,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update an existing journal entry
   apiRouter.patch("/journal/:id", async (req, res) => {
     try {
-      let user;
+      // Only allow authenticated users to update journal entries
       if (!req.user) {
-        // Get or create demo user
-        user = await storage.getUserByFirebaseUid("demo_uid");
-        if (!user) {
-          user = await storage.createUser({
-            firebaseUid: "demo_uid",
-            email: "demo@example.com",
-            displayName: "Demo User"
-          });
-        }
-      } else {
-        // Get user by firebase uid
-        user = await storage.getUserByFirebaseUid(req.user.uid);
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
-        }
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      // Get user by firebase uid
+      const user = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
       }
 
       const entryId = parseInt(req.params.id);
@@ -427,23 +394,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete a journal entry
   apiRouter.delete("/journal/:id", async (req, res) => {
     try {
-      let user;
+      // Only allow authenticated users to delete journal entries
       if (!req.user) {
-        // Get or create demo user
-        user = await storage.getUserByFirebaseUid("demo_uid");
-        if (!user) {
-          user = await storage.createUser({
-            firebaseUid: "demo_uid",
-            email: "demo@example.com",
-            displayName: "Demo User"
-          });
-        }
-      } else {
-        // Get user by firebase uid
-        user = await storage.getUserByFirebaseUid(req.user.uid);
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
-        }
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      // Get user by firebase uid
+      const user = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
       }
 
       const entryId = parseInt(req.params.id);

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Penguin, SightingJournal } from "@shared/schema";
 import { format } from "date-fns";
-import { Edit, MapPin, Plus, Trash } from "lucide-react";
+import { Edit, MapPin, Plus, Trash, LogIn } from "lucide-react";
 import { 
   Card, 
   CardContent, 
@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useJournal } from "@/hooks/use-journal";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import JournalEntryForm from './JournalEntryForm';
 
 interface JournalEntryListProps {
@@ -34,6 +35,7 @@ interface JournalEntryListProps {
 
 export default function JournalEntryList({ penguin, onClose }: JournalEntryListProps) {
   const { toast } = useToast();
+  const { currentUser, isAuthenticated, signIn } = useAuth();
   const { 
     getPenguinJournalEntries,
     deleteJournalEntry,
@@ -145,6 +147,36 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
           onComplete={handleEditComplete}
           onCancel={() => setEditingEntry(null)}
         />
+      </div>
+    );
+  }
+
+  // If not authenticated, show login prompt
+  if (!isAuthenticated) {
+    return (
+      <div className="space-y-4 p-1">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">
+            Sighting Journal: {penguin.name}
+          </h3>
+        </div>
+        
+        <Separator />
+        
+        <div className="py-8 text-center bg-gray-50 rounded-lg">
+          <p className="text-gray-500 mb-2">Sign in to use the journal</p>
+          <p className="text-sm text-gray-400 max-w-md mx-auto">
+            The journal feature allows you to record when and where you spotted penguins in the wild. 
+            Please sign in to create and view journal entries.
+          </p>
+          <Button 
+            onClick={signIn}
+            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <LogIn className="h-4 w-4 mr-1" />
+            Sign in with Google
+          </Button>
+        </div>
       </div>
     );
   }
