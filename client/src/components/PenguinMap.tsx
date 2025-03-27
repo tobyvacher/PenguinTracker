@@ -257,7 +257,7 @@ export default function PenguinMap({ penguins, seenPenguins }: PenguinMapProps) 
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-8">
+    <div className="bg-white rounded-lg shadow-md p-4 mb-8 relative z-10">
       <h2 className="text-2xl font-bold text-[#1E3A8A] mb-4">Global Penguin Habitats</h2>
       
       {/* Map container */}

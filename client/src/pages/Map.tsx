@@ -25,7 +25,7 @@ export default function Map() {
   return (
     <div className="bg-gradient-to-b from-[#F8FAFC] to-[#E2E8F0] min-h-screen font-sans text-[#334155]">
       {/* Header */}
-      <header className="sticky top-0 bg-white/90 backdrop-blur-sm shadow-md z-10">
+      <header className="sticky top-0 bg-white/90 backdrop-blur-sm shadow-md z-[100]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-row justify-between items-center">
             <div className="flex items-center">
