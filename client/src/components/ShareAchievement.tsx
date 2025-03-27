@@ -99,8 +99,8 @@ export default function ShareAchievement({
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/50 backdrop-blur-sm overflow-auto">
-      <div className="flex min-h-full justify-center p-4">
+    <div className="fixed inset-0 z-[9999] bg-black/50 backdrop-blur-sm overflow-y-auto">
+      <div className="flex min-h-full items-center justify-center p-4 py-12">
         <div className="relative w-full max-w-lg bg-white rounded-xl shadow-2xl my-8">
           {/* Close button in the corner */}
           <div className="absolute top-3 right-3 z-10">

@@ -443,16 +443,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Use non-null assertion since we've already checked db is not null above
+      const firestore = db!;
+      
       // Get documents from both collections
-      const camelCaseSnapshot = await db.collection('seenPenguins').get();
-      const snakeCaseSnapshot = await db.collection('seen_penguins').get();
+      const camelCaseSnapshot = await firestore.collection('seenPenguins').get();
+      const snakeCaseSnapshot = await firestore.collection('seen_penguins').get();
       
       console.log(`API: seenPenguins (camelCase) has ${camelCaseSnapshot.size} documents`);
       console.log(`API: seen_penguins (snake_case) has ${snakeCaseSnapshot.size} documents`);
       
       // If there are documents in the camelCase collection, copy them to snake_case
       if (camelCaseSnapshot.size > 0) {
-        const batch = db.batch();
+        const batch = firestore.batch();
         let copyCount = 0;
         
         camelCaseSnapshot.forEach(doc => {
@@ -468,7 +471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           if (!existsInSnakeCase) {
             // Create a new document in the snake_case collection
-            const docRef = db.collection('seen_penguins').doc();
+            const docRef = firestore.collection('seen_penguins').doc();
             batch.set(docRef, {
               ...data,
               id: parseInt(doc.id) || copyCount + snakeCaseSnapshot.size + 1,
@@ -483,7 +486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`API: Successfully copied ${copyCount} documents from camelCase to snake_case collection`);
           
           // Verify the copy worked by checking the snake_case collection again
-          const updatedSnakeCaseSnapshot = await db.collection('seen_penguins').get();
+          const updatedSnakeCaseSnapshot = await firestore.collection('seen_penguins').get();
           console.log(`API: After merge, seen_penguins (snake_case) now has ${updatedSnakeCaseSnapshot.size} documents`);
           
           return res.json({ 

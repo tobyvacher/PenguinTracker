@@ -12,6 +12,11 @@ export default function Map() {
   const { isAuthenticated } = useAuth();
   const { seenPenguins } = usePenguinStore();
 
+  // Force window to scroll to top when the component mounts
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const { data: penguins = [] } = useQuery<Penguin[]>({
     queryKey: ['/api/penguins'],
     staleTime: 60 * 1000, // 1 minute
