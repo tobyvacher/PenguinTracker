@@ -131,36 +131,36 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
             
             <div className="flex flex-wrap gap-2 justify-center mb-4">
               {typeof navigator !== 'undefined' && 'share' in navigator && (
-                <Button onClick={useNativeShare} className="flex items-center gap-2">
+                <Button onClick={useNativeShare} className={`flex items-center gap-2 ${isDark ? 'bg-primary' : 'bg-blue-600 hover:bg-blue-700'}`}>
                   <Share2 size={18} />
                   Share
                 </Button>
               )}
               
-              <Button onClick={() => handleSocialShare('twitter')} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-100'}`}>
+              <Button onClick={() => handleSocialShare('twitter')} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700 text-gray-200' : 'border-gray-200 hover:bg-gray-100 text-gray-800'}`}>
                 <Twitter size={18} className="text-[#1DA1F2]" />
-                <span className={isDark ? 'text-gray-200' : 'text-gray-800'}>Twitter</span>
+                <span>Twitter</span>
               </Button>
               
-              <Button onClick={() => handleSocialShare('whatsapp')} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-100'}`}>
+              <Button onClick={() => handleSocialShare('whatsapp')} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700 text-gray-200' : 'border-gray-200 hover:bg-gray-100 text-gray-800'}`}>
                 <FaWhatsapp size={18} className="text-[#25D366]" />
-                <span className={isDark ? 'text-gray-200' : 'text-gray-800'}>WhatsApp</span>
+                <span>WhatsApp</span>
               </Button>
               
-              <Button onClick={() => handleSocialShare('email')} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-100'}`}>
+              <Button onClick={() => handleSocialShare('email')} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700 text-gray-200' : 'border-gray-200 hover:bg-gray-100 text-gray-800'}`}>
                 <Mail size={18} className={isDark ? 'text-gray-300' : 'text-gray-600'} />
-                <span className={isDark ? 'text-gray-200' : 'text-gray-800'}>Email</span>
+                <span>Email</span>
               </Button>
               
-              <Button onClick={copyToClipboard} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-100'}`}>
+              <Button onClick={copyToClipboard} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700 text-gray-200' : 'border-gray-200 hover:bg-gray-100 text-gray-800'}`}>
                 {isCopied ? <Check size={18} className="text-green-600" /> : <Copy size={18} className={isDark ? 'text-gray-300' : 'text-gray-600'} />}
-                <span className={isDark ? 'text-gray-200' : 'text-gray-800'}>{isCopied ? "Copied!" : "Copy"}</span>
+                <span>{isCopied ? "Copied!" : "Copy"}</span>
               </Button>
             </div>
             
             <div className="flex justify-center">
               <Button 
-                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700"
+                className={`flex items-center gap-2 ${isDark ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-blue-600 hover:bg-blue-700'}`}
                 onClick={() => {
                   setIsShareDialogOpen(false); // Close the share dialog
                   setShowShareAchievement(true);
