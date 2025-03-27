@@ -106,7 +106,7 @@ export function sortPenguins(penguins: Penguin[], sortType: PenguinSortType): Pe
       
     case "default":
     default:
-      // Default sorting is by ID
+      // Default sorting is by ID (numerically ascending)
       return penguinsCopy.sort((a, b) => a.id - b.id);
   }
 }
