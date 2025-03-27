@@ -144,11 +144,6 @@ export default function PenguinCard({
     onLongPress();
   };
 
-  // Add a direct click handler that doesn't rely on touch events
-  const handleDirectClick = () => {
-    onClick();
-  };
-
   return (
     <motion.div
       className="flex flex-col items-center cursor-pointer"
@@ -156,7 +151,6 @@ export default function PenguinCard({
       animate={isSeen ? "seen" : "unseen"}
       whileHover={{ y: -5 }}
       transition={{ duration: 0.2 }}
-      onClick={handleDirectClick}
       onMouseDown={mouseDownHandler}
       onMouseUp={mouseUpHandler}
       onMouseLeave={mouseUpHandler}
