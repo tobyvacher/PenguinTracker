@@ -187,7 +187,7 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
   return (
     <div className="space-y-4 p-1">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">
+        <h3 className={`text-lg font-semibold ${isDark ? '' : 'text-gray-800'}`}>
           Sighting Journal: {penguin.name}
         </h3>
         <Button 
@@ -238,7 +238,7 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
                         size="icon" 
                         variant="ghost" 
                         onClick={() => setEditingEntry(entry)}
-                        className="h-8 w-8"
+                        className={`h-8 w-8 ${!isDark && 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'}`}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>

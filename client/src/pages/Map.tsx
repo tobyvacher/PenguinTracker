@@ -34,7 +34,7 @@ export default function Map() {
           <div className="flex flex-row justify-between items-center">
             <div className="flex items-center">
               <Link to="/">
-                <div className={`flex items-center mr-8 hover:opacity-80 transition-opacity ${isDark ? 'text-gray-200' : ''}`}>
+                <div className={`flex items-center mr-8 hover:opacity-80 transition-opacity ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
                   <ArrowLeft className="h-5 w-5 mr-2" />
                   <span>Back to Species</span>
                 </div>

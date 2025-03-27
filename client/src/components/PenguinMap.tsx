@@ -321,8 +321,8 @@ export default function PenguinMap({ penguins, seenPenguins }: PenguinMapProps) 
               />
               <span className={`text-sm ${
                 isSeen 
-                  ? isDark ? 'font-medium text-white' : 'font-medium' 
-                  : isDark ? 'text-gray-400' : 'text-gray-500'
+                  ? isDark ? 'font-medium text-white' : 'font-medium text-gray-800' 
+                  : isDark ? 'text-gray-400' : 'text-gray-600'
               }`}>
                 {habitat.species}
               </span>

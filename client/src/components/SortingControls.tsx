@@ -50,37 +50,37 @@ export default function SortingControls({
           <SelectValue placeholder="Sort penguins..." className={isDark ? 'text-gray-200' : 'text-gray-800'} />
         </SelectTrigger>
         <SelectContent className={isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}>
-          <SelectItem value="default" className={isDark ? 'text-gray-200' : ''}>
+          <SelectItem value="default" className={isDark ? 'text-gray-200' : 'text-gray-800'}>
             <div className="flex items-center gap-2">
               <ArrowDownUp className="h-4 w-4" />
               <span>Default</span>
             </div>
           </SelectItem>
-          <SelectItem value="alphabetical" className={isDark ? 'text-gray-200' : ''}>
+          <SelectItem value="alphabetical" className={isDark ? 'text-gray-200' : 'text-gray-800'}>
             <div className="flex items-center gap-2">
               <ListOrdered className="h-4 w-4" />
               <span>Alphabetical</span>
             </div>
           </SelectItem>
-          <SelectItem value="size-asc" className={isDark ? 'text-gray-200' : ''}>
+          <SelectItem value="size-asc" className={isDark ? 'text-gray-200' : 'text-gray-800'}>
             <div className="flex items-center gap-2">
               <SortAsc className="h-4 w-4" />
               <span>Size (Smallest first)</span>
             </div>
           </SelectItem>
-          <SelectItem value="size-desc" className={isDark ? 'text-gray-200' : ''}>
+          <SelectItem value="size-desc" className={isDark ? 'text-gray-200' : 'text-gray-800'}>
             <div className="flex items-center gap-2">
               <SortDesc className="h-4 w-4" />
               <span>Size (Largest first)</span>
             </div>
           </SelectItem>
-          <SelectItem value="genus" className={isDark ? 'text-gray-200' : ''}>
+          <SelectItem value="genus" className={isDark ? 'text-gray-200' : 'text-gray-800'}>
             <div className="flex items-center gap-2">
               <Group className="h-4 w-4" />
               <span>By Genus</span>
             </div>
           </SelectItem>
-          <SelectItem value="region" className={isDark ? 'text-gray-200' : ''}>
+          <SelectItem value="region" className={isDark ? 'text-gray-200' : 'text-gray-800'}>
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
               <span>By Region</span>
