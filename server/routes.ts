@@ -9,6 +9,7 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { authenticate, isAuthenticated } from "./middleware/auth";
+import { debugFirestore } from "./firebase-admin";
 
 // Initialize penguin data
 import { penguinData } from "../client/src/lib/penguin-data";
@@ -401,6 +402,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Debug route to check Firestore connection
+  apiRouter.get("/debug-firestore", async (req, res) => {
+    try {
+      console.log('Running Firestore debug check from API route');
+      const result = await debugFirestore();
+      res.json({ 
+        message: "Firestore debug check completed", 
+        result 
+      });
+    } catch (error: any) {
+      console.error("Error in Firestore debug route:", error);
+      res.status(500).json({ 
+        message: "Error debugging Firestore", 
+        error: error?.message || 'Unknown error' 
+      });
+    }
+  });
+
   // Mount API routes
   app.use("/api", apiRouter);
 
