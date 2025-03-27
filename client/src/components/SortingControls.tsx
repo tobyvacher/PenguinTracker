@@ -46,41 +46,41 @@ export default function SortingControls({
         value={currentSort} 
         onValueChange={(value) => onSortChange(value as PenguinSortType)}
       >
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Sort penguins..." />
+        <SelectTrigger className={`w-[180px] ${isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
+          <SelectValue placeholder="Sort penguins..." className={isDark ? 'text-gray-200' : 'text-gray-800'} />
         </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="default">
+        <SelectContent className={isDark ? 'bg-gray-800 border-gray-700' : ''}>
+          <SelectItem value="default" className={isDark ? 'text-gray-200' : ''}>
             <div className="flex items-center gap-2">
               <ArrowDownUp className="h-4 w-4" />
               <span>Default</span>
             </div>
           </SelectItem>
-          <SelectItem value="alphabetical">
+          <SelectItem value="alphabetical" className={isDark ? 'text-gray-200' : ''}>
             <div className="flex items-center gap-2">
               <ListOrdered className="h-4 w-4" />
               <span>Alphabetical</span>
             </div>
           </SelectItem>
-          <SelectItem value="size-asc">
+          <SelectItem value="size-asc" className={isDark ? 'text-gray-200' : ''}>
             <div className="flex items-center gap-2">
               <SortAsc className="h-4 w-4" />
               <span>Size (Smallest first)</span>
             </div>
           </SelectItem>
-          <SelectItem value="size-desc">
+          <SelectItem value="size-desc" className={isDark ? 'text-gray-200' : ''}>
             <div className="flex items-center gap-2">
               <SortDesc className="h-4 w-4" />
               <span>Size (Largest first)</span>
             </div>
           </SelectItem>
-          <SelectItem value="genus">
+          <SelectItem value="genus" className={isDark ? 'text-gray-200' : ''}>
             <div className="flex items-center gap-2">
               <Group className="h-4 w-4" />
               <span>By Genus</span>
             </div>
           </SelectItem>
-          <SelectItem value="region">
+          <SelectItem value="region" className={isDark ? 'text-gray-200' : ''}>
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
               <span>By Region</span>

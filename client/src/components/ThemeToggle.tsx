@@ -35,11 +35,11 @@ export default function ThemeToggle({
       variant={isDark ? "outline" : "default"}
       size={size}
       onClick={toggleTheme}
-      className={`rounded-full ${className} ${!isDark ? 'bg-gray-800 hover:bg-gray-700 text-white' : ''}`}
+      className={`rounded-full ${className} ${!isDark ? 'bg-gray-800 hover:bg-gray-700 text-white border border-gray-200 shadow-sm' : 'border border-gray-600'}`}
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
     >
       {isDark ? (
-        <Sun className="h-4 w-4" />
+        <Sun className="h-4 w-4 text-amber-300" />
       ) : (
         <Moon className="h-4 w-4" />
       )}
