@@ -201,7 +201,7 @@ export default function JournalEntryForm({
             variant="outline" 
             onClick={handleGetLocation}
             title="Use current location"
-            className={!isDark ? 'border-gray-300 text-gray-700 hover:bg-gray-100' : ''}
+            className={!isDark ? 'border-gray-300 text-gray-700 hover:bg-gray-100 bg-white' : ''}
           >
             <Map className="h-4 w-4" />
           </Button>
@@ -243,7 +243,7 @@ export default function JournalEntryForm({
           type="button" 
           variant="outline" 
           onClick={onCancel}
-          className={!isDark ? 'border-gray-300 text-gray-700 hover:bg-gray-100' : ''}
+          className={!isDark ? 'border-gray-300 text-gray-700 hover:bg-gray-100 bg-white' : ''}
         >
           <X className="mr-2 h-4 w-4" />
           Cancel
