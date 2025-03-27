@@ -118,23 +118,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get seen penguins
   apiRouter.get("/seen-penguins", async (req, res) => {
     try {
-      let user;
+      // If not authenticated, return an empty array
+      // Unauthenticated users should store their seen penguin states in localStorage only
       if (!req.user) {
-        // Get or create demo user
-        user = await storage.getUserByFirebaseUid("demo_uid");
-        if (!user) {
-          user = await storage.createUser({
-            firebaseUid: "demo_uid",
-            email: "demo@example.com",
-            displayName: "Demo User"
-          });
-        }
-      } else {
-        // Get user by firebase uid
-        user = await storage.getUserByFirebaseUid(req.user.uid);
-        if (!user) {
-          return res.json([]);
-        }
+        console.log('Unauthenticated user requesting seen penguins - returning empty array');
+        return res.json([]);
+      }
+      
+      // Get user by firebase uid
+      const user = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!user) {
+        console.log(`User not found for firebase UID: ${req.user.uid}`);
+        return res.json([]);
       }
 
       const seenPenguinIds = await storage.getSeenPenguins(user.id);
@@ -148,23 +143,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mark a penguin as seen
   apiRouter.post("/seen-penguins", async (req, res) => {
     try {
-      let user;
+      // Only allow authenticated users to add seen penguins to Firestore
       if (!req.user) {
-        // Get or create demo user
-        user = await storage.getUserByFirebaseUid("demo_uid");
-        if (!user) {
-          user = await storage.createUser({
-            firebaseUid: "demo_uid",
-            email: "demo@example.com",
-            displayName: "Demo User"
-          });
-        }
-      } else {
-        // Get user by firebase uid
-        user = await storage.getUserByFirebaseUid(req.user.uid);
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
-        }
+        return res.status(401).json({ message: "Authentication required to save seen penguins" });
+      }
+      
+      // Get user by firebase uid
+      const user = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
       }
       
       const { penguinId } = insertSeenPenguinSchema
@@ -187,27 +174,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log(`DELETE request received for penguin ID: ${req.params.penguinId}`);
       
-      let user;
+      // Only allow authenticated users to remove seen penguins from Firestore
       if (!req.user) {
-        // Get or create demo user
-        user = await storage.getUserByFirebaseUid("demo_uid");
-        if (!user) {
-          user = await storage.createUser({
-            firebaseUid: "demo_uid",
-            email: "demo@example.com",
-            displayName: "Demo User"
-          });
-        }
-        console.log(`Using demo user with ID: ${user.id}`);
-      } else {
-        // Get user by firebase uid
-        user = await storage.getUserByFirebaseUid(req.user.uid);
-        if (!user) {
-          console.log(`User not found for firebase UID: ${req.user.uid}`);
-          return res.status(404).json({ message: "User not found" });
-        }
-        console.log(`Using authenticated user with ID: ${user.id}`);
+        return res.status(401).json({ message: "Authentication required to update seen penguins" });
       }
+      
+      // Get user by firebase uid
+      const user = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!user) {
+        console.log(`User not found for firebase UID: ${req.user.uid}`);
+        return res.status(404).json({ message: "User not found" });
+      }
+      console.log(`Using authenticated user with ID: ${user.id}`);
 
       const penguinId = parseInt(req.params.penguinId);
       console.log(`Removing penguin ${penguinId} from seen list for user ${user.id}`);
