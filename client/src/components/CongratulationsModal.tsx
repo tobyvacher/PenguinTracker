@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Trophy, Sparkles, Share2, Image } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useTheme } from "@/contexts/ThemeContext";
 import ShareAchievement from "./ShareAchievement";
 import SocialShareButtons from "./SocialShareButtons";
 
@@ -15,6 +16,8 @@ interface CongratulationsModalProps {
 export default function CongratulationsModal({ isOpen, onClose, count = 18 }: CongratulationsModalProps) {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [showShareAchievement, setShowShareAchievement] = useState(false);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   
   // Get the appropriate share text based on the count
   const getShareText = () => {
@@ -55,10 +58,10 @@ export default function CongratulationsModal({ isOpen, onClose, count = 18 }: Co
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader className="text-center">
-            <DialogTitle className="text-2xl font-bold text-[#1E3A8A]">
+            <DialogTitle className={`text-2xl font-bold ${isDark ? 'text-blue-300' : 'text-[#1E3A8A]'}`}>
               Congratulations!
             </DialogTitle>
-            <DialogDescription className="text-slate-600">
+            <DialogDescription className={`${isDark ? 'text-gray-300' : 'text-slate-600'}`}>
               {count >= 18 ? "You've spotted all 18 penguin species in the world!" :
                count >= 15 ? "You've spotted 15 penguin species in the wild!" :
                count >= 10 ? "You've spotted 10 penguin species in the wild!" :
@@ -107,13 +110,13 @@ export default function CongratulationsModal({ isOpen, onClose, count = 18 }: Co
               </motion.div>
             </div>
             
-            <h3 className="text-xl font-bold text-slate-800 mb-2">
+            <h3 className={`text-xl font-bold ${isDark ? 'text-gray-100' : 'text-slate-800'} mb-2`}>
               {count >= 18 ? "Master Penguin Tracker" :
                count >= 15 ? "Advanced Penguin Tracker" :
                count >= 10 ? "Intermediate Penguin Tracker" :
                "Novice Penguin Tracker"}
             </h3>
-            <p className="text-center text-slate-600 mb-6">
+            <p className={`text-center ${isDark ? 'text-gray-300' : 'text-slate-600'} mb-6`}>
               {count >= 18 ? "You're now a penguin expert! Share your knowledge and continue your journey exploring the fascinating world of penguins." :
                count >= 15 ? "You're making amazing progress! Continue exploring and spotting the remaining penguin species." :
                count >= 10 ? "You're getting better at penguin spotting! Keep going to discover more fascinating species." :
@@ -155,14 +158,14 @@ export default function CongratulationsModal({ isOpen, onClose, count = 18 }: Co
       <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Share your achievement</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className={isDark ? 'text-white' : ''}>Share your achievement</DialogTitle>
+            <DialogDescription className={isDark ? 'text-gray-300' : ''}>
               Let others know about your penguin spotting achievement!
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
-            <div className="p-4 bg-gray-50 rounded-md">
+            <div className={`p-4 ${isDark ? 'bg-gray-800 text-gray-200' : 'bg-gray-50'} rounded-md`}>
               <p className="text-sm">{shareText}</p>
             </div>
             

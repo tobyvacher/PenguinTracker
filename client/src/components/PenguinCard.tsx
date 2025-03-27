@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Eye } from "lucide-react";
 import { Penguin } from "@shared/schema";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface PenguinCardProps {
   penguin: Penguin;
@@ -143,6 +144,9 @@ export default function PenguinCard({
     e.preventDefault();
     onLongPress();
   };
+  
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   return (
     <motion.div
@@ -163,7 +167,7 @@ export default function PenguinCard({
         <div className={`rounded-full overflow-hidden h-32 w-32 transition-all duration-300 ${
           isSeen 
             ? 'border-[#FFD700] border-4 shadow-[0_0_15px_rgba(255,215,0,0.6)]' 
-            : 'border-white border-4 shadow-lg'
+            : `${isDark ? 'border-white' : 'border-gray-200'} border-4 shadow-lg`
         }`}>
           <img 
             src={penguin.imageUrl}
@@ -199,7 +203,9 @@ export default function PenguinCard({
         </motion.div>
       </div>
       <div className="text-center">
-        <h3 className="font-medium">{penguin.name.replace(' Penguin', '')}</h3>
+        <h3 className={`font-medium ${isDark ? 'text-gray-100' : 'text-gray-800'}`}>
+          {penguin.name.replace(' Penguin', '')}
+        </h3>
       </div>
     </motion.div>
   );

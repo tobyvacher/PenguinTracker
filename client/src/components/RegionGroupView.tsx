@@ -1,6 +1,7 @@
 import { Penguin } from "@shared/schema";
 import PenguinCard from "@/components/PenguinCard";
 import { groupPenguinsByRegion } from "@/lib/penguin-sorting";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface RegionGroupViewProps {
   penguins: Penguin[];
@@ -22,12 +23,18 @@ export default function RegionGroupView({
   const sortedRegionKeys = Object.keys(groupedPenguins).sort(
     (a, b) => groupedPenguins[a].order - groupedPenguins[b].order
   );
+  
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   return (
     <div className="space-y-10">
       {sortedRegionKeys.map(regionKey => (
         <div key={regionKey} className="region-group">
-          <h2 className="text-xl font-bold text-[#1E3A8A] mb-4 border-b pb-2">
+          <h2 className={`text-xl font-bold mb-4 border-b ${isDark 
+            ? 'text-white border-gray-700' 
+            : 'text-[#1E3A8A] border-gray-200'} pb-2`}
+          >
             {groupedPenguins[regionKey].title}
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
@@ -39,7 +46,7 @@ export default function RegionGroupView({
                   onClick={() => onPenguinClick(penguin)}
                   onLongPress={() => onPenguinLongPress(penguin)}
                 />
-                <p className="text-xs mt-1 text-gray-500 text-center italic">
+                <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-600'} text-center italic`}>
                   ({penguin.scientificName})
                 </p>
               </div>

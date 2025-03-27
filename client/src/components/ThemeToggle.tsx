@@ -32,10 +32,10 @@ export default function ThemeToggle({
 
   return (
     <Button
-      variant="outline"
+      variant={isDark ? "outline" : "default"}
       size={size}
       onClick={toggleTheme}
-      className={`rounded-full ${className}`}
+      className={`rounded-full ${className} ${!isDark ? 'bg-gray-800 hover:bg-gray-700 text-white' : ''}`}
       aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
     >
       {isDark ? (

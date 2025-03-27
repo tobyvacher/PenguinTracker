@@ -6,6 +6,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { useTheme } from "@/contexts/ThemeContext";
 import { 
   SortAsc, 
   SortDesc, 
@@ -27,6 +28,8 @@ export default function SortingControls({
 }: SortingControlsProps) {
   // Track if mounted to avoid hydration issues
   const [mounted, setMounted] = useState(false);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   useEffect(() => {
     setMounted(true);
@@ -38,7 +41,7 @@ export default function SortingControls({
 
   return (
     <div className="flex items-center space-x-2">
-      <span className="text-sm text-gray-500">Sort by:</span>
+      <span className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Sort by:</span>
       <Select 
         value={currentSort} 
         onValueChange={(value) => onSortChange(value as PenguinSortType)}

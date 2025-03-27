@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Penguin, SightingJournal } from "@shared/schema";
 import { Share2, Info, Book, Plus } from "lucide-react";
 import { useState } from "react";
+import { useTheme } from "@/contexts/ThemeContext";
 import ShareAchievement from "./ShareAchievement";
 import SocialShareButtons from "./SocialShareButtons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,6 +18,9 @@ interface PenguinModalProps {
 
 export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalProps) {
   const [showShareModal, setShowShareModal] = useState(false);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "least concern":
@@ -89,7 +93,7 @@ export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalP
       <Dialog open={isOpen && !showShareModal} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-[#1E3A8A] text-center">
+            <DialogTitle className={`text-2xl font-bold ${isDark ? 'text-blue-300' : 'text-[#1E3A8A]'} text-center`}>
               {penguin.name}
             </DialogTitle>
             <DialogDescription className="sr-only">
@@ -99,7 +103,7 @@ export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalP
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
             <div>
-              <div className="rounded-full overflow-hidden shadow-md border-4 border-white mx-auto max-w-[280px] aspect-square">
+              <div className={`rounded-full overflow-hidden shadow-md border-4 ${isDark ? 'border-gray-700' : 'border-white'} mx-auto max-w-[280px] aspect-square`}>
                 <img 
                   src={penguin.imageUrl} 
                   alt={penguin.name}
@@ -109,27 +113,27 @@ export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalP
             </div>
             <div>
               <div className="mb-4">
-                <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-1">Scientific Name</h3>
-                <p className="text-[#334155]">{penguin.scientificName}</p>
+                <h3 className={`text-sm uppercase font-medium ${isDark ? 'text-gray-300' : 'text-[#94A3B8]'} mb-1`}>Scientific Name</h3>
+                <p className={`${isDark ? 'text-gray-200' : 'text-[#334155]'}`}>{penguin.scientificName}</p>
               </div>
               
               <div className="mb-4">
-                <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-1">Location</h3>
-                <p className="text-[#334155]">{penguin.location}</p>
+                <h3 className={`text-sm uppercase font-medium ${isDark ? 'text-gray-300' : 'text-[#94A3B8]'} mb-1`}>Location</h3>
+                <p className={`${isDark ? 'text-gray-200' : 'text-[#334155]'}`}>{penguin.location}</p>
               </div>
               
               <div className="mb-4">
-                <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-1">Size</h3>
-                <p className="text-[#334155]">{penguin.size}</p>
+                <h3 className={`text-sm uppercase font-medium ${isDark ? 'text-gray-300' : 'text-[#94A3B8]'} mb-1`}>Size</h3>
+                <p className={`${isDark ? 'text-gray-200' : 'text-[#334155]'}`}>{penguin.size}</p>
               </div>
               
               <div className="mb-4">
-                <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-1">Weight</h3>
-                <p className="text-[#334155]">{penguin.weight}</p>
+                <h3 className={`text-sm uppercase font-medium ${isDark ? 'text-gray-300' : 'text-[#94A3B8]'} mb-1`}>Weight</h3>
+                <p className={`${isDark ? 'text-gray-200' : 'text-[#334155]'}`}>{penguin.weight}</p>
               </div>
               
               <div className="mb-4">
-                <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-1">Conservation Status</h3>
+                <h3 className={`text-sm uppercase font-medium ${isDark ? 'text-gray-300' : 'text-[#94A3B8]'} mb-1`}>Conservation Status</h3>
                 <p className={`inline-block px-4 py-1 rounded-full text-sm font-medium ${getStatusColor(penguin.status)}`}>
                   {penguin.status}
                 </p>
@@ -152,10 +156,10 @@ export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalP
               
               <TabsContent value="info" className="space-y-4">
                 <div>
-                  <h3 className="text-sm uppercase font-medium text-[#94A3B8] mb-2">Description</h3>
-                  <p className="text-[#334155] mb-4">{penguin.description}</p>
+                  <h3 className={`text-sm uppercase font-medium ${isDark ? 'text-gray-300' : 'text-[#94A3B8]'} mb-2`}>Description</h3>
+                  <p className={`${isDark ? 'text-gray-200' : 'text-[#334155]'} mb-4`}>{penguin.description}</p>
                   
-                  <p className="text-[#334155]">
+                  <p className={`${isDark ? 'text-gray-200' : 'text-[#334155]'}`}>
                     {getAdditionalInfo(penguin.name)}
                   </p>
                 </div>
