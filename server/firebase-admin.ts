@@ -1,11 +1,15 @@
 import admin from 'firebase-admin';
 
-// For development purposes, use a service account or a default app
+// Initialize Firebase Admin with service account credentials
 try {
+  // Parse the service account JSON from environment variable
+  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
+  
   admin.initializeApp({
-    projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+    credential: admin.credential.cert(serviceAccount),
+    projectId: process.env.VITE_FIREBASE_PROJECT_ID || serviceAccount.project_id,
   });
-  console.log('Firebase Admin initialized successfully');
+  console.log('Firebase Admin initialized successfully with service account');
 } catch (error) {
   console.error('Error initializing Firebase Admin:', error);
   

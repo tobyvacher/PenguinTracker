@@ -231,6 +231,7 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Use in-memory storage for the server-side to avoid authentication issues
-// This will ensure the app continues working without disruption
-export const storage = new MemStorage();
+// Use Firestore for persistent storage across server restarts
+// Import FirestoreServerStorage for persistent database access
+import { firestoreServerStorage } from "./firestore-storage";
+export const storage = firestoreServerStorage;
