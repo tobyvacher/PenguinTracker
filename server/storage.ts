@@ -233,7 +233,4 @@ export class MemStorage implements IStorage {
 
 // Keep using the MemStorage for the server-side to avoid authentication issues in Replit environment
 // This will ensure the app continues working without disruption
-// Create a map to store seen penguins for unauthenticated sessions (in-memory only)
-export const sessionSeenPenguins = new Map<string, number[]>();
-
 export const storage = new MemStorage();

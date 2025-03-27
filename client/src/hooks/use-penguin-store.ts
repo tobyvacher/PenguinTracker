@@ -82,28 +82,16 @@ export function usePenguinStore() {
   // Toggle penguin seen status
   const toggleSeen = async (penguinId: number) => {
     const storageKey = getStorageKey();
-    const isCurrentlySeen = seenPenguins.includes(penguinId);
     
-    // Optimistically update the UI first for responsiveness
-    if (isCurrentlySeen) {
-      // Remove from seen list (optimistic update)
-      const updatedSeenPenguins = seenPenguins.filter(id => id !== penguinId);
-      setSeenPenguins(updatedSeenPenguins);
-      localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
-    } else {
-      // Add to seen list (optimistic update)
-      const updatedSeenPenguins = [...seenPenguins, penguinId];
-      setSeenPenguins(updatedSeenPenguins);
-      localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
-    }
-    
-    // Then make the API call in the background
     try {
+      const isCurrentlySeen = seenPenguins.includes(penguinId);
+      
       if (isCurrentlySeen) {
         // REMOVE PENGUIN FLOW
         console.log(`Attempting to remove penguin ${penguinId} from seen list`);
         
         try {
+          // First make the API call
           const response = await fetch(`/api/seen-penguins/${penguinId}`, {
             method: 'DELETE',
             headers: {
@@ -116,26 +104,26 @@ export function usePenguinStore() {
           if (response.status === 204) {
             console.log(`Successfully removed penguin ${penguinId} from seen list`);
             
+            // Then update state after successful API call
+            const updatedSeenPenguins = seenPenguins.filter(id => id !== penguinId);
+            setSeenPenguins(updatedSeenPenguins);
+            localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
+            
             // Invalidate queries to refresh data
             queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
           } else {
-            throw new Error(`Failed to remove penguin with status: ${response.status}`);
+            throw new Error(`Failed with status: ${response.status}`);
           }
         } catch (deleteError) {
           console.error(`Failed to remove penguin ${penguinId} from seen list:`, deleteError);
-          
-          // Revert the optimistic update if the API call failed
-          if (!seenPenguins.includes(penguinId)) {
-            const revertedPenguins = [...seenPenguins, penguinId];
-            setSeenPenguins(revertedPenguins);
-            localStorage.setItem(storageKey, JSON.stringify(revertedPenguins));
-          }
+          // Do not update state on error - keep it as seen
         }
       } else {
         // ADD PENGUIN FLOW
         console.log(`Attempting to add penguin ${penguinId} to seen list`);
         
         try {
+          // First make the API call
           const response = await fetch('/api/seen-penguins', {
             method: 'POST',
             headers: {
@@ -149,26 +137,25 @@ export function usePenguinStore() {
           if (response.ok) {
             console.log(`Successfully added penguin ${penguinId} to seen list`);
             
+            // Then update state after successful API call
+            const updatedSeenPenguins = [...seenPenguins, penguinId];
+            setSeenPenguins(updatedSeenPenguins);
+            localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
+            
             // Invalidate queries to refresh data
             queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
           } else {
-            throw new Error(`Failed to add penguin with status: ${response.status}`);
+            throw new Error(`Failed with status: ${response.status}`);
           }
         } catch (postError) {
           console.error(`Failed to add penguin ${penguinId} to seen list:`, postError);
-          
-          // Revert the optimistic update if the API call failed
-          if (seenPenguins.includes(penguinId)) {
-            const revertedPenguins = seenPenguins.filter(id => id !== penguinId);
-            setSeenPenguins(revertedPenguins);
-            localStorage.setItem(storageKey, JSON.stringify(revertedPenguins));
-          }
+          // Do not update state on error - keep it as unseen
         }
       }
     } catch (error) {
       console.error('Failed to toggle penguin seen status:', error);
       
-      // Refresh the data from the server to ensure consistency in case of errors
+      // Refresh the data from the server to ensure consistency
       try {
         const response = await fetch('/api/seen-penguins', {
           credentials: 'include',
@@ -184,7 +171,7 @@ export function usePenguinStore() {
         }
       } catch (fetchError) {
         console.error('Failed to fetch current seen penguins:', fetchError);
-        // Keep the optimistic update in place
+        // No state changes on error
       }
     }
   };
