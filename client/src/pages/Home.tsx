@@ -12,8 +12,10 @@ import CongratulationsModal from "@/components/CongratulationsModal";
 import SortingControls from "@/components/SortingControls";
 import GenusGroupView from "@/components/GenusGroupView";
 import RegionGroupView from "@/components/RegionGroupView";
+import ThemeToggle from "@/components/ThemeToggle";
 import { usePenguinStore } from "@/hooks/use-penguin-store";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Penguin } from "@shared/schema";
 import { HelpCircle, AlertTriangle, MapPin } from "lucide-react";
 import { firebaseConfigValid } from "@/lib/firebase";
@@ -122,28 +124,33 @@ export default function Home() {
     );
   }
 
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
   return (
-    <div className="bg-gradient-to-b from-[#F8FAFC] to-[#E2E8F0] min-h-screen font-sans text-[#334155]">
+    <div className={`${isDark ? 'bg-gradient-to-b from-gray-900 to-gray-800' : 'bg-gradient-to-b from-[#F8FAFC] to-[#E2E8F0]'} min-h-screen font-sans text-foreground`}>
       {/* Header */}
-      <header className="sticky top-0 bg-white/90 backdrop-blur-sm shadow-md z-10">
+      <header className={`sticky top-0 ${isDark ? 'bg-gray-900/90' : 'bg-white/90'} backdrop-blur-sm shadow-md z-[100]`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           {/* Responsive header layout */}
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
             {/* Logo and title - centered on mobile, left-aligned on desktop */}
             <div className="flex items-center justify-center sm:justify-start mb-3 sm:mb-0">
               <img src="/logo.png" alt="Penguin Tracker Logo" className="w-10 h-10 mr-3" />
-              <h1 className="text-2xl font-bold text-[#1E3A8A]">Penguin Tracker</h1>
+              <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-[#1E3A8A]'}`}>Penguin Tracker</h1>
             </div>
             
             {/* Action buttons - centered on mobile, right-aligned on desktop */}
             <div className="flex items-center justify-center sm:justify-end gap-4">
+              <ThemeToggle variant="toggle" className="mr-2" />
+              
               {!showInfoBanner && (
                 <button 
                   onClick={() => setShowInfoBanner(true)}
-                  className="bg-white rounded-full p-2 shadow-sm hover:bg-slate-100 transition-colors"
+                  className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-full p-2 shadow-sm ${isDark ? 'hover:bg-gray-700' : 'hover:bg-slate-100'} transition-colors`}
                   aria-label="Show help information"
                 >
-                  <HelpCircle className="text-[#1E3A8A] h-5 w-5" />
+                  <HelpCircle className={`${isDark ? 'text-white' : 'text-[#1E3A8A]'} h-5 w-5`} />
                 </button>
               )}
               {/* Achievement Badge */}
@@ -231,7 +238,7 @@ export default function Home() {
                   onLongPress={() => handlePenguinLongPress(penguin)}
                 />
                 {sortType !== "default" && (
-                  <p className="text-xs mt-1 text-gray-500 text-center italic">
+                  <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'} text-center italic`}>
                     ({penguin.scientificName})
                   </p>
                 )}
@@ -261,12 +268,12 @@ export default function Home() {
         
         {/* Map Link */}
         <Link to="/map">
-          <div className="bg-white rounded-lg shadow-md p-4 mb-8 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer">
+          <div className={`${isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-slate-50'} rounded-lg shadow-md p-4 mb-8 flex items-center justify-between transition-colors cursor-pointer`}>
             <div>
-              <h2 className="text-2xl font-bold text-[#1E3A8A]">Explore Penguin Habitats</h2>
-              <p className="text-slate-600">View the global distribution of all penguin species on an interactive map</p>
+              <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-[#1E3A8A]'}`}>Explore Penguin Habitats</h2>
+              <p className={`${isDark ? 'text-gray-300' : 'text-slate-600'}`}>View the global distribution of all penguin species on an interactive map</p>
             </div>
-            <MapPin className="text-[#1E3A8A] h-8 w-8" />
+            <MapPin className={`${isDark ? 'text-blue-300' : 'text-[#1E3A8A]'} h-8 w-8`} />
           </div>
         </Link>
       </main>

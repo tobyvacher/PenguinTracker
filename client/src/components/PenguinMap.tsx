@@ -3,6 +3,7 @@ import { Penguin } from '@shared/schema';
 import { MapContainer, TileLayer, Circle, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { useTheme } from '@/contexts/ThemeContext';
 
 // Type for penguin habitat data
 interface PenguinHabitat {
@@ -158,6 +159,9 @@ const HabitatMarker = ({
   isSeen: boolean; 
   matchingPenguin: Penguin | undefined; 
 }) => {
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  
   return (
     <>
       <Circle
@@ -173,16 +177,19 @@ const HabitatMarker = ({
       
       <Marker position={habitat.location}>
         <Popup>
-          <div className="p-2">
+          <div className={`p-2 ${isDark ? 'bg-gray-800 text-white' : ''}`}>
             <h3 className="font-bold text-lg">{habitat.species}</h3>
-            <p className="text-sm mb-2">{habitat.description}</p>
+            <p className={`text-sm mb-2 ${isDark ? 'text-gray-300' : ''}`}>{habitat.description}</p>
             
             {matchingPenguin && (
-              <div className="text-sm">
+              <div className={`text-sm ${isDark ? 'text-gray-200' : ''}`}>
                 <p><strong>Scientific Name:</strong> {matchingPenguin.scientificName}</p>
                 <p><strong>Size:</strong> {matchingPenguin.size}</p>
                 <p><strong>Weight:</strong> {matchingPenguin.weight}</p>
-                <p><strong>Status:</strong> {isSeen ? 'Spotted! ✓' : 'Not yet spotted'}</p>
+                <p><strong>Status:</strong> {isSeen ? 
+                  <span className="text-green-500 font-bold">Spotted! ✓</span> : 
+                  <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>Not yet spotted</span>
+                }</p>
               </div>
             )}
           </div>
@@ -194,6 +201,8 @@ const HabitatMarker = ({
 
 export default function PenguinMap({ penguins, seenPenguins }: PenguinMapProps) {
   const [activeHabitat, setActiveHabitat] = useState<string | null>(null);
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   
   // Fix the Leaflet icon issue
   useEffect(() => {
@@ -257,11 +266,11 @@ export default function PenguinMap({ penguins, seenPenguins }: PenguinMapProps) 
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-4 mb-8 relative z-10">
-      <h2 className="text-2xl font-bold text-[#1E3A8A] mb-4">Global Penguin Habitats</h2>
+    <div className={`${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-white'} rounded-lg shadow-md p-4 mb-8 relative z-10`}>
+      <h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-[#1E3A8A]'} mb-4`}>Global Penguin Habitats</h2>
       
       {/* Map container */}
-      <div className="border rounded-lg overflow-hidden" style={{ height: "500px" }}>
+      <div className={`${isDark ? 'border-gray-600' : 'border'} rounded-lg overflow-hidden`} style={{ height: "500px" }}>
         <MapContainer 
           center={[-40, 0]} 
           zoom={2} 
@@ -297,7 +306,9 @@ export default function PenguinMap({ penguins, seenPenguins }: PenguinMapProps) 
             <div 
               key={index}
               className={`flex items-center p-2 rounded-md cursor-pointer transition-colors ${
-                activeHabitat === habitat.species ? 'bg-slate-100' : ''
+                activeHabitat === habitat.species 
+                  ? isDark ? 'bg-gray-700' : 'bg-slate-100' 
+                  : ''
               }`}
               onClick={() => setActiveHabitat(habitat.species === activeHabitat ? null : habitat.species)}
             >
@@ -308,7 +319,11 @@ export default function PenguinMap({ penguins, seenPenguins }: PenguinMapProps) 
                   opacity: isSeen ? 1 : 0.4 
                 }} 
               />
-              <span className={`text-sm ${isSeen ? 'font-medium' : 'text-gray-500'}`}>
+              <span className={`text-sm ${
+                isSeen 
+                  ? isDark ? 'font-medium text-white' : 'font-medium' 
+                  : isDark ? 'text-gray-400' : 'text-gray-500'
+              }`}>
                 {habitat.species}
               </span>
             </div>
