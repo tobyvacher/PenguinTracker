@@ -231,6 +231,6 @@ export class MemStorage implements IStorage {
   }
 }
 
-// Keep using the MemStorage for the server-side to avoid authentication issues in Replit environment
+// Use in-memory storage for the server-side to avoid authentication issues
 // This will ensure the app continues working without disruption
 export const storage = new MemStorage();
