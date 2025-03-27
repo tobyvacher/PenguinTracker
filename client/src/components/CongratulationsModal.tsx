@@ -56,7 +56,7 @@ export default function CongratulationsModal({ isOpen, onClose, count = 18 }: Co
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className={`sm:max-w-md ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+        <DialogContent className={`sm:max-w-md ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
           <DialogHeader className="text-center">
             <DialogTitle className={`text-2xl font-bold ${isDark ? 'text-blue-300' : 'text-[#1E3A8A]'}`}>
               Congratulations!
@@ -156,16 +156,16 @@ export default function CongratulationsModal({ isOpen, onClose, count = 18 }: Co
       
       {/* Share Dialog */}
       <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
-        <DialogContent className={`sm:max-w-md ${isDark ? 'bg-gray-800' : 'bg-white'}`}>
+        <DialogContent className={`sm:max-w-md ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
           <DialogHeader>
-            <DialogTitle className={isDark ? 'text-white' : ''}>Share your achievement</DialogTitle>
-            <DialogDescription className={isDark ? 'text-gray-300' : ''}>
+            <DialogTitle className={isDark ? 'text-white' : 'text-gray-800'}>Share your achievement</DialogTitle>
+            <DialogDescription className={isDark ? 'text-gray-300' : 'text-gray-600'}>
               Let others know about your penguin spotting achievement!
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
-            <div className={`p-4 ${isDark ? 'bg-gray-800 text-gray-200' : 'bg-gray-50'} rounded-md`}>
+            <div className={`p-4 ${isDark ? 'bg-gray-700 text-gray-200' : 'bg-gray-50 text-gray-700'} rounded-md`}>
               <p className="text-sm">{shareText}</p>
             </div>
             
