@@ -223,13 +223,19 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 py-4">
             {sortPenguins(penguins, sortType).map((penguin: Penguin) => (
-              <PenguinCard
-                key={penguin.id}
-                penguin={penguin}
-                isSeen={seenPenguins.includes(penguin.id)}
-                onClick={() => handlePenguinClick(penguin)}
-                onLongPress={() => handlePenguinLongPress(penguin)}
-              />
+              <div key={penguin.id}>
+                <PenguinCard
+                  penguin={penguin}
+                  isSeen={seenPenguins.includes(penguin.id)}
+                  onClick={() => handlePenguinClick(penguin)}
+                  onLongPress={() => handlePenguinLongPress(penguin)}
+                />
+                {sortType !== "default" && (
+                  <p className="text-xs mt-1 text-gray-500 text-center italic">
+                    ({penguin.scientificName})
+                  </p>
+                )}
+              </div>
             ))}
           </div>
         )}

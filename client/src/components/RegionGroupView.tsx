@@ -1,5 +1,5 @@
 import { Penguin } from "@shared/schema";
-import PenguinCard from "./PenguinCard";
+import PenguinCard from "@/components/PenguinCard";
 import { groupPenguinsByRegion } from "@/lib/penguin-sorting";
 
 interface RegionGroupViewProps {

@@ -1,6 +1,7 @@
 import { Penguin } from "@shared/schema";
 import PenguinCard from "@/components/PenguinCard";
 import { getFriendlyGenusName, groupPenguinsByGenus } from "@/lib/penguin-sorting";
+import { useState, useEffect } from "react";
 
 interface GenusGroupViewProps {
   penguins: Penguin[];
@@ -30,13 +31,17 @@ export default function GenusGroupView({
           </h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
             {groupedPenguins[genus].map((penguin) => (
-              <PenguinCard
-                key={penguin.id}
-                penguin={penguin}
-                isSeen={seenPenguins.includes(penguin.id)}
-                onClick={() => onPenguinClick(penguin)}
-                onLongPress={() => onPenguinLongPress(penguin)}
-              />
+              <div key={penguin.id}>
+                <PenguinCard
+                  penguin={penguin}
+                  isSeen={seenPenguins.includes(penguin.id)}
+                  onClick={() => onPenguinClick(penguin)}
+                  onLongPress={() => onPenguinLongPress(penguin)}
+                />
+                <p className="text-xs mt-1 text-gray-500 text-center italic">
+                  ({penguin.scientificName})
+                </p>
+              </div>
             ))}
           </div>
         </div>
