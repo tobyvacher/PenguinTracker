@@ -11,6 +11,7 @@ import AchievementBadge from "@/components/AchievementBadge";
 import CongratulationsModal from "@/components/CongratulationsModal";
 import SortingControls from "@/components/SortingControls";
 import GenusGroupView from "@/components/GenusGroupView";
+import RegionGroupView from "@/components/RegionGroupView";
 import { usePenguinStore } from "@/hooks/use-penguin-store";
 import { useAuth } from "@/contexts/AuthContext";
 import { Penguin } from "@shared/schema";
@@ -204,9 +205,16 @@ export default function Home() {
           />
         </div>
         
-        {/* Penguin Display - either grid or genus grouping */}
+        {/* Penguin Display - grid, genus grouping, or region grouping */}
         {sortType === "genus" ? (
           <GenusGroupView 
+            penguins={penguins}
+            seenPenguins={seenPenguins}
+            onPenguinClick={handlePenguinClick}
+            onPenguinLongPress={handlePenguinLongPress}
+          />
+        ) : sortType === "region" ? (
+          <RegionGroupView
             penguins={penguins}
             seenPenguins={seenPenguins}
             onPenguinClick={handlePenguinClick}

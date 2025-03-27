@@ -4,6 +4,14 @@ interface GenusMapping {
   [key: string]: string;
 }
 
+interface RegionMapping {
+  [key: string]: {
+    title: string;
+    order: number;
+    scientificNames: string[];
+  }
+}
+
 export const penguinGenera: GenusMapping = {
   "Aptenodytes": "Great Penguins",
   "Pygoscelis": "Brush-tailed Penguins",
@@ -11,6 +19,57 @@ export const penguinGenera: GenusMapping = {
   "Spheniscus": "Banded Penguins",
   "Megadyptes": "Yellow-eyed Penguins",
   "Eudyptes": "Crested Penguins"
+};
+
+export const penguinRegions: RegionMapping = {
+  "antarctica": {
+    title: "Antarctica",
+    order: 1,
+    scientificNames: [
+      "Aptenodytes forsteri",     // Emperor
+      "Pygoscelis adeliae",       // Adélie
+      "Pygoscelis antarcticus",   // Chinstrap
+      "Pygoscelis papua"          // Gentoo
+    ]
+  },
+  "south_atlantic": {
+    title: "South Atlantic Sub-Antarctic Islands",
+    order: 2,
+    scientificNames: [
+      "Aptenodytes patagonicus",  // King
+      "Eudyptes chrysolophus",    // Macaroni
+      "Eudyptes chrysocome"       // Southern Rockhopper
+    ]
+  },
+  "tristan_south_africa": {
+    title: "Tristan da Cunha and South Africa",
+    order: 3,
+    scientificNames: [
+      "Eudyptes moseleyi",        // Northern Rockhopper
+      "Spheniscus demersus"       // African
+    ]
+  },
+  "south_america": {
+    title: "South American Coast",
+    order: 4,
+    scientificNames: [
+      "Spheniscus magellanicus",  // Magellanic
+      "Spheniscus humboldti",     // Humboldt
+      "Spheniscus mendiculus"     // Galápagos
+    ]
+  },
+  "oceania": {
+    title: "New Zealand & Oceania",
+    order: 5,
+    scientificNames: [
+      "Eudyptula minor",          // Little Blue
+      "Megadyptes antipodes",     // Yellow-eyed
+      "Eudyptes pachyrhynchus",   // Fiordland
+      "Eudyptes robustus",        // Snares
+      "Eudyptes sclateri",        // Erect-crested
+      "Eudyptes schlegeli"        // Royal
+    ]
+  }
 };
 
 /**
@@ -57,7 +116,8 @@ export type PenguinSortType =
   | "alphabetical" 
   | "size-asc" 
   | "size-desc" 
-  | "genus";
+  | "genus"
+  | "region";
 
 /**
  * Sorts penguins based on the specified sort type
@@ -103,6 +163,21 @@ export function sortPenguins(penguins: Penguin[], sortType: PenguinSortType): Pe
         const genusB = extractGenus(b.scientificName);
         return genusA.localeCompare(genusB) || a.name.localeCompare(b.name);
       });
+    
+    case "region":
+      // For region view, we first sort by region order, then by name within the region
+      return penguinsCopy.sort((a, b) => {
+        const regionA = getPenguinRegion(a.scientificName);
+        const regionB = getPenguinRegion(b.scientificName);
+        
+        // First sort by region order
+        if (regionA.order !== regionB.order) {
+          return regionA.order - regionB.order;
+        }
+        
+        // Then sort by name within the same region
+        return a.name.localeCompare(b.name);
+      });
       
     case "default":
     default:
@@ -138,4 +213,56 @@ export function groupPenguinsByGenus(penguins: Penguin[]): Record<string, Pengui
  */
 export function getFriendlyGenusName(genus: string): string {
   return penguinGenera[genus] || genus;
+}
+
+/**
+ * Gets the region information for a penguin based on its scientific name
+ */
+export function getPenguinRegion(scientificName: string): { key: string, title: string, order: number } {
+  // Find which region this penguin belongs to
+  for (const [key, region] of Object.entries(penguinRegions)) {
+    if (region.scientificNames.includes(scientificName)) {
+      return {
+        key,
+        title: region.title,
+        order: region.order
+      };
+    }
+  }
+  
+  // Default return if not found in any region
+  return {
+    key: "unknown",
+    title: "Other Regions",
+    order: 999
+  };
+}
+
+/**
+ * Groups penguins by their regions
+ */
+export function groupPenguinsByRegion(penguins: Penguin[]): Record<string, { title: string, order: number, penguins: Penguin[] }> {
+  const groups: Record<string, { title: string, order: number, penguins: Penguin[] }> = {};
+  
+  // First, group penguins by their regions
+  penguins.forEach(penguin => {
+    const region = getPenguinRegion(penguin.scientificName);
+    
+    if (!groups[region.key]) {
+      groups[region.key] = {
+        title: region.title,
+        order: region.order,
+        penguins: []
+      };
+    }
+    
+    groups[region.key].penguins.push(penguin);
+  });
+  
+  // Then, sort penguins within each region alphabetically
+  Object.values(groups).forEach(group => {
+    group.penguins.sort((a, b) => a.name.localeCompare(b.name));
+  });
+  
+  return groups;
 }

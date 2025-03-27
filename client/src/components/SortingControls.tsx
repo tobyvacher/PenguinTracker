@@ -11,7 +11,8 @@ import {
   SortDesc, 
   ListOrdered, 
   Group, 
-  ArrowDownUp 
+  ArrowDownUp,
+  MapPin
 } from "lucide-react";
 import { PenguinSortType } from "@/lib/penguin-sorting";
 
@@ -74,6 +75,12 @@ export default function SortingControls({
             <div className="flex items-center gap-2">
               <Group className="h-4 w-4" />
               <span>By Genus</span>
+            </div>
+          </SelectItem>
+          <SelectItem value="region">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              <span>By Region</span>
             </div>
           </SelectItem>
         </SelectContent>
