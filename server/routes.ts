@@ -1,6 +1,7 @@
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage, sessionSeenPenguins } from "./storage";
+import { firestoreServerStorage } from "./firestore-storage";
 import express from "express";
 import { 
   insertSeenPenguinSchema, 
@@ -9,6 +10,15 @@ import {
 } from "@shared/schema";
 import { z } from "zod";
 import { authenticate, isAuthenticated } from "./middleware/auth";
+
+// Extend the express Request type to include sessionID
+declare global {
+  namespace Express {
+    interface Request {
+      sessionID?: string;
+    }
+  }
+}
 
 // Initialize penguin data
 import { penguinData } from "../client/src/lib/penguin-data";
@@ -118,27 +128,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get seen penguins
   apiRouter.get("/seen-penguins", async (req, res) => {
     try {
-      let user;
+      // For unauthenticated users, use session-based MemStorage
       if (!req.user) {
-        // Get or create demo user
-        user = await storage.getUserByFirebaseUid("demo_uid");
-        if (!user) {
-          user = await storage.createUser({
-            firebaseUid: "demo_uid",
-            email: "demo@example.com",
-            displayName: "Demo User"
-          });
+        // Generate a unique identifier for this client (or use IP address as fallback)
+        const sessionId = (req as any).sessionID || req.ip || 'anonymous';
+        
+        // Get seen penguins from session storage or return empty array
+        const seenPenguins = sessionSeenPenguins.get(sessionId) || [];
+        return res.json(seenPenguins);
+      } 
+      
+      // For authenticated users, try to use Firestore
+      try {
+        // Get user from Firestore
+        const firestoreUser = await firestoreServerStorage.getUserByFirebaseUid(req.user.uid);
+        
+        if (firestoreUser) {
+          // Use Firestore storage for authenticated users with valid Firestore data
+          const seenPenguinIds = await firestoreServerStorage.getSeenPenguins(firestoreUser.id);
+          return res.json(seenPenguinIds);
         }
-      } else {
-        // Get user by firebase uid
-        user = await storage.getUserByFirebaseUid(req.user.uid);
-        if (!user) {
-          return res.json([]);
-        }
+      } catch (firestoreError) {
+        console.log("Firestore error, falling back to MemStorage:", firestoreError);
       }
-
-      const seenPenguinIds = await storage.getSeenPenguins(user.id);
-      res.json(seenPenguinIds);
+      
+      // Fallback to MemStorage if Firestore fails or user not found
+      const memUser = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!memUser) {
+        return res.json([]);
+      }
+      
+      const seenPenguinIds = await storage.getSeenPenguins(memUser.id);
+      return res.json(seenPenguinIds);
     } catch (error) {
       console.error("Error fetching seen penguins:", error);
       res.status(500).json({ message: "Failed to fetch seen penguins" });
@@ -148,30 +169,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mark a penguin as seen
   apiRouter.post("/seen-penguins", async (req, res) => {
     try {
-      let user;
-      if (!req.user) {
-        // Get or create demo user
-        user = await storage.getUserByFirebaseUid("demo_uid");
-        if (!user) {
-          user = await storage.createUser({
-            firebaseUid: "demo_uid",
-            email: "demo@example.com",
-            displayName: "Demo User"
-          });
-        }
-      } else {
-        // Get user by firebase uid
-        user = await storage.getUserByFirebaseUid(req.user.uid);
-        if (!user) {
-          return res.status(404).json({ message: "User not found" });
-        }
-      }
-      
+      // Parse the penguin ID from the request
       const { penguinId } = insertSeenPenguinSchema
         .pick({ penguinId: true })
         .parse(req.body);
       
-      const seenPenguin = await storage.addSeenPenguin({ userId: user.id, penguinId });
+      // For unauthenticated users, store in session
+      if (!req.user) {
+        const sessionId = (req as any).sessionID || req.ip || 'anonymous';
+        
+        // Get existing seen penguins or create new array
+        const existingPenguins = sessionSeenPenguins.get(sessionId) || [];
+        
+        // Only add if not already seen
+        if (!existingPenguins.includes(penguinId)) {
+          existingPenguins.push(penguinId);
+          sessionSeenPenguins.set(sessionId, existingPenguins);
+        }
+        
+        // Return a fake response that mimics the structure
+        return res.status(201).json({ userId: 0, penguinId, id: 0 });
+      }
+      
+      // For authenticated users, try Firestore first
+      try {
+        let firestoreUser = await firestoreServerStorage.getUserByFirebaseUid(req.user.uid);
+        
+        // Create user in Firestore if not exists
+        if (!firestoreUser) {
+          firestoreUser = await firestoreServerStorage.createUser({
+            firebaseUid: req.user.uid,
+            displayName: req.user.name || null,
+            email: req.user.email || null,
+            photoURL: req.user.picture || null
+          });
+        }
+        
+        // Add to Firestore
+        const seenPenguin = await firestoreServerStorage.addSeenPenguin({ 
+          userId: firestoreUser.id, 
+          penguinId 
+        });
+        return res.status(201).json(seenPenguin);
+      } catch (firestoreError) {
+        console.log("Firestore error, falling back to MemStorage:", firestoreError);
+      }
+      
+      // Fallback to MemStorage if Firestore fails
+      let memUser = await storage.getUserByFirebaseUid(req.user.uid);
+      
+      // Create user in memory if not exists
+      if (!memUser) {
+        memUser = await storage.createUser({
+          firebaseUid: req.user.uid,
+          displayName: req.user.name || null,
+          email: req.user.email || null,
+          photoURL: req.user.picture || null
+        });
+      }
+      
+      // Add to MemStorage
+      const seenPenguin = await storage.addSeenPenguin({ userId: memUser.id, penguinId });
       res.status(201).json(seenPenguin);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -185,43 +243,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Remove a penguin from seen
   apiRouter.delete("/seen-penguins/:penguinId", async (req, res) => {
     try {
-      console.log(`DELETE request received for penguin ID: ${req.params.penguinId}`);
-      
-      let user;
-      if (!req.user) {
-        // Get or create demo user
-        user = await storage.getUserByFirebaseUid("demo_uid");
-        if (!user) {
-          user = await storage.createUser({
-            firebaseUid: "demo_uid",
-            email: "demo@example.com",
-            displayName: "Demo User"
-          });
-        }
-        console.log(`Using demo user with ID: ${user.id}`);
-      } else {
-        // Get user by firebase uid
-        user = await storage.getUserByFirebaseUid(req.user.uid);
-        if (!user) {
-          console.log(`User not found for firebase UID: ${req.user.uid}`);
-          return res.status(404).json({ message: "User not found" });
-        }
-        console.log(`Using authenticated user with ID: ${user.id}`);
-      }
-
       const penguinId = parseInt(req.params.penguinId);
-      console.log(`Removing penguin ${penguinId} from seen list for user ${user.id}`);
+      console.log(`DELETE request received for penguin ID: ${penguinId}`);
       
-      // Get current seen penguins before removing
-      const beforeRemove = await storage.getSeenPenguins(user.id);
-      console.log(`Penguins seen by user ${user.id} before removal: ${beforeRemove.join(', ')}`);
+      // For unauthenticated users, remove from session-based storage
+      if (!req.user) {
+        const sessionId = (req as any).sessionID || req.ip || 'anonymous';
+        const existingPenguins = sessionSeenPenguins.get(sessionId) || [];
+        
+        // Filter out the penguin to remove
+        const updatedPenguins = existingPenguins.filter(id => id !== penguinId);
+        sessionSeenPenguins.set(sessionId, updatedPenguins);
+        
+        return res.status(204).send();
+      }
       
-      await storage.removeSeenPenguin(user.id, penguinId);
+      // For authenticated users, try Firestore first
+      try {
+        const firestoreUser = await firestoreServerStorage.getUserByFirebaseUid(req.user.uid);
+        
+        if (firestoreUser) {
+          // Get current seen penguins before removing
+          const beforeRemove = await firestoreServerStorage.getSeenPenguins(firestoreUser.id);
+          console.log(`Penguins seen by user ${firestoreUser.id} before removal: ${beforeRemove.join(', ')}`);
+          
+          // Remove from Firestore
+          await firestoreServerStorage.removeSeenPenguin(firestoreUser.id, penguinId);
+          
+          // Verify it worked
+          const afterRemove = await firestoreServerStorage.getSeenPenguins(firestoreUser.id);
+          console.log(`Penguins seen by user ${firestoreUser.id} after removal: ${afterRemove.join(', ')}`);
+          
+          return res.status(204).send();
+        }
+      } catch (firestoreError) {
+        console.log("Firestore error, falling back to MemStorage:", firestoreError);
+      }
       
-      // Get seen penguins after removing to verify it worked
-      const afterRemove = await storage.getSeenPenguins(user.id);
-      console.log(`Penguins seen by user ${user.id} after removal: ${afterRemove.join(', ')}`);
+      // Fallback to MemStorage if Firestore fails
+      const memUser = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!memUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
       
+      // Remove from MemStorage
+      await storage.removeSeenPenguin(memUser.id, penguinId);
       res.status(204).send();
     } catch (error) {
       console.error("Error removing penguin from seen:", error);
@@ -239,13 +305,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
       
-      // Get user by firebase uid
-      const user = await storage.getUserByFirebaseUid(req.user.uid);
-      if (!user) {
+      // For authenticated users, try Firestore first
+      try {
+        const firestoreUser = await firestoreServerStorage.getUserByFirebaseUid(req.user.uid);
+        
+        if (firestoreUser) {
+          // Get journal entries from Firestore
+          const journalEntries = await firestoreServerStorage.getUserJournalEntries(firestoreUser.id);
+          return res.json(journalEntries);
+        }
+      } catch (firestoreError) {
+        console.log("Firestore error, falling back to MemStorage:", firestoreError);
+      }
+      
+      // Fallback to MemStorage if Firestore fails
+      const memUser = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!memUser) {
         return res.json([]);
       }
 
-      const journalEntries = await storage.getUserJournalEntries(user.id);
+      const journalEntries = await storage.getUserJournalEntries(memUser.id);
       res.json(journalEntries);
     } catch (error) {
       console.error("Error fetching journal entries:", error);
@@ -261,14 +340,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
       
-      // Get user by firebase uid
-      const user = await storage.getUserByFirebaseUid(req.user.uid);
-      if (!user) {
+      const penguinId = parseInt(req.params.penguinId);
+      
+      // For authenticated users, try Firestore first
+      try {
+        const firestoreUser = await firestoreServerStorage.getUserByFirebaseUid(req.user.uid);
+        
+        if (firestoreUser) {
+          // Get journal entries from Firestore
+          const journalEntries = await firestoreServerStorage.getPenguinJournalEntries(firestoreUser.id, penguinId);
+          return res.json(journalEntries);
+        }
+      } catch (firestoreError) {
+        console.log("Firestore error, falling back to MemStorage:", firestoreError);
+      }
+      
+      // Fallback to MemStorage if Firestore fails
+      const memUser = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!memUser) {
         return res.json([]);
       }
 
-      const penguinId = parseInt(req.params.penguinId);
-      const journalEntries = await storage.getPenguinJournalEntries(user.id, penguinId);
+      const journalEntries = await storage.getPenguinJournalEntries(memUser.id, penguinId);
       res.json(journalEntries);
     } catch (error) {
       console.error("Error fetching penguin journal entries:", error);
@@ -284,12 +377,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Authentication required" });
       }
       
-      // Get user by firebase uid
-      const user = await storage.getUserByFirebaseUid(req.user.uid);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
       // Parse and validate the request body
       let journalData;
       try {
@@ -310,10 +397,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Add the journal entry with the user's ID
+      // For authenticated users, try Firestore first
+      try {
+        let firestoreUser = await firestoreServerStorage.getUserByFirebaseUid(req.user.uid);
+        
+        // Create user in Firestore if needed
+        if (!firestoreUser) {
+          firestoreUser = await firestoreServerStorage.createUser({
+            firebaseUid: req.user.uid,
+            displayName: req.user.name || null,
+            email: req.user.email || null,
+            photoURL: req.user.picture || null
+          });
+        }
+        
+        // Add journal entry to Firestore
+        const journalEntry = await firestoreServerStorage.addJournalEntry({
+          ...journalData,
+          userId: firestoreUser.id
+        });
+        
+        return res.status(201).json(journalEntry);
+      } catch (firestoreError) {
+        console.log("Firestore error, falling back to MemStorage:", firestoreError);
+      }
+      
+      // Fallback to MemStorage if Firestore fails
+      let memUser = await storage.getUserByFirebaseUid(req.user.uid);
+      
+      // Create user in MemStorage if needed
+      if (!memUser) {
+        memUser = await storage.createUser({
+          firebaseUid: req.user.uid,
+          displayName: req.user.name || null,
+          email: req.user.email || null,
+          photoURL: req.user.picture || null
+        });
+      }
+      
+      // Add the journal entry with the user's ID to MemStorage
       const journalEntry = await storage.addJournalEntry({
         ...journalData,
-        userId: user.id
+        userId: memUser.id
       });
       
       res.status(201).json(journalEntry);
@@ -337,12 +462,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Authentication required" });
       }
       
-      // Get user by firebase uid
-      const user = await storage.getUserByFirebaseUid(req.user.uid);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
       const entryId = parseInt(req.params.id);
       
       // Parse and validate the request body (allow partial updates)
@@ -366,7 +485,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Update the journal entry
+      // For authenticated users, try Firestore first
+      try {
+        const firestoreUser = await firestoreServerStorage.getUserByFirebaseUid(req.user.uid);
+        
+        if (firestoreUser) {
+          // Get journal entries from Firestore to verify ownership
+          const journalEntries = await firestoreServerStorage.getUserJournalEntries(firestoreUser.id);
+          const entryToUpdate = journalEntries.find(entry => entry.id === entryId);
+          
+          if (entryToUpdate) {
+            // Update journal entry in Firestore
+            const updatedEntry = await firestoreServerStorage.updateJournalEntry(entryId, updateData);
+            
+            if (updatedEntry) {
+              return res.json(updatedEntry);
+            }
+          }
+        }
+      } catch (firestoreError) {
+        console.log("Firestore error, falling back to MemStorage:", firestoreError);
+      }
+      
+      // Fallback to MemStorage if Firestore fails
+      const memUser = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!memUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Update the journal entry in MemStorage
       const updatedEntry = await storage.updateJournalEntry(entryId, updateData);
       
       if (!updatedEntry) {
@@ -374,7 +521,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if the entry belongs to the current user
-      if (updatedEntry.userId !== user.id) {
+      if (updatedEntry.userId !== memUser.id) {
         return res.status(403).json({ message: "Not authorized to update this journal entry" });
       }
       
@@ -399,16 +546,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Authentication required" });
       }
       
-      // Get user by firebase uid
-      const user = await storage.getUserByFirebaseUid(req.user.uid);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
       const entryId = parseInt(req.params.id);
       
+      // For authenticated users, try Firestore first
+      try {
+        const firestoreUser = await firestoreServerStorage.getUserByFirebaseUid(req.user.uid);
+        
+        if (firestoreUser) {
+          // Get journal entries from Firestore to verify ownership
+          const journalEntries = await firestoreServerStorage.getUserJournalEntries(firestoreUser.id);
+          const entryToDelete = journalEntries.find(entry => entry.id === entryId);
+          
+          if (entryToDelete) {
+            // Delete journal entry from Firestore
+            await firestoreServerStorage.deleteJournalEntry(entryId);
+            return res.status(204).send();
+          }
+        }
+      } catch (firestoreError) {
+        console.log("Firestore error, falling back to MemStorage:", firestoreError);
+      }
+      
+      // Fallback to MemStorage if Firestore fails
+      const memUser = await storage.getUserByFirebaseUid(req.user.uid);
+      if (!memUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
       // We need to check if the entry exists and belongs to the user
-      const journalEntries = await storage.getUserJournalEntries(user.id);
+      const journalEntries = await storage.getUserJournalEntries(memUser.id);
       const entryToDelete = journalEntries.find(entry => entry.id === entryId);
       
       if (!entryToDelete) {
