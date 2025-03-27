@@ -325,7 +325,7 @@ export class FirestoreStorage implements IStorage {
         return 1;
       }
       
-      const maxId = snapshot.docs[0].data().id;
+      const maxId = (snapshot.docs[0].data() || {}).id || 0;
       this.userIdCounter = maxId;
       return maxId + 1;
     } catch (error) {
@@ -639,7 +639,7 @@ export class FirestoreStorage implements IStorage {
       const entries: SightingJournal[] = [];
       
       snapshot.forEach(doc => {
-        const data = doc.data();
+        const data = doc.data() || {};
         // Convert sightingDate from ISO string to Date if it's a string
         if (data.sightingDate && typeof data.sightingDate === 'string') {
           // Create a proper SightingJournal object with the Date object for the app
@@ -697,7 +697,7 @@ export class FirestoreStorage implements IStorage {
       const entries: SightingJournal[] = [];
       
       snapshot.forEach(doc => {
-        const data = doc.data();
+        const data = doc.data() || {};
         // Convert sightingDate from ISO string to Date if it's a string
         if (data.sightingDate && typeof data.sightingDate === 'string') {
           // Create a proper SightingJournal object with the Date object for the app
@@ -748,7 +748,7 @@ export class FirestoreStorage implements IStorage {
         return 1;
       }
       
-      const maxId = snapshot.docs[0].data().id;
+      const maxId = (snapshot.docs[0].data() || {}).id || 0;
       this.journalIdCounter = maxId;
       return maxId + 1;
     } catch (error) {
@@ -847,7 +847,7 @@ export class FirestoreStorage implements IStorage {
         return undefined;
       }
       
-      const existingEntry = entryDoc.data() as any; // Use any temporarily to avoid type issues
+      const existingEntry = entryDoc.data() || {} as any; // Use any temporarily to avoid type issues, add fallback for null
       
       // Process sightingDate - convert to ISO string for Firestore
       let firestoreSightingDate = existingEntry.sightingDate; // Get string from Firestore
@@ -860,6 +860,7 @@ export class FirestoreStorage implements IStorage {
       // Create Firestore document object (with string dates for storage)
       const firestoreDoc = {
         ...existingEntry,
+        id: id, // Ensure ID is always set and matches the document ID
         ...updates,
         notes: updates.notes !== undefined ? updates.notes : existingEntry.notes,
         coordinates: updates.coordinates !== undefined ? updates.coordinates : existingEntry.coordinates,
@@ -870,7 +871,10 @@ export class FirestoreStorage implements IStorage {
       // Create the return object that matches the schema types
       const updatedEntry: SightingJournal = {
         ...existingEntry,
-        ...updates,
+        id: existingEntry.id || id, // Ensure ID is always present
+        userId: existingEntry.userId,
+        penguinId: existingEntry.penguinId,
+        location: updates.location || existingEntry.location,
         notes: updates.notes !== undefined ? updates.notes : existingEntry.notes,
         coordinates: updates.coordinates !== undefined ? updates.coordinates : existingEntry.coordinates,
         // For the app, use the Date object
@@ -880,15 +884,16 @@ export class FirestoreStorage implements IStorage {
                       new Date(existingEntry.sightingDate) : 
                       existingEntry.sightingDate : 
                       new Date()),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        createdAt: existingEntry.createdAt || new Date().toISOString()
       };
       
       console.log("Prepared updated entry for Firestore:", JSON.stringify({
-        id: firestoreDoc.id,
-        userId: firestoreDoc.userId,
-        penguinId: firestoreDoc.penguinId,
-        location: firestoreDoc.location,
-        sightingDate: firestoreDoc.sightingDate
+        id: id, // Use the id parameter directly
+        userId: existingEntry.userId || 0,
+        penguinId: existingEntry.penguinId || 0,
+        location: firestoreDoc.location || '',
+        sightingDate: firestoreDoc.sightingDate || new Date().toISOString()
       }));
       
       await updateDoc(doc(db, COLLECTIONS.JOURNAL_ENTRIES, id.toString()), firestoreDoc);
@@ -918,7 +923,7 @@ export class FirestoreStorage implements IStorage {
       const entryDoc = await getDoc(doc(db, COLLECTIONS.JOURNAL_ENTRIES, id.toString()));
       if (!entryDoc.exists()) return;
       
-      const entry = entryDoc.data() as SightingJournal;
+      const entry = entryDoc.data() || {} as SightingJournal;
       
       // Delete the document
       await deleteDoc(doc(db, COLLECTIONS.JOURNAL_ENTRIES, id.toString()));
