@@ -177,12 +177,12 @@ const HabitatMarker = ({
       
       <Marker position={habitat.location}>
         <Popup>
-          <div className={`p-2 ${isDark ? 'bg-gray-800 text-white' : ''}`}>
+          <div className={`p-2 ${isDark ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'}`}>
             <h3 className="font-bold text-lg">{habitat.species}</h3>
-            <p className={`text-sm mb-2 ${isDark ? 'text-gray-300' : ''}`}>{habitat.description}</p>
+            <p className={`text-sm mb-2 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{habitat.description}</p>
             
             {matchingPenguin && (
-              <div className={`text-sm ${isDark ? 'text-gray-200' : ''}`}>
+              <div className={`text-sm ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
                 <p><strong>Scientific Name:</strong> {matchingPenguin.scientificName}</p>
                 <p><strong>Size:</strong> {matchingPenguin.size}</p>
                 <p><strong>Weight:</strong> {matchingPenguin.weight}</p>

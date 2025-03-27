@@ -166,9 +166,9 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
         
         <Separator />
         
-        <div className="py-8 text-center bg-gray-50 rounded-lg">
-          <p className="text-gray-500 mb-2">Sign in to use the journal</p>
-          <p className="text-sm text-gray-400 max-w-md mx-auto">
+        <div className={`py-8 text-center ${isDark ? 'bg-gray-800' : 'bg-gray-50'} rounded-lg`}>
+          <p className={`mb-2 ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>Sign in to use the journal</p>
+          <p className={`text-sm max-w-md mx-auto ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
             The journal feature allows you to record when and where you spotted penguins in the wild. 
             Please sign in to create and view journal entries.
           </p>
@@ -203,9 +203,9 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
       <Separator />
       
       {(journalEntries as SightingJournal[]).length === 0 ? (
-        <div className="py-8 text-center bg-gray-50 rounded-lg">
-          <p className="text-gray-500 mb-2">No journal entries yet</p>
-          <p className="text-sm text-gray-400">
+        <div className={`py-8 text-center ${isDark ? 'bg-gray-800' : 'bg-gray-50'} rounded-lg`}>
+          <p className={`mb-2 ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>No journal entries yet</p>
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
             Record when and where you spotted this penguin
           </p>
           <Button 
@@ -222,10 +222,10 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
             .sort((a: SightingJournal, b: SightingJournal) => new Date(b.sightingDate).getTime() - new Date(a.sightingDate).getTime())
             .map((entry: SightingJournal) => (
               <Card key={entry.id} className="overflow-hidden">
-                <CardHeader className="pb-2">
+                <CardHeader className={`pb-2 ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-base">
+                      <CardTitle className={`text-base ${isDark ? 'text-white' : 'text-gray-800'}`}>
                         {format(new Date(entry.sightingDate), "MMMM d, yyyy")}
                       </CardTitle>
                       <CardDescription className="flex items-center">
@@ -276,13 +276,13 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
                 </CardHeader>
                 
                 {entry.notes && (
-                  <CardContent className="pt-1 pb-2">
+                  <CardContent className={`pt-1 pb-2 ${isDark ? 'bg-gray-800 text-gray-300' : 'bg-gray-100 text-gray-700'}`}>
                     <p className="text-sm whitespace-pre-line">{entry.notes}</p>
                   </CardContent>
                 )}
                 
                 {entry.coordinates && (
-                  <CardFooter className="pt-0 pb-2 text-xs text-gray-500">
+                  <CardFooter className={`pt-0 pb-2 text-xs ${isDark ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-500'}`}>
                     <div className="w-full flex justify-end">
                       <span>GPS: {entry.coordinates}</span>
                     </div>

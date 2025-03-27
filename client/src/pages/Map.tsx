@@ -50,7 +50,7 @@ export default function Map() {
       </header>
       
       <main className="container px-4 py-8 mx-auto">
-        <p className={`text-center mb-8 max-w-2xl mx-auto ${isDark ? 'text-gray-300' : ''}`}>
+        <p className={`text-center mb-8 max-w-2xl mx-auto ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
           Explore the global distribution of all 18 penguin species. Colored circles represent penguin 
           habitats, with brighter colors indicating species you've already spotted.
         </p>

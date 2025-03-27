@@ -49,7 +49,7 @@ export default function SortingControls({
         <SelectTrigger className={`w-[180px] ${isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
           <SelectValue placeholder="Sort penguins..." className={isDark ? 'text-gray-200' : 'text-gray-800'} />
         </SelectTrigger>
-        <SelectContent className={isDark ? 'bg-gray-800 border-gray-700' : ''}>
+        <SelectContent className={isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}>
           <SelectItem value="default" className={isDark ? 'text-gray-200' : ''}>
             <div className="flex items-center gap-2">
               <ArrowDownUp className="h-4 w-4" />
