@@ -511,6 +511,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
+  
+  // Dedicated route for cleaning up unused collections
+  apiRouter.get("/cleanup-collections", async (req, res) => {
+    try {
+      if (!db) {
+        return res.status(500).json({ 
+          success: false, 
+          message: "Firestore is not initialized!" 
+        });
+      }
+      
+      // We use a non-null assertion since we've checked above that db is not null
+      // TypeScript doesn't track the null check through the function
+      const firestore = db!;
+      
+      console.log('API: Starting cleanup of unused collections');
+      const collectionsToDelete = ['seenPenguins', 'test_debug'];
+      const results = [];
+      
+      // Get all collections to verify they exist
+      const collections = await firestore.listCollections();
+      const collectionIds = collections.map(col => col.id);
+      
+      for (const collectionName of collectionsToDelete) {
+        if (collectionIds.includes(collectionName)) {
+          // Get all documents in the collection
+          const snapshot = await firestore.collection(collectionName).get();
+          console.log(`API: Found ${snapshot.size} documents in ${collectionName} collection`);
+          
+          // Delete all documents in batches (Firestore allows max 500 operations per batch)
+          if (snapshot.size > 0) {
+            // Process in smaller batches to avoid hitting limits
+            const batchSize = 400;
+            const batches = [];
+            let currentBatch = firestore.batch();
+            let operationCount = 0;
+            
+            snapshot.docs.forEach(doc => {
+              currentBatch.delete(doc.ref);
+              operationCount++;
+              
+              // If we hit the batch size limit, commit and start a new batch
+              if (operationCount >= batchSize) {
+                batches.push(currentBatch);
+                currentBatch = firestore.batch();
+                operationCount = 0;
+              }
+            });
+            
+            // Add the last batch if it has operations
+            if (operationCount > 0) {
+              batches.push(currentBatch);
+            }
+            
+            // Commit all batches
+            for (let i = 0; i < batches.length; i++) {
+              await batches[i].commit();
+              console.log(`API: Committed batch ${i + 1} of ${batches.length} for ${collectionName}`);
+            }
+            
+            results.push({
+              collection: collectionName,
+              documentsDeleted: snapshot.size,
+              status: 'success'
+            });
+          } else {
+            results.push({
+              collection: collectionName,
+              documentsDeleted: 0,
+              status: 'empty collection'
+            });
+          }
+        } else {
+          results.push({
+            collection: collectionName,
+            status: 'collection not found'
+          });
+        }
+      }
+      
+      // Verify collections are now empty
+      const verificationResults = [];
+      for (const collectionName of collectionsToDelete) {
+        if (collectionIds.includes(collectionName)) {
+          const snapshot = await firestore.collection(collectionName).get();
+          verificationResults.push({
+            collection: collectionName,
+            documentsRemaining: snapshot.size,
+            status: snapshot.size === 0 ? 'empty' : 'documents remain'
+          });
+        }
+      }
+      
+      return res.json({ 
+        success: true, 
+        message: "Cleanup of unused collections completed", 
+        results,
+        verification: verificationResults
+      });
+    } catch (error) {
+      console.error("Error during collection cleanup:", error);
+      return res.status(500).json({ 
+        success: false, 
+        message: "Error during collection cleanup", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
 
   // Mount API routes
   app.use("/api", apiRouter);
