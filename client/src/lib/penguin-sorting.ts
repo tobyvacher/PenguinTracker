@@ -22,10 +22,12 @@ export function extractGenus(scientificName: string): string {
 }
 
 /**
- * Extracts the minimum height in cm from a size string like "60-65 cm tall"
- * For size ranges, returns the smallest value
+ * Extracts height information from a size string
+ * @param size The size string (e.g., "70–90 cm (28–35 in) tall")
+ * @param getMax If true, returns the maximum height; otherwise returns the minimum
+ * @returns The extracted height value in cm
  */
-export function extractHeight(size: string): number {
+export function extractHeight(size: string, getMax = false): number {
   // Extract numbers from the size string, handling both standard dash and en-dash formats
   // This correctly handles formats like "60-65 cm tall" or "60–65 cm tall"
   const matches = size.match(/(\d+)[\-–](\d+)\s*cm|\s*(\d+)\s*cm/);
@@ -33,7 +35,7 @@ export function extractHeight(size: string): number {
   if (matches) {
     // Case 1: Range detected with two numbers (e.g., "60-65 cm")
     if (matches[1] && matches[2]) {
-      return parseInt(matches[1]); // Return the first number (minimum) in the range
+      return getMax ? parseInt(matches[2]) : parseInt(matches[1]);
     }
     // Case 2: Single number detected (e.g., "60 cm")
     else if (matches[3]) {
@@ -69,10 +71,30 @@ export function sortPenguins(penguins: Penguin[], sortType: PenguinSortType): Pe
       return penguinsCopy.sort((a, b) => a.name.localeCompare(b.name));
       
     case "size-asc":
-      return penguinsCopy.sort((a, b) => extractHeight(a.size) - extractHeight(b.size));
+      return penguinsCopy.sort((a, b) => {
+        const minHeightA = extractHeight(a.size);
+        const minHeightB = extractHeight(b.size);
+        
+        // If minimum heights are the same, sort by maximum height as a tie-breaker
+        if (minHeightA === minHeightB) {
+          return extractHeight(a.size, true) - extractHeight(b.size, true);
+        }
+        
+        return minHeightA - minHeightB;
+      });
       
     case "size-desc":
-      return penguinsCopy.sort((a, b) => extractHeight(b.size) - extractHeight(a.size));
+      return penguinsCopy.sort((a, b) => {
+        const minHeightA = extractHeight(a.size);
+        const minHeightB = extractHeight(b.size);
+        
+        // If minimum heights are the same, sort by maximum height as a tie-breaker
+        if (minHeightA === minHeightB) {
+          return extractHeight(b.size, true) - extractHeight(a.size, true);
+        }
+        
+        return minHeightB - minHeightA;
+      });
       
     case "genus":
       // No need to sort for genus view as groupPenguinsByGenus handles the grouping
