@@ -23,4 +23,7 @@ const auth = admin.auth ? admin.auth() : {
   }),
 };
 
-export { auth };
+// Export Firestore database instance for server-side access
+const db = admin.firestore ? admin.firestore() : null;
+
+export { auth, db };
