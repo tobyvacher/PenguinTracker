@@ -76,7 +76,7 @@ export default function Home() {
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
     
-    // Always toggle penguin status whether seen or not seen
+    // Toggle penguin status whether seen or not seen
     toggleSeen(penguin.id);
     
     // No need to call anything here - useEffect will automatically

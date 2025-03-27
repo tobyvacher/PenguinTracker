@@ -20,27 +20,33 @@ export function usePenguinStore() {
     
     // Function to load data from local storage
     const loadFromLocalStorage = () => {
-      const storageKey = getStorageKey();
-      const storedSeenPenguins = localStorage.getItem(storageKey);
-      
-      if (storedSeenPenguins) {
-        try {
-          const parsedData = JSON.parse(storedSeenPenguins);
-          if (Array.isArray(parsedData)) {
-            if (isMounted) setSeenPenguins(parsedData);
-            return parsedData;
-          } else {
-            console.error('Invalid format in localStorage:', storedSeenPenguins);
+      try {
+        const storageKey = getStorageKey();
+        const storedSeenPenguins = localStorage.getItem(storageKey);
+        
+        if (storedSeenPenguins) {
+          try {
+            const parsedData = JSON.parse(storedSeenPenguins);
+            if (Array.isArray(parsedData)) {
+              if (isMounted) setSeenPenguins(parsedData);
+              return parsedData;
+            } else {
+              console.error('Invalid format in localStorage:', storedSeenPenguins);
+              if (isMounted) setSeenPenguins([]);
+              return [];
+            }
+          } catch (e) {
+            console.error('Failed to parse localStorage data:', e);
             if (isMounted) setSeenPenguins([]);
             return [];
           }
-        } catch (e) {
-          console.error('Failed to parse localStorage data:', e);
+        } else {
+          // If no data exists for this key
           if (isMounted) setSeenPenguins([]);
           return [];
         }
-      } else {
-        // If no data exists for this key
+      } catch (error) {
+        console.error('Error accessing localStorage:', error);
         if (isMounted) setSeenPenguins([]);
         return [];
       }
@@ -132,18 +138,22 @@ export function usePenguinStore() {
     
     // For unauthenticated users, only use localStorage
     if (!isAuthenticated || !currentUser) {
-      if (isCurrentlySeen) {
-        // Remove from local seen list
-        const updatedSeenPenguins = seenPenguins.filter(id => id !== penguinId);
-        setSeenPenguins(updatedSeenPenguins);
-        localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
-        console.log(`Removed penguin ${penguinId} from local seen list (unauthenticated)`);
-      } else {
-        // Add to local seen list
-        const updatedSeenPenguins = [...seenPenguins, penguinId];
-        setSeenPenguins(updatedSeenPenguins);
-        localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
-        console.log(`Added penguin ${penguinId} to local seen list (unauthenticated)`);
+      try {
+        if (isCurrentlySeen) {
+          // Remove from local seen list
+          const updatedSeenPenguins = seenPenguins.filter(id => id !== penguinId);
+          setSeenPenguins(updatedSeenPenguins);
+          localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
+          console.log(`Removed penguin ${penguinId} from local seen list (unauthenticated)`);
+        } else {
+          // Add to local seen list
+          const updatedSeenPenguins = [...seenPenguins, penguinId];
+          setSeenPenguins(updatedSeenPenguins);
+          localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
+          console.log(`Added penguin ${penguinId} to local seen list (unauthenticated)`);
+        }
+      } catch (error) {
+        console.error('Error updating localStorage:', error);
       }
       return;
     }
