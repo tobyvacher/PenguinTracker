@@ -44,7 +44,8 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
   const { 
     data: journalEntries = [],
     isLoading,
-    isError 
+    isError,
+    error
   } = getPenguinJournalEntries(penguin.id) || { data: [], isLoading: false, isError: false };
   
   // UI states
@@ -83,9 +84,34 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
   
   // Show error state
   if (isError) {
+    // Check if this is a Firestore index error
+    const isIndexError = error?.message?.includes('index');
+    
     return (
-      <div className="p-4 text-center">
-        <p className="text-red-500">Error loading journal entries</p>
+      <div className="p-4 text-center space-y-3">
+        <p className="text-red-500 font-medium">Error loading journal entries</p>
+        
+        {isIndexError ? (
+          <>
+            <p className="text-sm text-gray-600">
+              This looks like a Firestore index error. For the journal feature to work properly, 
+              you need to create specific indexes in your Firebase console.
+            </p>
+            <div className="bg-gray-50 p-3 rounded-md text-xs text-left">
+              <p className="font-medium mb-1">How to fix:</p>
+              <ol className="list-decimal pl-5 space-y-1">
+                <li>Go to your Firebase console</li>
+                <li>Navigate to Firestore Database → Indexes</li>
+                <li>Add the required composite indexes for the journal_entries collection</li>
+              </ol>
+            </div>
+          </>
+        ) : (
+          <p className="text-sm text-gray-600">
+            Something went wrong while loading the journal entries.
+          </p>
+        )}
+        
         <Button 
           variant="outline" 
           onClick={() => window.location.reload()}

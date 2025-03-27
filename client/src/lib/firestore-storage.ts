@@ -74,6 +74,20 @@ const handleFirestoreError = (operation: string, error: any): never => {
     throw new Error(`Failed to ${operation}: Permission denied. Firebase security rules are preventing this operation.`);
   }
   
+  // Add special handling for index-required errors
+  if (error.code === 'failed-precondition' && error.message.includes('index')) {
+    console.error('This query requires a Firestore index. Please create the required index in the Firebase console.');
+    
+    // Extract index creation URL if present
+    const urlMatch = error.message.match(/https:\/\/console\.firebase\.google\.com[^\s]+/);
+    const indexUrl = urlMatch ? urlMatch[0] : null;
+    
+    if (indexUrl) {
+      console.error(`You can create the index by visiting: ${indexUrl}`);
+      throw new Error(`Failed to ${operation}: This query requires a Firestore index. Please create the index in the Firebase console.`);
+    }
+  }
+  
   throw new Error(`Failed to ${operation}: ${error.message}`);
 };
 
@@ -129,7 +143,7 @@ export async function validateFirestoreRules(): Promise<boolean> {
   }
 };
 
-export class FirestoreStorage {
+export class FirestoreStorage implements IStorage {
   // ID counters to avoid fetching all documents
   private userIdCounter = 0;
   private penguinIdCounter = 0;
