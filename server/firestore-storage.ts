@@ -220,6 +220,7 @@ export class FirestoreServerStorage implements IStorage {
         displayName: user.displayName || null,
         email: user.email || null,
         photoURL: user.photoURL || null,
+        seenPenguins: user.seenPenguins || [], // Initialize with empty array if not provided
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -316,11 +317,20 @@ export class FirestoreServerStorage implements IStorage {
     try {
       console.log(`Retrieving seen penguins for user ID ${userId} from Firestore`);
       
-      const seenPenguinsQuery = db.collection(COLLECTIONS.SEEN_PENGUINS)
-        .where("userId", "==", userId);
+      // Get the user document
+      const userDoc = await db.collection(COLLECTIONS.USERS).doc(userId.toString()).get();
+      if (!userDoc.exists) {
+        console.log(`User ${userId} not found`);
+        return [];
+      }
       
-      const snapshot = await seenPenguinsQuery.get();
-      const result = snapshot.docs.map(doc => (doc.data() as SeenPenguin).penguinId);
+      const userData = userDoc.data() as User;
+      
+      // Get seenPenguins from user document
+      const seenPenguinIds = userData.seenPenguins || [];
+      
+      // Convert string IDs to numbers
+      const result = seenPenguinIds.map(id => parseInt(id, 10));
       
       console.log(`Found ${result.length} seen penguins for user ${userId}: ${result.join(', ')}`);
       return result;
@@ -337,46 +347,58 @@ export class FirestoreServerStorage implements IStorage {
     try {
       console.log(`Adding seen penguin for userId=${seenPenguin.userId}, penguinId=${seenPenguin.penguinId}`);
       
-      // Check if this penguin is already seen by this user
-      const seenPenguinsQuery = db.collection(COLLECTIONS.SEEN_PENGUINS)
-        .where("userId", "==", seenPenguin.userId)
-        .where("penguinId", "==", seenPenguin.penguinId)
-        .limit(1);
-      
-      const snapshot = await seenPenguinsQuery.get();
-      if (!snapshot.empty) {
-        // Already seen, return the existing entry
-        const existingEntry = snapshot.docs[0].data() as SeenPenguin;
-        console.log(`Penguin ${seenPenguin.penguinId} already seen by user ${seenPenguin.userId}, returning existing entry with ID=${existingEntry.id}`);
-        return existingEntry;
+      // Get the user document
+      const userDoc = await db.collection(COLLECTIONS.USERS).doc(seenPenguin.userId.toString()).get();
+      if (!userDoc.exists) {
+        throw new Error(`User ${seenPenguin.userId} not found`);
       }
       
-      // Generate a new ID
-      this.seenPenguinIdCounter += 1;
-      const id = this.seenPenguinIdCounter;
+      const userData = userDoc.data() as User;
       
-      // Create the seen penguin entry
-      const newSeenPenguin: SeenPenguin = {
-        ...seenPenguin,
-        id,
-        createdAt: new Date().toISOString()
-      };
+      // Get current seen penguins
+      const seenPenguinIds = userData.seenPenguins || [];
+      const penguinIdStr = seenPenguin.penguinId.toString();
       
-      await db.collection(COLLECTIONS.SEEN_PENGUINS).doc(id.toString()).set(newSeenPenguin);
-      console.log(`Storage: Created new seen penguin entry with ID=${id}`);
+      // Check if already in the list
+      if (seenPenguinIds.includes(penguinIdStr)) {
+        console.log(`Penguin ${seenPenguin.penguinId} already seen by user ${seenPenguin.userId}`);
+        
+        // Create a representation of the SeenPenguin for backward compatibility
+        const id = this.seenPenguinIdCounter + 1;
+        this.seenPenguinIdCounter = id;
+        
+        return {
+          id,
+          userId: seenPenguin.userId,
+          penguinId: seenPenguin.penguinId,
+          createdAt: new Date().toISOString()
+        };
+      }
       
-      // Log the current state of seen penguins for this user
-      const allSeenQuery = db.collection(COLLECTIONS.SEEN_PENGUINS)
-        .where("userId", "==", seenPenguin.userId);
-      const allSeenSnapshot = await allSeenQuery.get();
+      // Add the penguin to the list
+      seenPenguinIds.push(penguinIdStr);
       
-      console.log(`Storage: All seen penguin entries after adding (${allSeenSnapshot.size} total):`);
-      allSeenSnapshot.forEach(doc => {
-        const data = doc.data() as SeenPenguin;
-        console.log(`Storage: - ID=${data.id}, userId=${data.userId}, penguinId=${data.penguinId}`);
+      // Update the user document
+      await db.collection(COLLECTIONS.USERS).doc(seenPenguin.userId.toString()).update({
+        seenPenguins: seenPenguinIds,
+        updatedAt: new Date().toISOString()
       });
       
-      return newSeenPenguin;
+      console.log(`Added penguin ${seenPenguin.penguinId} to user ${seenPenguin.userId}'s seen penguins. Total now: ${seenPenguinIds.length}`);
+      
+      // Create a representation of the SeenPenguin for backward compatibility
+      const id = this.seenPenguinIdCounter + 1;
+      this.seenPenguinIdCounter = id;
+      
+      // Clear the user from cache to ensure fresh data next time
+      userCache.delete(seenPenguin.userId);
+      
+      return {
+        id,
+        userId: seenPenguin.userId,
+        penguinId: seenPenguin.penguinId,
+        createdAt: new Date().toISOString()
+      };
     } catch (error) {
       handleFirestoreError('add seen penguin', error);
     }
@@ -389,37 +411,40 @@ export class FirestoreServerStorage implements IStorage {
     if (!db) throw new Error("Firestore not initialized");
     
     try {
-      console.log(`Storage: Finding seen penguin entry for userId=${userId}, penguinId=${penguinId}`);
+      console.log(`Storage: Removing penguin ${penguinId} from user ${userId}'s seen penguins`);
       
-      // Get all seen penguins for debugging
-      const allSeenQuery = db.collection(COLLECTIONS.SEEN_PENGUINS)
-        .where("userId", "==", userId);
-      const allSeenSnapshot = await allSeenQuery.get();
+      // Get the user document
+      const userDoc = await db.collection(COLLECTIONS.USERS).doc(userId.toString()).get();
+      if (!userDoc.exists) {
+        console.log(`User ${userId} not found`);
+        return;
+      }
       
-      console.log(`Storage: All seen penguin entries (${allSeenSnapshot.size} total):`);
-      allSeenSnapshot.forEach(doc => {
-        const data = doc.data() as SeenPenguin;
-        console.log(`Storage: - ID=${data.id}, userId=${data.userId}, penguinId=${data.penguinId}`);
-      });
+      const userData = userDoc.data() as User;
       
-      // Find the specific entry to remove
-      const seenPenguinsQuery = db.collection(COLLECTIONS.SEEN_PENGUINS)
-        .where("userId", "==", userId)
-        .where("penguinId", "==", penguinId)
-        .limit(1);
+      // Get current seen penguins
+      const seenPenguinIds = userData.seenPenguins || [];
+      const penguinIdStr = penguinId.toString();
       
-      const snapshot = await seenPenguinsQuery.get();
-      if (snapshot.empty) {
-        console.log(`Storage: No matching entry found to remove`);
+      // Check if in the list
+      if (!seenPenguinIds.includes(penguinIdStr)) {
+        console.log(`Penguin ${penguinId} not found in user ${userId}'s seen penguins`);
         return; // Nothing to remove
       }
       
-      // Delete the entry
-      const entryToDelete = snapshot.docs[0].data() as SeenPenguin;
-      console.log(`Storage: Found entry with ID=${entryToDelete.id}, removing it`);
+      // Remove the penguin from the list
+      const updatedSeenPenguins = seenPenguinIds.filter(id => id !== penguinIdStr);
       
-      await snapshot.docs[0].ref.delete();
-      console.log(`Storage: Successfully removed seen penguin entry (userId=${userId}, penguinId=${penguinId})`);
+      // Update the user document
+      await db.collection(COLLECTIONS.USERS).doc(userId.toString()).update({
+        seenPenguins: updatedSeenPenguins,
+        updatedAt: new Date().toISOString()
+      });
+      
+      console.log(`Removed penguin ${penguinId} from user ${userId}'s seen penguins. Remaining: ${updatedSeenPenguins.length}`);
+      
+      // Clear the user from cache to ensure fresh data next time
+      userCache.delete(userId);
     } catch (error) {
       handleFirestoreError('remove seen penguin', error);
     }

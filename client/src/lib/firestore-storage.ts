@@ -215,7 +215,18 @@ export class FirestoreStorage implements IStorage {
       const userDoc = await getDoc(doc(db, COLLECTIONS.USERS, id.toString()));
       if (!userDoc.exists()) return undefined;
       
-      const userData = userDoc.data() as User;
+      const data = userDoc.data();
+      // Ensure we have a properly typed User object with seenPenguins as an array or null
+      const userData: User = {
+        id: data.id,
+        firebaseUid: data.firebaseUid,
+        displayName: data.displayName || null,
+        email: data.email || null,
+        photoURL: data.photoURL || null,
+        seenPenguins: data.seenPenguins || [],
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
+      };
       userCache.set(id, userData); // Cache the result
       return userData;
     } catch (error) {
@@ -238,7 +249,18 @@ export class FirestoreStorage implements IStorage {
       const snapshot = await getDocs(usersQuery);
       if (snapshot.empty) return undefined;
       
-      const userData = snapshot.docs[0].data() as User;
+      const data = snapshot.docs[0].data();
+      // Ensure we have a properly typed User object with seenPenguins as an array or null
+      const userData: User = {
+        id: data.id,
+        firebaseUid: data.firebaseUid,
+        displayName: data.displayName || null,
+        email: data.email || null,
+        photoURL: data.photoURL || null,
+        seenPenguins: data.seenPenguins || [],
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
+      };
       userCache.set(userData.id, userData); // Cache the result
       return userData;
     } catch (error) {
@@ -261,7 +283,18 @@ export class FirestoreStorage implements IStorage {
       const snapshot = await getDocs(usersQuery);
       if (snapshot.empty) return undefined;
       
-      const userData = snapshot.docs[0].data() as User;
+      const data = snapshot.docs[0].data();
+      // Ensure we have a properly typed User object with seenPenguins as an array or null
+      const userData: User = {
+        id: data.id,
+        firebaseUid: data.firebaseUid,
+        displayName: data.displayName || null,
+        email: data.email || null,
+        photoURL: data.photoURL || null,
+        seenPenguins: data.seenPenguins || [],
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
+      };
       userCache.set(userData.id, userData); // Cache the result
       return userData;
     } catch (error) {
@@ -315,11 +348,12 @@ export class FirestoreStorage implements IStorage {
       
       // Create the user document with required fields
       const newUser: User = {
-        ...user,
         id,
+        firebaseUid: user.firebaseUid,
         displayName: user.displayName || null,
         email: user.email || null,
         photoURL: user.photoURL || null,
+        seenPenguins: user.seenPenguins || [], // Initialize with empty array if not provided
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -415,13 +449,36 @@ export class FirestoreStorage implements IStorage {
     if (!db) throw new Error("Firestore not initialized");
     
     try {
-      const seenPenguinsQuery = query(
-        collection(db, COLLECTIONS.SEEN_PENGUINS),
-        where("userId", "==", userId)
-      );
+      console.log(`Getting seen penguins for user ID ${userId} from Firestore`);
       
-      const snapshot = await getDocs(seenPenguinsQuery);
-      return snapshot.docs.map(doc => (doc.data() as SeenPenguin).penguinId);
+      // Get the user document
+      const userDoc = await getDoc(doc(db, COLLECTIONS.USERS, userId.toString()));
+      if (!userDoc.exists()) {
+        console.log(`User ${userId} not found`);
+        return [];
+      }
+      
+      const data = userDoc.data();
+      // Ensure we have a properly typed User object with seenPenguins as an array or null
+      const userData: User = {
+        id: data.id,
+        firebaseUid: data.firebaseUid,
+        displayName: data.displayName || null,
+        email: data.email || null,
+        photoURL: data.photoURL || null,
+        seenPenguins: data.seenPenguins || [],
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
+      };
+      
+      // Get seenPenguins from user document
+      const seenPenguinIds = userData.seenPenguins || [];
+      
+      // Convert string IDs to numbers
+      const result = seenPenguinIds.map(id => parseInt(id, 10));
+      
+      console.log(`Found ${result.length} seen penguins for user ${userId}: ${result.join(', ')}`);
+      return result;
     } catch (error) {
       handleFirestoreError('get seen penguins', error);
     }
@@ -433,33 +490,68 @@ export class FirestoreStorage implements IStorage {
     if (!db) throw new Error("Firestore not initialized");
     
     try {
-      // Check if this penguin is already seen by this user
-      const seenPenguinsQuery = query(
-        collection(db, COLLECTIONS.SEEN_PENGUINS),
-        where("userId", "==", seenPenguin.userId),
-        where("penguinId", "==", seenPenguin.penguinId),
-        limit(1)
-      );
+      console.log(`Adding seen penguin for userId=${seenPenguin.userId}, penguinId=${seenPenguin.penguinId}`);
       
-      const snapshot = await getDocs(seenPenguinsQuery);
-      if (!snapshot.empty) {
-        // Already seen, return the existing entry
-        return snapshot.docs[0].data() as SeenPenguin;
+      // Get the user document
+      const userDoc = await getDoc(doc(db, COLLECTIONS.USERS, seenPenguin.userId.toString()));
+      if (!userDoc.exists()) {
+        throw new Error(`User ${seenPenguin.userId} not found`);
       }
       
-      // Generate a new ID
+      const data = userDoc.data();
+      // Ensure we have a properly typed User object with seenPenguins as an array or null
+      const userData: User = {
+        id: data.id,
+        firebaseUid: data.firebaseUid,
+        displayName: data.displayName || null,
+        email: data.email || null,
+        photoURL: data.photoURL || null,
+        seenPenguins: data.seenPenguins || [],
+        createdAt: data.createdAt,
+        updatedAt: data.updatedAt
+      };
+      
+      // Get current seen penguins
+      const seenPenguinIds = userData.seenPenguins || [];
+      const penguinIdStr = seenPenguin.penguinId.toString();
+      
+      // Check if already in the list
+      if (seenPenguinIds.includes(penguinIdStr)) {
+        console.log(`Penguin ${seenPenguin.penguinId} already seen by user ${seenPenguin.userId}`);
+        
+        // Create a representation of the SeenPenguin for backward compatibility
+        const id = this.seenPenguinIdCounter + 1;
+        this.seenPenguinIdCounter = id;
+        
+        return {
+          id,
+          userId: seenPenguin.userId,
+          penguinId: seenPenguin.penguinId,
+          createdAt: new Date().toISOString()
+        };
+      }
+      
+      // Add the penguin to the list
+      seenPenguinIds.push(penguinIdStr);
+      
+      // Update the user document
+      await updateDoc(doc(db, COLLECTIONS.USERS, seenPenguin.userId.toString()), {
+        seenPenguins: seenPenguinIds,
+        updatedAt: new Date().toISOString()
+      });
+      
+      console.log(`Added penguin ${seenPenguin.penguinId} to user ${seenPenguin.userId}'s seen penguins. Total now: ${seenPenguinIds.length}`);
+      
+      // Create a representation of the SeenPenguin for backward compatibility
       const id = this.seenPenguinIdCounter + 1;
       this.seenPenguinIdCounter = id;
       
-      // Create the seen penguin entry
-      const newSeenPenguin: SeenPenguin = {
-        ...seenPenguin,
+      return {
         id,
+        userId: seenPenguin.userId,
+        penguinId: seenPenguin.penguinId,
         createdAt: new Date().toISOString()
       };
-      
-      await setDoc(doc(db, COLLECTIONS.SEEN_PENGUINS, id.toString()), newSeenPenguin);
-      return newSeenPenguin;
     } catch (error) {
       handleFirestoreError('add seen penguin', error);
     }
@@ -472,19 +564,37 @@ export class FirestoreStorage implements IStorage {
     if (!db) throw new Error("Firestore not initialized");
     
     try {
-      // Find the seen penguin entry
-      const seenPenguinsQuery = query(
-        collection(db, COLLECTIONS.SEEN_PENGUINS),
-        where("userId", "==", userId),
-        where("penguinId", "==", penguinId),
-        limit(1)
-      );
+      console.log(`Removing penguin ${penguinId} from user ${userId}'s seen penguins`);
       
-      const snapshot = await getDocs(seenPenguinsQuery);
-      if (snapshot.empty) return; // Nothing to remove
+      // Get the user document
+      const userDoc = await getDoc(doc(db, COLLECTIONS.USERS, userId.toString()));
+      if (!userDoc.exists()) {
+        console.log(`User ${userId} not found`);
+        return;
+      }
       
-      // Delete the entry
-      await deleteDoc(snapshot.docs[0].ref);
+      const userData = userDoc.data() as User;
+      
+      // Get current seen penguins
+      const seenPenguinIds = userData.seenPenguins || [];
+      const penguinIdStr = penguinId.toString();
+      
+      // Check if in the list
+      if (!seenPenguinIds.includes(penguinIdStr)) {
+        console.log(`Penguin ${penguinId} not found in user ${userId}'s seen penguins`);
+        return; // Nothing to remove
+      }
+      
+      // Remove the penguin from the list
+      const updatedSeenPenguins = seenPenguinIds.filter(id => id !== penguinIdStr);
+      
+      // Update the user document
+      await updateDoc(doc(db, COLLECTIONS.USERS, userId.toString()), {
+        seenPenguins: updatedSeenPenguins,
+        updatedAt: new Date().toISOString()
+      });
+      
+      console.log(`Removed penguin ${penguinId} from user ${userId}'s seen penguins. Remaining: ${updatedSeenPenguins.length}`);
     } catch (error) {
       handleFirestoreError('remove seen penguin', error);
     }

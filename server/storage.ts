@@ -77,7 +77,8 @@ export class MemStorage implements IStorage {
       firebaseUid: insertUser.firebaseUid,
       displayName: insertUser.displayName === undefined ? null : insertUser.displayName,
       email: insertUser.email === undefined ? null : insertUser.email,
-      photoURL: insertUser.photoURL === undefined ? null : insertUser.photoURL
+      photoURL: insertUser.photoURL === undefined ? null : insertUser.photoURL,
+      seenPenguins: insertUser.seenPenguins || []
     };
     
     this.users.set(id, user);
@@ -122,59 +123,97 @@ export class MemStorage implements IStorage {
 
   // Seen penguin methods
   async getSeenPenguins(userId: number): Promise<number[]> {
-    const seenPenguinEntries = Array.from(this.seenPenguins.values()).filter(
-      sp => sp.userId === userId
-    );
-    return seenPenguinEntries.map(sp => sp.penguinId);
+    console.log(`Storage: Getting seen penguins for userId=${userId}`);
+    
+    const user = this.users.get(userId);
+    if (!user) {
+      console.log(`Storage: User ${userId} not found`);
+      return [];
+    }
+    
+    // Get seen penguins from user document and convert to numbers
+    const seenPenguinIds = user.seenPenguins || [];
+    const result = seenPenguinIds.map(id => parseInt(id, 10));
+    
+    console.log(`Storage: Found ${result.length} seen penguins for user ${userId}: ${result.join(', ')}`);
+    return result;
   }
 
   async addSeenPenguin(insertSeenPenguin: InsertSeenPenguin): Promise<SeenPenguin> {
     console.log(`Storage: Adding seen penguin for userId=${insertSeenPenguin.userId}, penguinId=${insertSeenPenguin.penguinId}`);
     
-    // Check if this penguin is already seen by the user
-    const existing = Array.from(this.seenPenguins.values()).find(
-      sp => sp.userId === insertSeenPenguin.userId && sp.penguinId === insertSeenPenguin.penguinId
-    );
-
-    if (existing) {
-      console.log(`Storage: Penguin ${insertSeenPenguin.penguinId} already seen by user ${insertSeenPenguin.userId}, returning existing entry with ID=${existing.id}`);
-      return existing;
+    // Get user
+    const user = this.users.get(insertSeenPenguin.userId);
+    if (!user) {
+      throw new Error(`User ${insertSeenPenguin.userId} not found`);
     }
-
+    
+    // Get current seen penguins
+    const seenPenguinIds = user.seenPenguins || [];
+    const penguinIdStr = insertSeenPenguin.penguinId.toString();
+    
+    // Check if already in the list
+    if (seenPenguinIds.includes(penguinIdStr)) {
+      console.log(`Storage: Penguin ${insertSeenPenguin.penguinId} already seen by user ${insertSeenPenguin.userId}`);
+      
+      // Create a representation of the SeenPenguin for backward compatibility
+      const id = this.currentSeenPenguinId++;
+      return {
+        id,
+        userId: insertSeenPenguin.userId,
+        penguinId: insertSeenPenguin.penguinId,
+        createdAt: new Date().toISOString()
+      };
+    }
+    
+    // Add the penguin to the list
+    seenPenguinIds.push(penguinIdStr);
+    
+    // Update the user
+    user.seenPenguins = seenPenguinIds;
+    this.users.set(user.id, user);
+    
+    console.log(`Storage: Added penguin ${insertSeenPenguin.penguinId} to user ${insertSeenPenguin.userId}'s seen penguins. Total now: ${seenPenguinIds.length}`);
+    
+    // Create a representation of the SeenPenguin for backward compatibility
     const id = this.currentSeenPenguinId++;
-    const seenPenguin: SeenPenguin = { ...insertSeenPenguin, id };
-    console.log(`Storage: Created new seen penguin entry with ID=${id}`);
-    
-    this.seenPenguins.set(id, seenPenguin);
-    
-    // Log all entries in the seenPenguins map after adding
-    console.log(`Storage: All seen penguin entries after adding (${this.seenPenguins.size} total):`);
-    Array.from(this.seenPenguins.entries()).forEach(([mapId, sp]) => {
-      console.log(`Storage: - ID=${mapId}, userId=${sp.userId}, penguinId=${sp.penguinId}`);
-    });
+    const seenPenguin: SeenPenguin = { 
+      ...insertSeenPenguin, 
+      id,
+      createdAt: new Date().toISOString()
+    };
     
     return seenPenguin;
   }
 
   async removeSeenPenguin(userId: number, penguinId: number): Promise<void> {
-    console.log(`Storage: Finding seen penguin entry for userId=${userId}, penguinId=${penguinId}`);
+    console.log(`Storage: Removing penguin ${penguinId} from user ${userId}'s seen penguins`);
     
-    // Log all entries in the seenPenguins map for debugging
-    console.log(`Storage: All seen penguin entries (${this.seenPenguins.size} total):`);
-    Array.from(this.seenPenguins.entries()).forEach(([id, sp]) => {
-      console.log(`Storage: - ID=${id}, userId=${sp.userId}, penguinId=${sp.penguinId}`);
-    });
-    
-    const entry = Array.from(this.seenPenguins.values()).find(
-      sp => sp.userId === userId && sp.penguinId === penguinId
-    );
-
-    if (entry) {
-      console.log(`Storage: Found entry with ID=${entry.id}, removing it`);
-      this.seenPenguins.delete(entry.id);
-    } else {
-      console.log(`Storage: No matching entry found to remove`);
+    // Get user
+    const user = this.users.get(userId);
+    if (!user) {
+      console.log(`Storage: User ${userId} not found`);
+      return;
     }
+    
+    // Get current seen penguins
+    const seenPenguinIds = user.seenPenguins || [];
+    const penguinIdStr = penguinId.toString();
+    
+    // Check if in the list
+    if (!seenPenguinIds.includes(penguinIdStr)) {
+      console.log(`Storage: Penguin ${penguinId} not found in user ${userId}'s seen penguins`);
+      return;
+    }
+    
+    // Remove the penguin from the list
+    const updatedSeenPenguins = seenPenguinIds.filter(id => id !== penguinIdStr);
+    
+    // Update the user
+    user.seenPenguins = updatedSeenPenguins;
+    this.users.set(user.id, user);
+    
+    console.log(`Storage: Removed penguin ${penguinId} from user ${userId}'s seen penguins. Remaining: ${updatedSeenPenguins.length}`);
   }
   
   // Sighting journal methods

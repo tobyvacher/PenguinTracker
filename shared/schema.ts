@@ -27,6 +27,7 @@ export const users = pgTable("users", {
   displayName: text("display_name"),
   email: text("email"),
   photoURL: text("photo_url"),
+  seenPenguins: text("seen_penguins").array(), // Store seen penguin IDs as an array
 });
 
 export const seenPenguins = pgTable("seen_penguins", {
@@ -63,6 +64,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   displayName: true,
   email: true,
   photoURL: true,
+  seenPenguins: true,
 });
 
 export const insertSeenPenguinSchema = createInsertSchema(seenPenguins).pick({

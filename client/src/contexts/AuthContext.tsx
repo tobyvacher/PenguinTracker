@@ -54,7 +54,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             firebaseUid: user.uid,
             displayName: user.displayName || null,
             email: user.email || null,
-            photoURL: user.photoURL || null
+            photoURL: user.photoURL || null,
+            seenPenguins: [] // Initialize with empty array
           });
           
           console.log("User created/retrieved in Firestore successfully");
