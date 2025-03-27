@@ -116,16 +116,16 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
       </div>
 
       <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
-        <DialogContent className={`sm:max-w-md ${isDark ? 'bg-gray-800 border-gray-700 text-white' : ''}`}>
+        <DialogContent className={`sm:max-w-md ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white text-gray-800'}`}>
           <DialogHeader>
-            <DialogTitle className={isDark ? 'text-white' : ''}>Share your progress</DialogTitle>
-            <DialogDescription className={isDark ? 'text-gray-300' : ''}>
+            <DialogTitle className={isDark ? 'text-white' : 'text-gray-800'}>Share your progress</DialogTitle>
+            <DialogDescription className={isDark ? 'text-gray-300' : 'text-gray-600'}>
               Let others know about your penguin spotting adventures!
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
-            <div className={`p-4 ${isDark ? 'bg-gray-700 text-gray-200' : 'bg-gray-50'} rounded-md`}>
+            <div className={`p-4 ${isDark ? 'bg-gray-700 text-gray-200' : 'bg-gray-50 text-gray-700'} rounded-md`}>
               <p className="text-sm">{shareText}</p>
             </div>
             
@@ -137,24 +137,24 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
                 </Button>
               )}
               
-              <Button onClick={() => handleSocialShare('twitter')} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700' : ''}`}>
+              <Button onClick={() => handleSocialShare('twitter')} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-100'}`}>
                 <Twitter size={18} className="text-[#1DA1F2]" />
-                <span className={isDark ? 'text-gray-200' : ''}>Twitter</span>
+                <span className={isDark ? 'text-gray-200' : 'text-gray-800'}>Twitter</span>
               </Button>
               
-              <Button onClick={() => handleSocialShare('whatsapp')} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700' : ''}`}>
+              <Button onClick={() => handleSocialShare('whatsapp')} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-100'}`}>
                 <FaWhatsapp size={18} className="text-[#25D366]" />
-                <span className={isDark ? 'text-gray-200' : ''}>WhatsApp</span>
+                <span className={isDark ? 'text-gray-200' : 'text-gray-800'}>WhatsApp</span>
               </Button>
               
-              <Button onClick={() => handleSocialShare('email')} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700' : ''}`}>
+              <Button onClick={() => handleSocialShare('email')} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-100'}`}>
                 <Mail size={18} className={isDark ? 'text-gray-300' : 'text-gray-600'} />
-                <span className={isDark ? 'text-gray-200' : ''}>Email</span>
+                <span className={isDark ? 'text-gray-200' : 'text-gray-800'}>Email</span>
               </Button>
               
-              <Button onClick={copyToClipboard} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700' : ''}`}>
-                {isCopied ? <Check size={18} className="text-green-600" /> : <Copy size={18} className={isDark ? 'text-gray-300' : ''} />}
-                <span className={isDark ? 'text-gray-200' : ''}>{isCopied ? "Copied!" : "Copy"}</span>
+              <Button onClick={copyToClipboard} variant="outline" className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700' : 'border-gray-200 hover:bg-gray-100'}`}>
+                {isCopied ? <Check size={18} className="text-green-600" /> : <Copy size={18} className={isDark ? 'text-gray-300' : 'text-gray-600'} />}
+                <span className={isDark ? 'text-gray-200' : 'text-gray-800'}>{isCopied ? "Copied!" : "Copy"}</span>
               </Button>
             </div>
             
