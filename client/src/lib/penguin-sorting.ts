@@ -26,16 +26,27 @@ export function extractGenus(scientificName: string): string {
  * For size ranges, returns the smallest value
  */
 export function extractHeight(size: string): number {
-  // Extract numbers from the size string, assuming format like "60-65 cm tall"
-  const matches = size.match(/(\d+)(?:-(\d+))?\s*cm/);
-  if (matches && matches.length >= 2) {
-    // If there's a range (e.g. "60-65 cm"), take the minimum value
-    if (matches[2]) {
-      return parseInt(matches[1]); // Return the first number in the range
+  // Extract numbers from the size string, handling both standard dash and en-dash formats
+  // This correctly handles formats like "60-65 cm tall" or "60–65 cm tall"
+  const matches = size.match(/(\d+)[\-–](\d+)\s*cm|\s*(\d+)\s*cm/);
+  
+  if (matches) {
+    // Case 1: Range detected with two numbers (e.g., "60-65 cm")
+    if (matches[1] && matches[2]) {
+      return parseInt(matches[1]); // Return the first number (minimum) in the range
     }
-    // If there's just one number (e.g. "60 cm"), use that
-    return parseInt(matches[1]);
+    // Case 2: Single number detected (e.g., "60 cm")
+    else if (matches[3]) {
+      return parseInt(matches[3]);
+    }
   }
+  
+  // Fallback regex for simpler cases if the above doesn't match
+  const simplifiedMatches = size.match(/(\d+)/);
+  if (simplifiedMatches && simplifiedMatches[1]) {
+    return parseInt(simplifiedMatches[1]);
+  }
+  
   return 0; // Default if no height found
 }
 
