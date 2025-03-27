@@ -9,11 +9,14 @@ import SuccessToast from "@/components/SuccessToast";
 import AuthButton from "@/components/AuthButton";
 import AchievementBadge from "@/components/AchievementBadge";
 import CongratulationsModal from "@/components/CongratulationsModal";
+import SortingControls from "@/components/SortingControls";
+import GenusGroupView from "@/components/GenusGroupView";
 import { usePenguinStore } from "@/hooks/use-penguin-store";
 import { useAuth } from "@/contexts/AuthContext";
 import { Penguin } from "@shared/schema";
 import { HelpCircle, AlertTriangle, MapPin } from "lucide-react";
 import { firebaseConfigValid } from "@/lib/firebase";
+import { PenguinSortType, sortPenguins } from "@/lib/penguin-sorting";
 
 export default function Home() {
   const [selectedPenguin, setSelectedPenguin] = useState<Penguin | null>(null);
@@ -23,6 +26,7 @@ export default function Home() {
   const [showInfoBanner, setShowInfoBanner] = useState(true);
   const [showCongratsModal, setShowCongratsModal] = useState(false);
   const [congratsCount, setCongratsCount] = useState(18);
+  const [sortType, setSortType] = useState<PenguinSortType>("default");
   
   // Track the last milestone reached to prevent showing the badge again for the same milestone
   const lastMilestoneRef = useRef<number>(0);
@@ -192,18 +196,35 @@ export default function Home() {
           </div>
         )}
         
-        {/* Penguin Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 py-4">
-          {penguins.map((penguin: Penguin) => (
-            <PenguinCard
-              key={penguin.id}
-              penguin={penguin}
-              isSeen={seenPenguins.includes(penguin.id)}
-              onClick={() => handlePenguinClick(penguin)}
-              onLongPress={() => handlePenguinLongPress(penguin)}
-            />
-          ))}
+        {/* Sorting Controls */}
+        <div className="flex justify-end mb-4">
+          <SortingControls 
+            currentSort={sortType}
+            onSortChange={setSortType}
+          />
         </div>
+        
+        {/* Penguin Display - either grid or genus grouping */}
+        {sortType === "genus" ? (
+          <GenusGroupView 
+            penguins={penguins}
+            seenPenguins={seenPenguins}
+            onPenguinClick={handlePenguinClick}
+            onPenguinLongPress={handlePenguinLongPress}
+          />
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 py-4">
+            {sortPenguins(penguins, sortType).map((penguin: Penguin) => (
+              <PenguinCard
+                key={penguin.id}
+                penguin={penguin}
+                isSeen={seenPenguins.includes(penguin.id)}
+                onClick={() => handlePenguinClick(penguin)}
+                onLongPress={() => handlePenguinLongPress(penguin)}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Bottom Progress Counter */}
         <div className="mt-12 mb-8 flex flex-col sm:flex-row items-center justify-center gap-4">
