@@ -80,57 +80,60 @@ export default function JournalEntryForm({
       return;
     }
     
+    // Ensure date is a valid Date object before submission
+    const validDate = date instanceof Date && !isNaN(date.getTime()) 
+      ? date 
+      : new Date();
+    
+    console.log("Submitting journal entry with date:", {
+      dateObject: validDate,
+      dateToString: validDate.toString(),
+      dateISOString: validDate.toISOString(),
+      dateType: typeof validDate
+    });
+    
     const journalData: Omit<InsertSightingJournal, "userId"> = {
       penguinId: penguin.id,
-      sightingDate: date,
+      sightingDate: validDate,
       location,
       notes: notes || null,
       coordinates: coordinates || null,
     };
     
     if (isEditing && entry) {
-      updateJournalEntry(
-        { 
-          id: entry.id, 
-          data: journalData 
-        },
-        {
-          onSuccess: () => {
-            toast({
-              title: "Journal updated",
-              description: `Your sighting of the ${penguin.name} has been updated.`,
-            });
-            onComplete();
-          },
-          onError: () => {
-            toast({
-              title: "Update failed",
-              description: "There was an error updating your journal entry. Please try again.",
-              variant: "destructive",
-            });
-          }
-        }
-      );
+      updateJournalEntry(entry.id, journalData)
+        .then(() => {
+          toast({
+            title: "Journal updated",
+            description: `Your sighting of the ${penguin.name} has been updated.`,
+          });
+          onComplete();
+        })
+        .catch((error: Error) => {
+          console.error("Error updating journal entry:", error);
+          toast({
+            title: "Update failed",
+            description: error.message || "There was an error updating your journal entry. Please try again.",
+            variant: "destructive",
+          });
+        });
     } else {
-      addJournalEntry(
-        journalData,
-        {
-          onSuccess: () => {
-            toast({
-              title: "Journal entry added",
-              description: `Your sighting of the ${penguin.name} has been recorded.`,
-            });
-            onComplete();
-          },
-          onError: () => {
-            toast({
-              title: "Submission failed",
-              description: "There was an error saving your journal entry. Please try again.",
-              variant: "destructive",
-            });
-          }
-        }
-      );
+      addJournalEntry(journalData)
+        .then(() => {
+          toast({
+            title: "Journal entry added",
+            description: `Your sighting of the ${penguin.name} has been recorded.`,
+          });
+          onComplete();
+        })
+        .catch((error: Error) => {
+          console.error("Error adding journal entry:", error);
+          toast({
+            title: "Submission failed",
+            description: error.message || "There was an error saving your journal entry. Please try again.",
+            variant: "destructive",
+          });
+        });
     }
   };
   

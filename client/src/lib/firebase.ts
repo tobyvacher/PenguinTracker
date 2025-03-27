@@ -63,6 +63,31 @@ try {
     console.log("Firebase initialized successfully");
     // Log auth domain for debugging
     console.log(`Auth domain being used: ${firebaseConfig.authDomain}`);
+    
+    // Verify Firestore is initialized
+    if (db) {
+      console.log("Firestore db instance is properly initialized");
+      
+      // Test if we can communicate with Firestore by trying to access a collection
+      try {
+        const testCollection = collection(db, 'test_connectivity');
+        console.log("Successfully accessed Firestore collection reference:", testCollection.id);
+        
+        // Import the validate rules function dynamically to avoid circular dependencies
+        import('./firestore-storage').then(async (module) => {
+          if (module.validateFirestoreRules) {
+            const rulesValid = await module.validateFirestoreRules();
+            console.log("Firestore rules validation result:", rulesValid ? "VALID" : "INVALID");
+          }
+        }).catch(error => {
+          console.error("Error importing validateFirestoreRules:", error);
+        });
+      } catch (error) {
+        console.error("Error accessing Firestore collection:", error);
+      }
+    } else {
+      console.error("Firestore db instance is NOT initialized properly");
+    }
   }
 } catch (error) {
   console.error("Error initializing Firebase:", error);
@@ -121,3 +146,36 @@ export const onAuthStateChange = (callback: (user: User | null) => void) => {
 };
 
 export { auth, db };
+
+// Make Firebase available globally for debugging
+declare global {
+  interface Window {
+    firebase?: {
+      auth?: typeof auth;
+      db?: typeof db;
+      firestore?: any;
+    };
+  }
+}
+
+// Attach Firebase to window object for debugging
+if (isConfigValid && typeof window !== 'undefined') {
+  window.firebase = {
+    auth,
+    db,
+    firestore: {
+      collection,
+      doc,
+      getDoc,
+      getDocs,
+      setDoc,
+      addDoc,
+      updateDoc,
+      deleteDoc,
+      query,
+      where,
+      Timestamp
+    }
+  };
+  console.log('Firebase attached to window object for debugging');
+}

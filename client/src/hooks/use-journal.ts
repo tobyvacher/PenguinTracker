@@ -146,35 +146,83 @@ export function useJournal() {
     return useQuery(queryOptions);
   };
 
-  // Add a new journal entry
+  // Add a new journal entry with enhanced error handling and logging
   const addJournalEntryMutation = useMutation({
     mutationFn: async (data: JournalEntryInput) => {
-      if (useFirestore && currentUser) {
-        const userId = await getUserIdFromFirebase(currentUser.uid);
-        if (!userId) {
-          throw new Error("User not found in Firestore database");
+      try {
+        console.log('Starting addJournalEntry mutation with data:', {
+          penguinId: data.penguinId,
+          hasDate: !!data.sightingDate,
+          dateType: data.sightingDate ? typeof data.sightingDate : 'undefined',
+          location: data.location,
+          mode: useFirestore ? 'Firestore' : 'API'
+        });
+        
+        if (useFirestore && currentUser) {
+          console.log('Using Firestore for journal entry creation');
+          
+          // Verify Firestore is available (using any type to avoid TS errors with global declarations)
+          const firebaseGlobal = (window as any).firebase;
+          if (!firebaseGlobal?.firestore) {
+            console.error('Firestore is not properly initialized in window.firebase');
+          }
+          
+          // Get user ID from Firebase UID
+          const userId = await getUserIdFromFirebase(currentUser.uid);
+          if (!userId) {
+            console.error('Failed to get user ID for Firebase UID:', currentUser.uid);
+            throw new Error("User not found in Firestore database. Please try refreshing the page.");
+          }
+          console.log('Got userId:', userId, 'for Firebase UID:', currentUser.uid);
+          
+          // Add userId to the data and ensure required fields
+          const fullEntry: InsertSightingJournal = {
+            ...data,
+            userId,
+            // Required fields should always have values
+            sightingDate: data.sightingDate || new Date(),
+            notes: data.notes || null,
+            coordinates: data.coordinates || null
+          };
+          
+          console.log('Prepared entry with fields:', {
+            userId: fullEntry.userId,
+            penguinId: fullEntry.penguinId,
+            location: fullEntry.location,
+            hasDate: !!fullEntry.sightingDate,
+            dateType: fullEntry.sightingDate ? 
+              (fullEntry.sightingDate instanceof Date ? 'Date' : typeof fullEntry.sightingDate) 
+              : 'undefined'
+          });
+          
+          // Performance optimization - add timestamp before starting
+          console.time('addJournalEntry');
+          const result = await firestoreStorage.addJournalEntry(fullEntry);
+          console.timeEnd('addJournalEntry');
+          
+          console.log('Successfully created journal entry with ID:', result.id);
+          return result;
         }
         
-        // Add userId to the data and ensure required fields
-        const fullEntry: InsertSightingJournal = {
-          ...data,
-          userId,
-          // Required fields should always have values
-          sightingDate: data.sightingDate || new Date(),
-          notes: data.notes || null,
-          coordinates: data.coordinates || null
-        };
+        // Fallback to API
+        console.log('Using API for journal entry creation');
+        const response = await apiRequest(API_KEYS.ALL_ENTRIES, "POST", data);
+        return response;
+      } catch (error) {
+        console.error("Detailed error in addJournalEntry mutation:", error);
         
-        // Performance optimization - add timestamp before starting
-        console.time('addJournalEntry');
-        const result = await firestoreStorage.addJournalEntry(fullEntry);
-        console.timeEnd('addJournalEntry');
-        return result;
+        // Add more context to help debug
+        if (error instanceof Error) {
+          console.error("Error name:", error.name);
+          console.error("Error message:", error.message);
+          console.error("Error stack:", error.stack);
+          
+          // Enhance the error message with more context
+          error.message = `Failed to add journal entry: ${error.message}`;
+        }
+        
+        throw error; // Re-throw for the onError handler
       }
-      
-      // Fallback to API
-      const response = await apiRequest(API_KEYS.ALL_ENTRIES, "POST", data);
-      return response;
     },
     onSuccess: (result, variables) => {
       // Success toast
@@ -183,6 +231,21 @@ export function useJournal() {
         description: "Journal entry added successfully",
         variant: "default"
       });
+      
+      // Type-safe logging of the result
+      if (useFirestore) {
+        // In Firestore mode, result is SightingJournal
+        const journalEntry = result as SightingJournal;
+        console.log('Journal entry mutation succeeded with result:', {
+          id: journalEntry.id,
+          penguinId: journalEntry.penguinId,
+          location: journalEntry.location,
+          date: journalEntry.sightingDate
+        });
+      } else {
+        // In API mode, just log that it succeeded
+        console.log('Journal entry mutation succeeded with API response');
+      }
       
       // Intelligently invalidate only what's needed
       if (useFirestore) {
@@ -211,10 +274,15 @@ export function useJournal() {
       }
     },
     onError: (error) => {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "An unknown error occurred while saving your journal entry";
+        
       console.error("Failed to add journal entry:", error);
+      
       toast({
         title: "Error",
-        description: "Failed to add journal entry. Please try again.",
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -403,17 +471,35 @@ export function useJournal() {
     journalError: getUserJournalQuery.error,
     getPenguinJournalEntries,
     
-    // Mutations with enhanced interfaces
-    addJournalEntry: (data: JournalEntryInput) => 
-      addJournalEntryMutation.mutate(data),
+    // Mutations with enhanced interfaces that return promises
+    addJournalEntry: (data: JournalEntryInput): Promise<SightingJournal> => {
+      return new Promise((resolve, reject) => {
+        addJournalEntryMutation.mutate(data, {
+          onSuccess: (result) => resolve(result as SightingJournal),
+          onError: (error) => reject(error)
+        });
+      });
+    },
     isAddingJournalEntry: addJournalEntryMutation.isPending,
     
-    updateJournalEntry: (id: number, data: Partial<JournalEntryInput>) => 
-      updateJournalEntryMutation.mutate({ id, data }),
+    updateJournalEntry: (id: number, data: Partial<JournalEntryInput>): Promise<SightingJournal> => {
+      return new Promise((resolve, reject) => {
+        updateJournalEntryMutation.mutate({ id, data }, {
+          onSuccess: (result) => resolve(result as SightingJournal),
+          onError: (error) => reject(error)
+        });
+      });
+    },
     isUpdatingJournalEntry: updateJournalEntryMutation.isPending,
     
-    deleteJournalEntry: (entryId: number, penguinId?: number) => 
-      deleteJournalEntryMutation.mutate({ entryId, penguinId }),
+    deleteJournalEntry: (entryId: number, penguinId?: number): Promise<void> => {
+      return new Promise((resolve, reject) => {
+        deleteJournalEntryMutation.mutate({ entryId, penguinId }, {
+          onSuccess: () => resolve(),
+          onError: (error) => reject(error)
+        });
+      });
+    },
     isDeletingJournalEntry: deleteJournalEntryMutation.isPending,
     
     // Configuration

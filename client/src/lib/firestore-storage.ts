@@ -41,7 +41,66 @@ const journalCache = new Map<string, SightingJournal[]>(); // userId_penguinId a
 // Error handling helper
 const handleFirestoreError = (operation: string, error: any): never => {
   console.error(`Firestore error during ${operation}:`, error);
+  
+  // Add special handling for permission-denied errors
+  if (error.code === 'permission-denied') {
+    console.error('Firestore security rules are preventing this operation. Please check your Firebase console rules.');
+    throw new Error(`Failed to ${operation}: Permission denied. Firebase security rules are preventing this operation.`);
+  }
+  
   throw new Error(`Failed to ${operation}: ${error.message}`);
+};
+
+// Function to validate Firestore rules
+export async function validateFirestoreRules(): Promise<boolean> {
+  if (!db) {
+    console.error('Firestore not initialized');
+    return false;
+  }
+  
+  try {
+    console.log('Validating Firestore rules...');
+    
+    // Try to read from a test document to validate read permissions
+    const testDocRef = doc(db, 'test_permissions', 'test_doc');
+    
+    // First try reading
+    try {
+      await getDoc(testDocRef);
+      console.log('Firestore read permissions are valid');
+    } catch (error: any) {
+      if (error.code === 'permission-denied') {
+        console.error('Firestore read permissions are denied by security rules');
+        return false;
+      }
+      // Not found is expected and means read permissions are OK
+      console.log('Firestore read permissions appear to be valid');
+    }
+    
+    // Then try writing
+    try {
+      await setDoc(testDocRef, { 
+        timestamp: new Date().toISOString(),
+        message: 'Testing write permissions'
+      });
+      console.log('Firestore write permissions are valid');
+      
+      // Clean up after ourselves
+      await deleteDoc(testDocRef);
+    } catch (error: any) {
+      if (error.code === 'permission-denied') {
+        console.error('Firestore write permissions are denied by security rules');
+        return false;
+      }
+      console.error('Error validating write permissions:', error);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error validating Firestore rules:', error);
+    return false;
+  }
 };
 
 export class FirestoreStorage {
