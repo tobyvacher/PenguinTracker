@@ -11,8 +11,8 @@ import { IStorage } from "./storage";
 const COLLECTIONS = {
   USERS: 'users',
   PENGUINS: 'penguins',
-  SEEN_PENGUINS: 'seenPenguins', // Changed to camelCase to match common Firebase conventions
-  JOURNAL_ENTRIES: 'journalEntries' // Changed to camelCase to match common Firebase conventions
+  SEEN_PENGUINS: 'seen_penguins', // Changed to snake_case to match client-side collection name
+  JOURNAL_ENTRIES: 'journal_entries' // Changed to snake_case to match client-side collection name
 };
 
 // Simple caching mechanism to reduce Firestore reads
