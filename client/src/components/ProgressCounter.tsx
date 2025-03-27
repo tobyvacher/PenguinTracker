@@ -137,23 +137,35 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
                 </Button>
               )}
               
-              <Button onClick={() => handleSocialShare('twitter')} variant={isDark ? "outline" : "secondary"} className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700 text-gray-200' : 'text-gray-800'}`}>
-                <Twitter size={18} className="text-[#1DA1F2]" />
+              <Button 
+                onClick={() => handleSocialShare('twitter')} 
+                className={`flex items-center gap-2 text-white ${isDark ? 'bg-black hover:bg-gray-900' : 'bg-[#1D9BF0] hover:bg-[#1A8CD8]'}`}
+              >
+                <Twitter size={18} />
                 <span>Twitter</span>
               </Button>
               
-              <Button onClick={() => handleSocialShare('whatsapp')} variant={isDark ? "outline" : "secondary"} className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700 text-gray-200' : 'text-gray-800'}`}>
-                <FaWhatsapp size={18} className="text-[#25D366]" />
+              <Button 
+                onClick={() => handleSocialShare('whatsapp')} 
+                className={`flex items-center gap-2 text-white ${isDark ? 'bg-gradient-to-r from-[#25D366] to-[#128C7E]' : 'bg-[#25D366] hover:bg-[#20BD5C]'}`}
+              >
+                <FaWhatsapp size={18} />
                 <span>WhatsApp</span>
               </Button>
               
-              <Button onClick={() => handleSocialShare('email')} variant={isDark ? "outline" : "secondary"} className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700 text-gray-200' : 'text-gray-800'}`}>
-                <Mail size={18} className={isDark ? 'text-gray-300' : 'text-gray-600'} />
+              <Button 
+                onClick={() => handleSocialShare('email')} 
+                className={`flex items-center gap-2 text-white ${isDark ? 'bg-gradient-to-r from-red-500 to-red-600' : 'bg-red-500 hover:bg-red-600'}`}
+              >
+                <Mail size={18} />
                 <span>Email</span>
               </Button>
               
-              <Button onClick={copyToClipboard} variant={isDark ? "outline" : "secondary"} className={`flex items-center gap-2 ${isDark ? 'border-gray-700 hover:bg-gray-700 text-gray-200' : 'text-gray-800'}`}>
-                {isCopied ? <Check size={18} className="text-green-600" /> : <Copy size={18} className={isDark ? 'text-gray-300' : 'text-gray-600'} />}
+              <Button 
+                onClick={copyToClipboard} 
+                className={`flex items-center gap-2 text-white ${isDark ? 'bg-gradient-to-r from-gray-600 to-gray-800' : 'bg-gray-500 hover:bg-gray-600'}`}
+              >
+                {isCopied ? <Check size={18} /> : <Copy size={18} />}
                 <span>{isCopied ? "Copied!" : "Copy"}</span>
               </Button>
             </div>
