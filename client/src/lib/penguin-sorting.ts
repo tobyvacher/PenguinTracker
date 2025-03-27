@@ -22,15 +22,16 @@ export function extractGenus(scientificName: string): string {
 }
 
 /**
- * Extracts the height in cm from a size string like "60-65 cm tall"
+ * Extracts the minimum height in cm from a size string like "60-65 cm tall"
+ * For size ranges, returns the smallest value
  */
 export function extractHeight(size: string): number {
   // Extract numbers from the size string, assuming format like "60-65 cm tall"
   const matches = size.match(/(\d+)(?:-(\d+))?\s*cm/);
   if (matches && matches.length >= 2) {
-    // If there's a range (e.g. "60-65 cm"), take the average
+    // If there's a range (e.g. "60-65 cm"), take the minimum value
     if (matches[2]) {
-      return (parseInt(matches[1]) + parseInt(matches[2])) / 2;
+      return parseInt(matches[1]); // Return the first number in the range
     }
     // If there's just one number (e.g. "60 cm"), use that
     return parseInt(matches[1]);
