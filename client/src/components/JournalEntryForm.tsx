@@ -163,7 +163,7 @@ export default function JournalEntryForm({
               className={cn(
                 "w-full justify-start text-left font-normal",
                 !date && "text-muted-foreground",
-                !isDark && "border-gray-300 text-gray-800 hover:bg-gray-100"
+                !isDark && "border-gray-300 text-gray-800 hover:bg-gray-100 bg-white"
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
@@ -194,7 +194,7 @@ export default function JournalEntryForm({
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             required
-            className={`flex-1 ${!isDark && 'border-gray-300 text-gray-800 placeholder:text-gray-500'}`}
+            className={`flex-1 ${!isDark && 'border-gray-300 text-gray-800 placeholder:text-gray-500 bg-white'}`}
           />
           <Button 
             type="button" 
@@ -219,7 +219,7 @@ export default function JournalEntryForm({
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           rows={4}
-          className={!isDark ? 'border-gray-300 text-gray-800 placeholder:text-gray-500' : ''}
+          className={!isDark ? 'border-gray-300 text-gray-800 placeholder:text-gray-500 bg-white' : ''}
         />
       </div>
       
