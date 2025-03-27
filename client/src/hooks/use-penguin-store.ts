@@ -36,15 +36,9 @@ export function usePenguinStore() {
       setSeenPenguins([]);
     }
     
-    // For unauthenticated users, only use localStorage
-    if (!isAuthenticated) {
-      console.log('Using only localStorage for unauthenticated user');
-      return;
-    }
-    
-    // Fetch from API for authenticated users
+    // Then fetch from API if authenticated
     const fetchSeenPenguins = async () => {
-      console.log('Fetching seen penguins from API for authenticated user');
+      console.log('Fetching seen penguins from API');
       try {
         let authHeader = '';
         if (currentUser) {
@@ -52,11 +46,7 @@ export function usePenguinStore() {
             authHeader = `Bearer ${await currentUser.getIdToken()}`;
           } catch (tokenError) {
             console.error('Error getting auth token:', tokenError);
-            return; // Exit if we can't get a token
           }
-        } else {
-          console.log('No current user, skipping API fetch');
-          return; // Exit if no current user
         }
         
         const response = await fetch('/api/seen-penguins', {
@@ -71,13 +61,9 @@ export function usePenguinStore() {
           console.log('Received seen penguins from API:', data);
           
           if (Array.isArray(data)) {
-            // If user has seen penguins on the server, use that data
-            if (data.length > 0) {
-              setSeenPenguins(data);
-              localStorage.setItem(storageKey, JSON.stringify(data));
-            } 
-            // If user has no seen penguins on server but has some locally,
-            // we'll keep the local data and it will sync next time they mark a penguin as seen
+            setSeenPenguins(data);
+            // Update localStorage
+            localStorage.setItem(storageKey, JSON.stringify(data));
           } else {
             console.error('API returned non-array data for seen penguins:', data);
           }
@@ -89,7 +75,7 @@ export function usePenguinStore() {
       }
     };
     
-    // Only fetch from API for authenticated users
+    // Always fetch from API for all users (authenticated or not)
     fetchSeenPenguins();
   }, [currentUser, isAuthenticated]);
   
@@ -100,25 +86,6 @@ export function usePenguinStore() {
     try {
       const isCurrentlySeen = seenPenguins.includes(penguinId);
       
-      // For unauthenticated users, only update localStorage (client-side only)
-      if (!isAuthenticated) {
-        if (isCurrentlySeen) {
-          // Remove from local storage only
-          const updatedSeenPenguins = seenPenguins.filter(id => id !== penguinId);
-          setSeenPenguins(updatedSeenPenguins);
-          localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
-          console.log(`Removed penguin ${penguinId} from local seen list (unauthenticated)`);
-        } else {
-          // Add to local storage only
-          const updatedSeenPenguins = [...seenPenguins, penguinId];
-          setSeenPenguins(updatedSeenPenguins);
-          localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
-          console.log(`Added penguin ${penguinId} to local seen list (unauthenticated)`);
-        }
-        return;
-      }
-      
-      // Authenticated user flow - update server and local storage
       if (isCurrentlySeen) {
         // REMOVE PENGUIN FLOW
         console.log(`Attempting to remove penguin ${penguinId} from seen list`);

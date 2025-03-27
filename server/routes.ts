@@ -118,27 +118,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get seen penguins
   apiRouter.get("/seen-penguins", async (req, res) => {
     try {
-      // For unauthenticated users, return an empty array
+      let user;
       if (!req.user) {
-        return res.json([]);
-      }
-      
-      // Get user by firebase uid
-      const user = await storage.getUserByFirebaseUid(req.user.uid);
-      if (!user) {
-        // If user doesn't exist in our database yet, create them
-        const newUser = await storage.createUser({
-          firebaseUid: req.user.uid,
-          email: req.user.email || '',
-          displayName: req.user.name || 'Penguin Spotter'
-        });
-        
-        // Return empty array for new users
-        return res.json([]);
+        // Get or create demo user
+        user = await storage.getUserByFirebaseUid("demo_uid");
+        if (!user) {
+          user = await storage.createUser({
+            firebaseUid: "demo_uid",
+            email: "demo@example.com",
+            displayName: "Demo User"
+          });
+        }
+      } else {
+        // Get user by firebase uid
+        user = await storage.getUserByFirebaseUid(req.user.uid);
+        if (!user) {
+          return res.json([]);
+        }
       }
 
       const seenPenguinIds = await storage.getSeenPenguins(user.id);
-      console.log(`Found ${seenPenguinIds.length} seen penguins for user ${user.id} (${user.displayName})`);
       res.json(seenPenguinIds);
     } catch (error) {
       console.error("Error fetching seen penguins:", error);
@@ -149,21 +148,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mark a penguin as seen
   apiRouter.post("/seen-penguins", async (req, res) => {
     try {
-      // Only allow authenticated users to mark penguins as seen
+      let user;
       if (!req.user) {
-        return res.status(401).json({ message: "Authentication required" });
-      }
-      
-      // Get user by firebase uid
-      let user = await storage.getUserByFirebaseUid(req.user.uid);
-      
-      // If user doesn't exist in our database yet, create them
-      if (!user) {
-        user = await storage.createUser({
-          firebaseUid: req.user.uid,
-          email: req.user.email || '',
-          displayName: req.user.name || 'Penguin Spotter'
-        });
+        // Get or create demo user
+        user = await storage.getUserByFirebaseUid("demo_uid");
+        if (!user) {
+          user = await storage.createUser({
+            firebaseUid: "demo_uid",
+            email: "demo@example.com",
+            displayName: "Demo User"
+          });
+        }
+      } else {
+        // Get user by firebase uid
+        user = await storage.getUserByFirebaseUid(req.user.uid);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
       }
       
       const { penguinId } = insertSeenPenguinSchema
@@ -186,25 +187,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log(`DELETE request received for penguin ID: ${req.params.penguinId}`);
       
-      // Only allow authenticated users to remove penguins from seen
+      let user;
       if (!req.user) {
-        return res.status(401).json({ message: "Authentication required" });
+        // Get or create demo user
+        user = await storage.getUserByFirebaseUid("demo_uid");
+        if (!user) {
+          user = await storage.createUser({
+            firebaseUid: "demo_uid",
+            email: "demo@example.com",
+            displayName: "Demo User"
+          });
+        }
+        console.log(`Using demo user with ID: ${user.id}`);
+      } else {
+        // Get user by firebase uid
+        user = await storage.getUserByFirebaseUid(req.user.uid);
+        if (!user) {
+          console.log(`User not found for firebase UID: ${req.user.uid}`);
+          return res.status(404).json({ message: "User not found" });
+        }
+        console.log(`Using authenticated user with ID: ${user.id}`);
       }
-      
-      // Get user by firebase uid
-      let user = await storage.getUserByFirebaseUid(req.user.uid);
-      
-      // If user doesn't exist in our database yet, create them
-      if (!user) {
-        user = await storage.createUser({
-          firebaseUid: req.user.uid,
-          email: req.user.email || '',
-          displayName: req.user.name || 'Penguin Spotter'
-        });
-        console.log(`Created new user with ID: ${user.id}`);
-      }
-      console.log(`Using authenticated user with ID: ${user.id}`);
-      
 
       const penguinId = parseInt(req.params.penguinId);
       console.log(`Removing penguin ${penguinId} from seen list for user ${user.id}`);
