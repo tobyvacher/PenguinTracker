@@ -46,8 +46,8 @@ export default function SortingControls({
         value={currentSort} 
         onValueChange={(value) => onSortChange(value as PenguinSortType)}
       >
-        <SelectTrigger className={`w-[180px] ${isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
-          <SelectValue placeholder="Sort penguins..." className={`${isDark ? 'text-gray-200' : 'text-black font-semibold'}`} />
+        <SelectTrigger className={`w-[180px] ${isDark ? 'border-gray-700 bg-gray-800 text-gray-200' : 'border-gray-200 bg-white text-black font-semibold'}`}>
+          <SelectValue placeholder="Sort penguins..." />
         </SelectTrigger>
         <SelectContent className={isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}>
           <SelectItem value="default" className={isDark ? 'text-gray-200' : 'text-gray-900 font-medium'}>

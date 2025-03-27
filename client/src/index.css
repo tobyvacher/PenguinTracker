@@ -10,4 +10,20 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+
+  /* Custom fixes for light mode in the sorting dropdown */
+  [data-light-mode="true"] span,
+  [data-light-mode="true"] * span {
+    @apply text-black font-medium !important;
+  }
+  
+  [data-light-mode="true"] button[data-state],
+  [data-light-mode="true"] * button[data-state] {
+    @apply text-black font-medium !important;
+  }
+  
+  [data-radix-select-trigger][data-light-mode="true"],
+  .select-trigger-light-mode {
+    @apply text-black font-medium !important;
+  }
 }
