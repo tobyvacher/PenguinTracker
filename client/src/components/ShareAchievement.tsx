@@ -165,32 +165,65 @@ export default function ShareAchievement({
                 </div>
               ) : (
                 <>
-                  <div className="w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-2 border-4 border-white shadow-[0_0_20px_rgba(255,255,255,0.4)]" 
-                    style={{backgroundColor: getBadgeColor()}}>
-                    <span className="text-5xl font-bold text-white">{count}</span>
-                  </div>
-                  <div className="bg-white bg-opacity-90 text-indigo-900 font-bold text-xl px-6 py-3 rounded-full mb-2 inline-block shadow-lg">
-                    {message}
-                  </div>
-                  <div className="flex items-center justify-center bg-indigo-900 bg-opacity-60 rounded-full px-4 py-1 mx-auto w-max mb-3">
-                    <span className="text-xs font-medium text-white">{count} of {total} penguin species</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center">
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center border-2 border-white shadow-lg mr-2" 
+                        style={{backgroundColor: getBadgeColor()}}>
+                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M5 3h14a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2v3a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V5a2 2 0 0 1 2-2zm11 5h3V5h-3v3zm0 2v1a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-1H5v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3h-3z"/>
+                          <path d="M12 12.5a1 1 0 0 1-1-1v-2a1 1 0 0 1 2 0v2a1 1 0 0 1-1 1z"/>
+                          <path d="M12 21a3 3 0 0 0 3-3v-1H9v1a3 3 0 0 0 3 3z"/>
+                        </svg>
+                      </div>
+                      <div className="bg-indigo-900 bg-opacity-70 rounded-full px-3 py-1">
+                        <span className="text-xs font-medium text-white">{count} of {total} spotted</span>
+                      </div>
+                    </div>
                   </div>
                   
-                  {/* Display grid of penguin images if we have seenPenguins data */}
+                  <div className="bg-white bg-opacity-90 text-indigo-900 font-bold text-lg px-4 py-2 rounded-full mb-3 inline-block shadow-lg">
+                    {message}
+                  </div>
+                  
+                  {/* Display larger, more prominent grid of penguin images */}
                   {seenPenguins && seenPenguins.length > 0 && (
-                    <div className="grid grid-cols-3 gap-1 mx-auto mt-1 max-w-[180px]">
-                      {seenPenguins.slice(0, Math.min(6, seenPenguins.length)).map((penguin) => (
-                        <div key={penguin.id} className="overflow-hidden rounded-md h-14 w-14 border border-white">
-                          <img 
-                            src={penguin.imageUrl}
-                            alt={penguin.name}
-                            className="h-full w-full object-cover"
-                          />
+                    <div className="mx-auto mt-2 max-w-[320px]">
+                      {/* If there are 4 or fewer penguins, display in a larger format */}
+                      {seenPenguins.length <= 4 ? (
+                        <div className="grid grid-cols-2 gap-3">
+                          {seenPenguins.map((penguin) => (
+                            <div key={penguin.id} className="overflow-hidden rounded-lg h-32 w-full border-2 border-white shadow-md relative">
+                              <img 
+                                src={penguin.imageUrl}
+                                alt={penguin.name}
+                                className="h-full w-full object-cover"
+                              />
+                              <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-2 py-1">
+                                <p className="text-white text-xs truncate">{penguin.name}</p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                      {seenPenguins.length > 6 && (
-                        <div className="flex items-center justify-center h-14 w-14 rounded-md bg-indigo-900/70 border border-white">
-                          <span className="text-white font-bold">+{seenPenguins.length - 6}</span>
+                      ) : (
+                        /* For more than 4 penguins, use a 3-column grid */
+                        <div className="grid grid-cols-3 gap-2">
+                          {seenPenguins.slice(0, Math.min(8, seenPenguins.length)).map((penguin) => (
+                            <div key={penguin.id} className="overflow-hidden rounded-lg h-24 w-24 border-2 border-white shadow-md relative">
+                              <img 
+                                src={penguin.imageUrl}
+                                alt={penguin.name}
+                                className="h-full w-full object-cover"
+                              />
+                              <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5">
+                                <p className="text-white text-[8px] truncate">{penguin.name}</p>
+                              </div>
+                            </div>
+                          ))}
+                          {seenPenguins.length > 8 && (
+                            <div className="flex items-center justify-center h-24 w-24 rounded-lg bg-indigo-900/80 border-2 border-white shadow-md">
+                              <span className="text-white font-bold text-lg">+{seenPenguins.length - 8}</span>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
