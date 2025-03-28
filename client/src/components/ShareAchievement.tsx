@@ -60,24 +60,48 @@ export default function ShareAchievement({
     if (!shareCardRef.current) return;
     
     setIsGeneratingImage(true);
+    
+    // Create an off-screen clone for better image generation
+    const tempCard = document.createElement('div');
+    tempCard.id = 'temp-share-card';
+    tempCard.style.position = 'absolute';
+    tempCard.style.top = '-9999px';
+    tempCard.style.left = '-9999px';
+    tempCard.style.padding = '40px'; // Add extra padding to ensure text fits
+    tempCard.style.width = '680px'; // Fixed width for better layout
+    tempCard.style.backgroundColor = isDark ? '#161e36' : '#396fc6';
+    tempCard.style.borderRadius = '8px';
+    tempCard.style.overflow = 'hidden';
+    tempCard.style.boxSizing = 'border-box';
+    
     try {
-      // Add a small delay to allow the UI to update
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Clone the content
+      tempCard.innerHTML = shareCardRef.current.innerHTML;
+      document.body.appendChild(tempCard);
       
-      const canvas = await html2canvas(shareCardRef.current, {
-        scale: 2,
-        backgroundColor: null,
-        logging: false,
-        // Adding these options to ensure the modal is captured properly
-        windowWidth: window.innerWidth,
-        windowHeight: window.innerHeight,
-        // Make sure the element is visible in the viewport
-        scrollX: 0,
-        scrollY: 0,
-        // Improve image quality
-        useCORS: true,
-        allowTaint: true
+      // Add a small delay to allow the UI to update fully
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Find and adjust all the text labels to prevent cutting off
+      const textLabels = tempCard.querySelectorAll('p');
+      textLabels.forEach(label => {
+        if (label.classList.contains('text-[9px]') || label.classList.contains('text-xs')) {
+          label.style.fontSize = '10px';
+          label.style.lineHeight = '1.2';
+          label.style.padding = '2px';
+        }
       });
+      
+      const canvas = await html2canvas(tempCard, {
+        scale: 2.5, // Higher scale for better quality
+        backgroundColor: isDark ? '#161e36' : '#396fc6',
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+        width: 680,
+        height: tempCard.offsetHeight,
+      });
+      
       const image = canvas.toDataURL('image/png');
       setImageSrc(image);
       
@@ -89,6 +113,10 @@ export default function ShareAchievement({
     } catch (err) {
       console.error('Error generating image:', err);
     } finally {
+      // Clean up the temporary element
+      if (document.body.contains(tempCard)) {
+        document.body.removeChild(tempCard);
+      }
       setIsGeneratingImage(false);
     }
   };
@@ -184,8 +212,8 @@ export default function ShareAchievement({
                                 alt={penguin.name}
                                 className="h-full w-full object-cover"
                               />
-                              <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-2 py-1">
-                                <p className="text-white text-xs truncate">{penguin.name}</p>
+                              <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-2 py-1.5">
+                                <p className="text-white text-xs text-center whitespace-normal leading-tight">{penguin.name}</p>
                               </div>
                             </div>
                           ))}
@@ -200,8 +228,8 @@ export default function ShareAchievement({
                                 alt={penguin.name}
                                 className="h-full w-full object-cover"
                               />
-                              <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-1 py-0.5">
-                                <p className="text-white text-[8px] truncate">{penguin.name}</p>
+                              <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-1 py-1">
+                                <p className="text-white text-[9px] text-center whitespace-normal leading-tight">{penguin.name}</p>
                               </div>
                             </div>
                           ))}
