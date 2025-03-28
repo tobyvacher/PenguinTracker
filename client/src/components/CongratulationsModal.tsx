@@ -23,10 +23,10 @@ export default function CongratulationsModal({ isOpen, onClose, count = 18, seen
   
   // Get the appropriate share text based on the count
   const getShareText = () => {
-    if (count >= 18) return "I've spotted all 18 penguin species in the Penguin Tracker app! 🐧";
-    if (count >= 15) return `I've spotted 15 penguin species in the Penguin Tracker app! 🐧`;
-    if (count >= 10) return `I've spotted 10 penguin species in the Penguin Tracker app! 🐧`;
-    return `I've spotted 5 penguin species in the Penguin Tracker app! 🐧`;
+    if (count >= 18) return "I've spotted all 18 penguin species in Penguin Tracker! 🐧";
+    if (count >= 15) return `I've spotted 15 penguin species in Penguin Tracker! 🐧`;
+    if (count >= 10) return `I've spotted 10 penguin species in Penguin Tracker! 🐧`;
+    return `I've spotted 5 penguin species in Penguin Tracker! 🐧`;
   };
   
   const getAchievementTitle = () => {
