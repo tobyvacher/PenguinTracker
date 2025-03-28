@@ -268,7 +268,7 @@ export default function ShareAchievement({
       footer.style.marginTop = '15px';
       
       const footerText = document.createElement('p');
-      footerText.textContent = `Visit penguintracker.app to explore all ${total} penguin species!`;
+      footerText.textContent = `Visit ${window.location.host} to explore all ${total} penguin species!`;
       footerText.style.color = 'white';
       footerText.style.fontSize = '16px';
       footerText.style.fontWeight = '500';
@@ -452,7 +452,7 @@ export default function ShareAchievement({
                 </div>
               ) : (
                 <p className="text-white font-medium bg-indigo-700 bg-opacity-50 rounded-lg py-2 px-4 mt-2 text-center">
-                  Visit <span className="font-bold">penguintracker.app</span> to explore all {total} penguin species!
+                  Visit <span className="font-bold">{window.location.host}</span> to explore all {total} penguin species!
                 </p>
               )}
             </div>
