@@ -39,7 +39,7 @@ export default function ProgressCounter({ count, total, seenPenguinIds = [] }: P
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (progress / 100) * circumference;
 
-  const shareText = `I've spotted ${count} out of ${total} penguin species in the wild with Penguin Tracker! 🐧`;
+  const shareText = `I've spotted ${count} penguin species in Penguin Tracker! 🐧`;
   const shareUrl = window.location.href;
 
   const handleShare = () => {
@@ -217,7 +217,7 @@ export default function ProgressCounter({ count, total, seenPenguinIds = [] }: P
       {/* ShareAchievement Modal, now with seenPenguins for showing the photos */}
       <ShareAchievement
         title="My Penguin Spotting Progress"
-        message={`I've spotted ${count} out of ${total} penguin species!`}
+        message={`I've spotted ${count} penguin species in Penguin Tracker!`}
         count={count}
         total={total}
         seenPenguins={getSeenPenguinDetails()}

@@ -310,7 +310,7 @@ export default function ShareAchievement({
       // Update the share text
       const imageText = penguin
         ? `I spotted the ${penguin.name} on Penguin Tracker! Check out my screenshot. ${shareUrl}`
-        : `I've spotted ${count} out of ${total} penguin species on Penguin Tracker! Check out my achievement. ${shareUrl}`;
+        : `I've spotted ${count} penguin species in Penguin Tracker! Check out my achievement. ${shareUrl}`;
       setShareText(imageText);
     } catch (err) {
       console.error('Error generating image:', err);
@@ -563,7 +563,7 @@ export default function ShareAchievement({
                     try {
                       const twitterText = penguin 
                         ? `I spotted the ${penguin.name} on Penguin Tracker! Check out my screenshot.`
-                        : `I've spotted ${count} out of ${total} penguin species on Penguin Tracker! Check out my achievement.`;
+                        : `I've spotted ${count} penguin species in Penguin Tracker! Check out my achievement.`;
                       
                       const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(twitterText)}&url=${encodeURIComponent(window.location.href)}`;
                       safeWindowOpen(shareUrl);
@@ -624,7 +624,7 @@ export default function ShareAchievement({
                     try {
                       const subject = penguin 
                         ? `I spotted the ${penguin.name} on Penguin Tracker!`
-                        : `I've spotted ${count} out of ${total} penguin species on Penguin Tracker!`;
+                        : `I've spotted ${count} penguin species in Penguin Tracker!`;
                       
                       const emailUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(shareText)}`;
                       safeWindowOpen(emailUrl);
