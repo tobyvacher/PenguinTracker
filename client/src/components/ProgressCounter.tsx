@@ -91,17 +91,26 @@ export default function ProgressCounter({ count, total, seenPenguinIds = [] }: P
 
   // Get seen penguins details for sharing in the achievement card
   const getSeenPenguinDetails = () => {
-    if (!penguins || !Array.isArray(penguins)) return [];
+    console.log("Penguin data in ProgressCounter:", penguins);
+    console.log("Seen penguin IDs:", seenPenguinIds);
+    
+    if (!penguins || !Array.isArray(penguins)) {
+      console.log("Penguins data is not an array or is null");
+      return [];
+    }
     
     // Create a set of seen penguin IDs for faster lookup
     const seenPenguinIdSet = new Set(seenPenguinIds);
     
     // Only return penguins that have been marked as seen
     if (seenPenguinIds.length > 0) {
-      return penguins.filter(penguin => seenPenguinIdSet.has(penguin.id));
+      const filteredPenguins = penguins.filter(penguin => seenPenguinIdSet.has(penguin.id));
+      console.log("Filtered penguins for sharing:", filteredPenguins);
+      return filteredPenguins;
     }
     
     // If no penguins have been marked as seen, return an empty array
+    console.log("No seen penguin IDs, returning empty array");
     return [];
   };
 
