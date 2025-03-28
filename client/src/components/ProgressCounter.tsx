@@ -6,19 +6,27 @@ import { Share2, Mail, Check, Copy, Image } from "lucide-react";
 import { FaWhatsapp, FaXTwitter } from "react-icons/fa6";
 import ShareAchievement from "./ShareAchievement";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useQuery } from "@tanstack/react-query";
+import { Penguin } from "@shared/schema";
 
 interface ProgressCounterProps {
   count: number;
   total: number;
+  seenPenguinIds?: number[];
 }
 
-export default function ProgressCounter({ count, total }: ProgressCounterProps) {
+export default function ProgressCounter({ count, total, seenPenguinIds = [] }: ProgressCounterProps) {
   const [progress, setProgress] = useState(0);
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [showShareAchievement, setShowShareAchievement] = useState(false);
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  
+  // Fetch all penguins for sharing in the achievement modal
+  const { data: penguins } = useQuery<Penguin[]>({
+    queryKey: ["/api/penguins"],
+  });
   
   useEffect(() => {
     // Avoid division by zero
@@ -79,6 +87,26 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
       .catch((error) => console.log('Error sharing:', error));
       setIsShareDialogOpen(false);
     }
+  };
+
+  // Get seen penguins details for sharing in the achievement card
+  const getSeenPenguinDetails = () => {
+    if (!penguins || !Array.isArray(penguins)) return [];
+    
+    // Create a set of seen penguin IDs for faster lookup
+    const seenPenguinIdSet = new Set(seenPenguinIds);
+    
+    // If we have specific penguin IDs, filter the penguins by those IDs
+    if (seenPenguinIds.length > 0) {
+      return penguins.filter(penguin => seenPenguinIdSet.has(penguin.id));
+    }
+    
+    // Fallback: if no seenPenguinIds provided but we have count, show first 'count' penguins
+    if (count > 0 && penguins.length >= count) {
+      return penguins.slice(0, count);
+    }
+    
+    return [];
   };
 
   return (
@@ -186,12 +214,13 @@ export default function ProgressCounter({ count, total }: ProgressCounterProps) 
         </DialogContent>
       </Dialog>
       
-      {/* ShareAchievement Modal */}
+      {/* ShareAchievement Modal, now with seenPenguins for showing the photos */}
       <ShareAchievement
         title="My Penguin Spotting Progress"
         message={`I've spotted ${count} out of ${total} penguin species!`}
         count={count}
         total={total}
+        seenPenguins={getSeenPenguinDetails()}
         isOpen={showShareAchievement}
         onClose={() => setShowShareAchievement(false)}
       />
