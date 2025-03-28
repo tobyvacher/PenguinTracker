@@ -139,13 +139,11 @@ export default function ShareAchievement({
           
           {/* Content */}
           <div className="relative">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <img src="/logo.png" alt="Penguin Tracker Logo" className="w-16 h-16 object-contain bg-white p-1 rounded-full shadow-lg" />
-                <div className="ml-2">
-                  <div className="text-white font-bold text-lg">Penguin Tracker</div>
-                  <div className="text-blue-200 text-xs">Explore - Discover - Collect</div>
-                </div>
+            <div className="flex flex-col items-center justify-center mb-4">
+              <img src="/logo.png" alt="Penguin Tracker Logo" className="w-16 h-16 object-contain bg-white p-1 rounded-full shadow-lg mb-2" />
+              <div className="text-center">
+                <div className="text-white font-bold text-lg">Penguin Tracker</div>
+                <div className="text-blue-200 text-xs">Explore - Discover - Collect</div>
               </div>
             </div>
             
@@ -167,8 +165,10 @@ export default function ShareAchievement({
                 <>
                   {/* Header section removed as requested */}
                   
-                  <div className="bg-white bg-opacity-90 text-indigo-900 font-bold text-lg px-4 py-2 rounded-full mb-3 inline-block shadow-lg">
-                    {message}
+                  <div className="text-center mb-3">
+                    <div className="bg-white bg-opacity-90 text-indigo-900 font-bold text-lg px-4 py-2 rounded-full inline-block shadow-lg">
+                      {message}
+                    </div>
                   </div>
                   
                   {/* Display larger, more prominent grid of penguin images */}
@@ -225,7 +225,7 @@ export default function ShareAchievement({
                   <p className="font-medium text-indigo-900"><span className="font-bold">Location:</span> {penguin.location}</p>
                 </div>
               ) : (
-                <p className="text-white font-medium bg-indigo-700 bg-opacity-50 rounded-lg py-2 px-4 mt-2">
+                <p className="text-white font-medium bg-indigo-700 bg-opacity-50 rounded-lg py-2 px-4 mt-2 text-center">
                   Visit <span className="font-bold">penguintracker.app</span> to explore all {total} penguin species!
                 </p>
               )}
