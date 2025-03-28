@@ -220,15 +220,21 @@ export default function ProgressCounter({ count, total, seenPenguinIds = [] }: P
       </Dialog>
       
       {/* ShareAchievement Modal, now with seenPenguins for showing the photos */}
-      <ShareAchievement
-        title="My Penguin Spotting Progress"
-        message={`I've spotted ${count} penguin species in Penguin Tracker!`}
-        count={count}
-        total={total}
-        seenPenguins={getSeenPenguinDetails()}
-        isOpen={showShareAchievement}
-        onClose={() => setShowShareAchievement(false)}
-      />
+      {showShareAchievement && (
+        <ShareAchievement
+          title="My Penguin Spotting Progress"
+          message={`I've spotted ${count} penguin species in Penguin Tracker!`}
+          count={count}
+          total={total}
+          seenPenguins={(() => {
+            console.log("Preparing penguins for share modal - IDs:", seenPenguinIds);
+            return seenPenguinIds && seenPenguinIds.length > 0 && penguins ? 
+              penguins.filter(penguin => seenPenguinIds.includes(penguin.id)) : [];
+          })()}
+          isOpen={showShareAchievement}
+          onClose={() => setShowShareAchievement(false)}
+        />
+      )}
     </>
   );
 }
