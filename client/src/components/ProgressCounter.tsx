@@ -228,8 +228,21 @@ export default function ProgressCounter({ count, total, seenPenguinIds = [] }: P
           total={total}
           seenPenguins={(() => {
             console.log("Preparing penguins for share modal - IDs:", seenPenguinIds);
-            return seenPenguinIds && seenPenguinIds.length > 0 && penguins ? 
-              penguins.filter(penguin => seenPenguinIds.includes(penguin.id)) : [];
+            console.log("All penguins available:", penguins);
+            
+            if (!penguins || !Array.isArray(penguins)) {
+              console.log("Penguins data is not available or not an array");
+              return [];
+            }
+            
+            if (!seenPenguinIds || !Array.isArray(seenPenguinIds) || seenPenguinIds.length === 0) {
+              console.log("No seenPenguinIds available or empty array");
+              return [];
+            }
+            
+            const filteredPenguins = penguins.filter(penguin => seenPenguinIds.includes(penguin.id));
+            console.log("Filtered penguins for sharing:", filteredPenguins);
+            return filteredPenguins;
           })()}
           isOpen={showShareAchievement}
           onClose={() => setShowShareAchievement(false)}

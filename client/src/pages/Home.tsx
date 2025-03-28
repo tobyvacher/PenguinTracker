@@ -168,7 +168,7 @@ export default function Home() {
                   }}
                 />
               )}
-              <ProgressCounter count={seenPenguins.length} total={penguins.length} />
+              <ProgressCounter count={seenPenguins.length} total={penguins.length} seenPenguinIds={seenPenguins} />
               <AuthButton />
             </div>
           </div>
