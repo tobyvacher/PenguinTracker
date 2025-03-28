@@ -276,6 +276,13 @@ export default function Home() {
             <MapPin className={`${isDark ? 'text-blue-300' : 'text-[#1E3A8A]'} h-8 w-8`} />
           </div>
         </Link>
+        
+        {/* Attribution */}
+        <div className="text-center pb-6">
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+            Made by <a href="https://TobyVacher.com" target="_blank" rel="noopener noreferrer" className={`${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-800'} transition-colors font-medium`}>TobyVacher.com</a>
+          </p>
+        </div>
       </main>
 
       {/* Modals and Toasts */}
