@@ -73,6 +73,7 @@ export default function ShareAchievement({
     tempCard.style.borderRadius = '8px';
     tempCard.style.overflow = 'hidden';
     tempCard.style.boxSizing = 'border-box';
+    tempCard.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
     
     try {
       // Clone the content
@@ -86,9 +87,33 @@ export default function ShareAchievement({
       const textLabels = tempCard.querySelectorAll('p');
       textLabels.forEach(label => {
         if (label.classList.contains('text-[9px]') || label.classList.contains('text-xs')) {
-          label.style.fontSize = '10px';
+          label.style.fontSize = '12px';
           label.style.lineHeight = '1.2';
-          label.style.padding = '2px';
+          label.style.padding = '4px 2px';
+          label.style.fontWeight = '500';
+        }
+      });
+      
+      // Adjust the label containers to be bigger and better positioned
+      const labelContainers = tempCard.querySelectorAll('.absolute.bottom-0');
+      labelContainers.forEach(container => {
+        // @ts-ignore
+        container.style.height = 'auto';
+        // @ts-ignore
+        container.style.paddingTop = '8px';
+        // @ts-ignore
+        container.style.paddingBottom = '8px';
+        // @ts-ignore
+        container.style.backgroundColor = 'rgba(0, 0, 0, 0.75)';
+      });
+      
+      // Adjust the image card containers to make sure they're the right height
+      const imageCards = tempCard.querySelectorAll('.rounded-lg.relative');
+      imageCards.forEach(card => {
+        // @ts-ignore
+        if (card.offsetHeight < 120) {
+          // @ts-ignore
+          card.style.height = '120px';
         }
       });
       
