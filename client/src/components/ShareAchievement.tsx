@@ -144,7 +144,7 @@ export default function ShareAchievement({
                 <img src="/logo.png" alt="Penguin Tracker Logo" className="w-16 h-16 object-contain bg-white p-1 rounded-full shadow-lg" />
                 <div className="ml-2">
                   <div className="text-white font-bold text-lg">Penguin Tracker</div>
-                  <div className="text-blue-200 text-xs">Explore • Discover • Protect</div>
+                  <div className="text-blue-200 text-xs">Explore - Discover - Collect</div>
                 </div>
               </div>
             </div>
@@ -165,21 +165,7 @@ export default function ShareAchievement({
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center">
-                      <div className="w-12 h-12 rounded-full flex items-center justify-center border-2 border-white shadow-lg mr-2" 
-                        style={{backgroundColor: getBadgeColor()}}>
-                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M5 3h14a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-2v3a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V5a2 2 0 0 1 2-2zm11 5h3V5h-3v3zm0 2v1a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-1H5v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3h-3z"/>
-                          <path d="M12 12.5a1 1 0 0 1-1-1v-2a1 1 0 0 1 2 0v2a1 1 0 0 1-1 1z"/>
-                          <path d="M12 21a3 3 0 0 0 3-3v-1H9v1a3 3 0 0 0 3 3z"/>
-                        </svg>
-                      </div>
-                      <div className="bg-indigo-900 bg-opacity-70 rounded-full px-3 py-1">
-                        <span className="text-xs font-medium text-white">{count} of {total} spotted</span>
-                      </div>
-                    </div>
-                  </div>
+                  {/* Header section removed as requested */}
                   
                   <div className="bg-white bg-opacity-90 text-indigo-900 font-bold text-lg px-4 py-2 rounded-full mb-3 inline-block shadow-lg">
                     {message}
