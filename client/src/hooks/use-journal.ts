@@ -520,6 +520,7 @@ export function useJournal() {
     isUpdatingJournalEntry: updateJournalEntryMutation.isPending,
     
     deleteJournalEntry: (entryId: number, penguinId?: number): Promise<void> => {
+      console.log("Delete journal entry called with:", { entryId, penguinId });
       return new Promise((resolve, reject) => {
         deleteJournalEntryMutation.mutate({ entryId, penguinId }, {
           onSuccess: () => resolve(),

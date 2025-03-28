@@ -59,8 +59,15 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
 
   // Handle delete
   const handleDelete = (entryId: number) => {
+    console.log("Deleting journal entry:", entryId, "for penguin:", penguin.id);
     // Pass the penguin ID for better cache invalidation
-    deleteJournalEntry(entryId, penguin.id);
+    deleteJournalEntry(entryId, penguin.id)
+      .then(() => {
+        console.log("Journal entry deleted successfully");
+      })
+      .catch((err) => {
+        console.error("Error deleting journal entry:", err);
+      });
   };
 
   // Form handlers
