@@ -61,76 +61,253 @@ export default function ShareAchievement({
     
     setIsGeneratingImage(true);
     
-    // Create an off-screen clone for better image generation
-    const tempCard = document.createElement('div');
-    tempCard.id = 'temp-share-card';
-    tempCard.style.position = 'absolute';
-    tempCard.style.top = '-9999px';
-    tempCard.style.left = '-9999px';
-    tempCard.style.padding = '40px'; // Add extra padding to ensure text fits
-    tempCard.style.width = '680px'; // Fixed width for better layout
-    tempCard.style.backgroundColor = isDark ? '#161e36' : '#396fc6';
-    tempCard.style.borderRadius = '8px';
-    tempCard.style.overflow = 'hidden';
-    tempCard.style.boxSizing = 'border-box';
-    tempCard.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
-    
     try {
-      // Clone the content
-      tempCard.innerHTML = shareCardRef.current.innerHTML;
-      document.body.appendChild(tempCard);
+      // Instead of manipulating DOM elements before taking the screenshot,
+      // we'll create a custom layout specifically for the image
       
-      // Add a small delay to allow the UI to update fully
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Create a container for the image
+      const imageContainer = document.createElement('div');
+      imageContainer.style.width = '600px';
+      imageContainer.style.backgroundColor = isDark ? '#161e36' : '#396fc6';
+      imageContainer.style.padding = '30px';
+      imageContainer.style.borderRadius = '8px';
+      imageContainer.style.position = 'absolute';
+      imageContainer.style.left = '-9999px';
+      imageContainer.style.top = '-9999px';
+      imageContainer.style.fontFamily = 'Arial, sans-serif';
       
-      // Find and adjust all the text labels to prevent cutting off
-      const textLabels = tempCard.querySelectorAll('p');
-      textLabels.forEach(label => {
-        if (label.classList.contains('text-[9px]') || label.classList.contains('text-xs')) {
-          label.style.fontSize = '12px';
-          label.style.lineHeight = '1.2';
-          label.style.padding = '4px 2px';
-          label.style.fontWeight = '500';
+      // Create the header
+      const header = document.createElement('div');
+      header.style.display = 'flex';
+      header.style.flexDirection = 'column';
+      header.style.alignItems = 'center';
+      header.style.marginBottom = '20px';
+      
+      // Logo
+      const logo = document.createElement('img');
+      logo.src = '/logo.png';
+      logo.style.width = '80px';
+      logo.style.height = '80px';
+      logo.style.objectFit = 'contain';
+      logo.style.backgroundColor = 'white';
+      logo.style.borderRadius = '50%';
+      logo.style.padding = '4px';
+      logo.style.marginBottom = '10px';
+      
+      // Title
+      const title = document.createElement('h1');
+      title.textContent = 'Penguin Tracker';
+      title.style.color = 'white';
+      title.style.fontSize = '28px';
+      title.style.margin = '5px 0';
+      title.style.fontWeight = 'bold';
+      
+      // Subtitle
+      const subtitle = document.createElement('h2');
+      subtitle.textContent = 'Explore - Discover - Collect';
+      subtitle.style.color = '#a5c4fd';
+      subtitle.style.fontSize = '16px';
+      subtitle.style.margin = '0 0 10px 0';
+      
+      header.appendChild(logo);
+      header.appendChild(title);
+      header.appendChild(subtitle);
+      
+      // Message
+      const messageBox = document.createElement('div');
+      messageBox.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+      messageBox.style.borderRadius = '30px';
+      messageBox.style.padding = '10px 20px';
+      messageBox.style.marginBottom = '25px';
+      messageBox.style.display = 'inline-block';
+      messageBox.style.textAlign = 'center';
+      
+      const messageText = document.createElement('span');
+      messageText.textContent = message;
+      messageText.style.color = '#2e3b80';
+      messageText.style.fontSize = '18px';
+      messageText.style.fontWeight = 'bold';
+      
+      messageBox.appendChild(messageText);
+      
+      // Container for the message
+      const messageContainer = document.createElement('div');
+      messageContainer.style.textAlign = 'center';
+      messageContainer.appendChild(messageBox);
+      
+      // Grid for penguin images
+      const penguinGrid = document.createElement('div');
+      
+      if (seenPenguins && seenPenguins.length > 0) {
+        // Use either 2-column or 3-column layout based on number of penguins
+        if (seenPenguins.length <= 4) {
+          penguinGrid.style.display = 'grid';
+          penguinGrid.style.gridTemplateColumns = 'repeat(2, 1fr)';
+          penguinGrid.style.gap = '15px';
+          penguinGrid.style.maxWidth = '460px';
+          penguinGrid.style.margin = '0 auto 20px auto';
+          
+          // Add penguin cards
+          seenPenguins.forEach(penguin => {
+            // Card container
+            const card = document.createElement('div');
+            card.style.borderRadius = '8px';
+            card.style.overflow = 'hidden';
+            card.style.border = '2px solid white';
+            card.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+            card.style.position = 'relative';
+            card.style.height = '150px';
+            
+            // Penguin image
+            const image = document.createElement('img');
+            image.src = penguin.imageUrl;
+            image.style.width = '100%';
+            image.style.height = '100%';
+            image.style.objectFit = 'cover';
+            
+            // Label container
+            const label = document.createElement('div');
+            label.style.position = 'absolute';
+            label.style.bottom = '0';
+            label.style.left = '0';
+            label.style.right = '0';
+            label.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+            label.style.padding = '10px';
+            
+            // Label text
+            const labelText = document.createElement('p');
+            labelText.textContent = penguin.name;
+            labelText.style.color = 'white';
+            labelText.style.margin = '0';
+            labelText.style.textAlign = 'center';
+            labelText.style.fontSize = '14px';
+            labelText.style.fontWeight = '500';
+            
+            label.appendChild(labelText);
+            card.appendChild(image);
+            card.appendChild(label);
+            penguinGrid.appendChild(card);
+          });
+        } else {
+          penguinGrid.style.display = 'grid';
+          penguinGrid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+          penguinGrid.style.gap = '10px';
+          penguinGrid.style.maxWidth = '460px';
+          penguinGrid.style.margin = '0 auto 20px auto';
+          
+          // Add penguin cards (up to 8)
+          seenPenguins.slice(0, Math.min(8, seenPenguins.length)).forEach(penguin => {
+            // Card container
+            const card = document.createElement('div');
+            card.style.borderRadius = '8px';
+            card.style.overflow = 'hidden';
+            card.style.border = '2px solid white';
+            card.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+            card.style.position = 'relative';
+            card.style.height = '110px';
+            
+            // Penguin image
+            const image = document.createElement('img');
+            image.src = penguin.imageUrl;
+            image.style.width = '100%';
+            image.style.height = '100%';
+            image.style.objectFit = 'cover';
+            
+            // Label container
+            const label = document.createElement('div');
+            label.style.position = 'absolute';
+            label.style.bottom = '0';
+            label.style.left = '0';
+            label.style.right = '0';
+            label.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+            label.style.padding = '8px 5px';
+            
+            // Label text
+            const labelText = document.createElement('p');
+            labelText.textContent = penguin.name;
+            labelText.style.color = 'white';
+            labelText.style.margin = '0';
+            labelText.style.textAlign = 'center';
+            labelText.style.fontSize = '12px';
+            labelText.style.fontWeight = '500';
+            
+            label.appendChild(labelText);
+            card.appendChild(image);
+            card.appendChild(label);
+            penguinGrid.appendChild(card);
+          });
+          
+          // Add +X card if more than 8 penguins
+          if (seenPenguins.length > 8) {
+            const extraCard = document.createElement('div');
+            extraCard.style.borderRadius = '8px';
+            extraCard.style.overflow = 'hidden';
+            extraCard.style.border = '2px solid white';
+            extraCard.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+            extraCard.style.display = 'flex';
+            extraCard.style.alignItems = 'center';
+            extraCard.style.justifyContent = 'center';
+            extraCard.style.backgroundColor = 'rgba(79, 70, 229, 0.8)';
+            extraCard.style.height = '110px';
+            
+            const extraText = document.createElement('span');
+            extraText.textContent = `+${seenPenguins.length - 8}`;
+            extraText.style.color = 'white';
+            extraText.style.fontSize = '22px';
+            extraText.style.fontWeight = 'bold';
+            
+            extraCard.appendChild(extraText);
+            penguinGrid.appendChild(extraCard);
+          }
         }
-      });
+      }
       
-      // Adjust the label containers to be bigger and better positioned
-      const labelContainers = tempCard.querySelectorAll('.absolute.bottom-0');
-      labelContainers.forEach(container => {
-        // @ts-ignore
-        container.style.height = 'auto';
-        // @ts-ignore
-        container.style.paddingTop = '8px';
-        // @ts-ignore
-        container.style.paddingBottom = '8px';
-        // @ts-ignore
-        container.style.backgroundColor = 'rgba(0, 0, 0, 0.75)';
-      });
+      // Footer text
+      const footer = document.createElement('div');
+      footer.style.textAlign = 'center';
+      footer.style.marginTop = '15px';
       
-      // Adjust the image card containers to make sure they're the right height
-      const imageCards = tempCard.querySelectorAll('.rounded-lg.relative');
-      imageCards.forEach(card => {
-        // @ts-ignore
-        if (card.offsetHeight < 120) {
-          // @ts-ignore
-          card.style.height = '120px';
-        }
-      });
+      const footerText = document.createElement('p');
+      footerText.textContent = `Visit penguintracker.app to explore all ${total} penguin species!`;
+      footerText.style.color = 'white';
+      footerText.style.fontSize = '16px';
+      footerText.style.fontWeight = '500';
+      footerText.style.backgroundColor = 'rgba(67, 56, 202, 0.5)';
+      footerText.style.borderRadius = '8px';
+      footerText.style.padding = '10px 15px';
+      footerText.style.margin = '0';
       
-      const canvas = await html2canvas(tempCard, {
-        scale: 2.5, // Higher scale for better quality
+      footer.appendChild(footerText);
+      
+      // Assemble the final image layout
+      imageContainer.appendChild(header);
+      imageContainer.appendChild(messageContainer);
+      imageContainer.appendChild(penguinGrid);
+      imageContainer.appendChild(footer);
+      
+      // Add to document temporarily
+      document.body.appendChild(imageContainer);
+      
+      // Wait for images to load
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Generate the image with html2canvas
+      const canvas = await html2canvas(imageContainer, {
         backgroundColor: isDark ? '#161e36' : '#396fc6',
+        scale: 2.5, // Higher scale for better quality
         logging: false,
         useCORS: true,
-        allowTaint: true,
-        width: 680,
-        height: tempCard.offsetHeight,
+        allowTaint: true
       });
       
+      // Convert canvas to image and set it
       const image = canvas.toDataURL('image/png');
       setImageSrc(image);
       
-      // Update the share text to include mention of the attached image
+      // Remove the temporary element
+      document.body.removeChild(imageContainer);
+      
+      // Update the share text
       const imageText = penguin
         ? `I spotted the ${penguin.name} on Penguin Tracker! Check out my screenshot. ${shareUrl}`
         : `I've spotted ${count} out of ${total} penguin species on Penguin Tracker! Check out my achievement. ${shareUrl}`;
@@ -138,10 +315,6 @@ export default function ShareAchievement({
     } catch (err) {
       console.error('Error generating image:', err);
     } finally {
-      // Clean up the temporary element
-      if (document.body.contains(tempCard)) {
-        document.body.removeChild(tempCard);
-      }
       setIsGeneratingImage(false);
     }
   };
