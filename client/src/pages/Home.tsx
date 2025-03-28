@@ -22,6 +22,12 @@ import { firebaseConfigValid } from "@/lib/firebase";
 import { PenguinSortType, sortPenguins } from "@/lib/penguin-sorting";
 
 export default function Home() {
+  // Move all hooks to the top of the component
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+  const { currentUser } = useAuth();
+  const { seenPenguins, toggleSeen } = usePenguinStore();
+  
   const [selectedPenguin, setSelectedPenguin] = useState<Penguin | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -33,9 +39,6 @@ export default function Home() {
   
   // Track the last milestone reached to prevent showing the badge again for the same milestone
   const lastMilestoneRef = useRef<number>(0);
-  
-  const { currentUser } = useAuth();
-  const { seenPenguins, toggleSeen } = usePenguinStore();
 
   // Fetch all penguins
   const { data, isLoading, error } = useQuery<Penguin[]>({
@@ -123,9 +126,6 @@ export default function Home() {
       </div>
     );
   }
-
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
 
   return (
     <div className={`${isDark ? 'bg-gradient-to-b from-gray-900 to-gray-800' : 'bg-gradient-to-b from-[#F8FAFC] to-[#E2E8F0]'} min-h-screen font-sans text-foreground`}>
