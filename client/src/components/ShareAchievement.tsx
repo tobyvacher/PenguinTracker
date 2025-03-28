@@ -12,6 +12,7 @@ interface ShareAchievementProps {
   count?: number;
   total?: number;
   penguin?: Penguin;
+  seenPenguins?: Penguin[]; // Array of seen penguins for milestone achievements
   isOpen: boolean;
   onClose: () => void;
 }
@@ -22,6 +23,7 @@ export default function ShareAchievement({
   count,
   total = 18,
   penguin,
+  seenPenguins,
   isOpen,
   onClose
 }: ShareAchievementProps) {
@@ -163,16 +165,36 @@ export default function ShareAchievement({
                 </div>
               ) : (
                 <>
-                  <div className="w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-[0_0_20px_rgba(255,255,255,0.4)]" 
+                  <div className="w-32 h-32 rounded-full flex items-center justify-center mx-auto mb-2 border-4 border-white shadow-[0_0_20px_rgba(255,255,255,0.4)]" 
                     style={{backgroundColor: getBadgeColor()}}>
                     <span className="text-5xl font-bold text-white">{count}</span>
                   </div>
                   <div className="bg-white bg-opacity-90 text-indigo-900 font-bold text-xl px-6 py-3 rounded-full mb-2 inline-block shadow-lg">
                     {message}
                   </div>
-                  <div className="flex items-center justify-center bg-indigo-900 bg-opacity-60 rounded-full px-4 py-1 mx-auto w-max">
+                  <div className="flex items-center justify-center bg-indigo-900 bg-opacity-60 rounded-full px-4 py-1 mx-auto w-max mb-3">
                     <span className="text-xs font-medium text-white">{count} of {total} penguin species</span>
                   </div>
+                  
+                  {/* Display grid of penguin images if we have seenPenguins data */}
+                  {seenPenguins && seenPenguins.length > 0 && (
+                    <div className="grid grid-cols-3 gap-1 mx-auto mt-1 max-w-[180px]">
+                      {seenPenguins.slice(0, Math.min(6, seenPenguins.length)).map((penguin) => (
+                        <div key={penguin.id} className="overflow-hidden rounded-md h-14 w-14 border border-white">
+                          <img 
+                            src={penguin.imageUrl}
+                            alt={penguin.name}
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      ))}
+                      {seenPenguins.length > 6 && (
+                        <div className="flex items-center justify-center h-14 w-14 rounded-md bg-indigo-900/70 border border-white">
+                          <span className="text-white font-bold">+{seenPenguins.length - 6}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
             </div>

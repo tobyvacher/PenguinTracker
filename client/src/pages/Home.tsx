@@ -298,6 +298,7 @@ export default function Home() {
         isOpen={showCongratsModal}
         onClose={closeCongratsModal}
         count={congratsCount}
+        seenPenguins={penguins.filter((p) => seenPenguins.includes(p.id))}
       />
       
       <SuccessToast 

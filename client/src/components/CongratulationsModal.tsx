@@ -6,14 +6,16 @@ import { useState } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import ShareAchievement from "./ShareAchievement";
 import SocialShareButtons from "./SocialShareButtons";
+import { Penguin } from "@shared/schema";
 
 interface CongratulationsModalProps {
   isOpen: boolean;
   onClose: () => void;
   count?: number; // Optional count to determine which achievement to show
+  seenPenguins?: Penguin[]; // Array of seen penguins for displaying in the achievement card
 }
 
-export default function CongratulationsModal({ isOpen, onClose, count = 18 }: CongratulationsModalProps) {
+export default function CongratulationsModal({ isOpen, onClose, count = 18, seenPenguins }: CongratulationsModalProps) {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [showShareAchievement, setShowShareAchievement] = useState(false);
   const { theme } = useTheme();
@@ -193,6 +195,7 @@ export default function CongratulationsModal({ isOpen, onClose, count = 18 }: Co
         message={shareText.replace(' 🐧', '')}
         count={count}
         total={18}
+        seenPenguins={seenPenguins}
         isOpen={showShareAchievement}
         onClose={() => setShowShareAchievement(false)}
       />
