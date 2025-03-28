@@ -96,16 +96,12 @@ export default function ProgressCounter({ count, total, seenPenguinIds = [] }: P
     // Create a set of seen penguin IDs for faster lookup
     const seenPenguinIdSet = new Set(seenPenguinIds);
     
-    // If we have specific penguin IDs, filter the penguins by those IDs
+    // Only return penguins that have been marked as seen
     if (seenPenguinIds.length > 0) {
       return penguins.filter(penguin => seenPenguinIdSet.has(penguin.id));
     }
     
-    // Fallback: if no seenPenguinIds provided but we have count, show first 'count' penguins
-    if (count > 0 && penguins.length >= count) {
-      return penguins.slice(0, count);
-    }
-    
+    // If no penguins have been marked as seen, return an empty array
     return [];
   };
 
