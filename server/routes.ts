@@ -625,6 +625,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Mount API routes
   app.use("/api", apiRouter);
+  
+  // Add middleware to handle JS MIME type issues - to fix deployment MIME type issues
+  app.use((req, res, next) => {
+    const url = req.url;
+    // If this is a JavaScript file, ensure correct content type
+    if (url.endsWith('.js') || url.endsWith('.mjs')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+    next();
+  });
 
   const httpServer = createServer(app);
 
