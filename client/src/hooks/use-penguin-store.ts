@@ -234,12 +234,8 @@ export function usePenguinStore() {
       // Update localStorage (this happens for all users)
       localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
       
-      // Show immediate feedback toast
-      toast({
-        title: isCurrentlySeen ? "Marked as unseen" : "Marked as seen",
-        description: `Penguin ${isCurrentlySeen ? "removed from" : "added to"} your collection`,
-        variant: "default",
-      });
+      // We'll use the custom SuccessToast instead
+      // Remove toast here as it creates duplicate notifications
       
       // STEP 2: Perform actual server update in the background
       if (isAuthenticated && currentUser) {
