@@ -1,26 +1,31 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye } from "lucide-react";
+import { Eye, Loader2 } from "lucide-react";
 import { Penguin } from "@shared/schema";
 import { useTheme } from "@/contexts/ThemeContext";
+import { usePenguinStore } from "@/hooks/use-penguin-store";
 
 interface PenguinCardProps {
   penguin: Penguin;
   isSeen: boolean;
   onClick: () => void;
   onLongPress: () => void;
+  isLoading?: boolean;
 }
 
 export default function PenguinCard({ 
   penguin, 
   isSeen, 
   onClick, 
-  onLongPress 
+  onLongPress,
+  isLoading: externalLoading
 }: PenguinCardProps) {
   const [isPressing, setIsPressing] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const touchStartPosRef = useRef<{ x: number; y: number } | null>(null);
   const isScrollingRef = useRef<boolean>(false);
+  const { isPenguinLoading } = usePenguinStore();
+  const isLoading = externalLoading ?? isPenguinLoading(penguin.id);
   
   // Animation variants for the card
   const cardVariants = {
@@ -48,6 +53,9 @@ export default function PenguinCard({
   
   // Mouse handlers (desktop)
   const mouseDownHandler = () => {
+    // Disable interactions while loading
+    if (isLoading) return;
+    
     setIsPressing(true);
     timerRef.current = setTimeout(() => {
       onLongPress();
@@ -56,6 +64,9 @@ export default function PenguinCard({
   };
   
   const mouseUpHandler = () => {
+    // Disable interactions while loading
+    if (isLoading) return;
+    
     if (isPressing) {
       onClick();
     }
@@ -69,6 +80,9 @@ export default function PenguinCard({
   
   // Touch handlers (mobile)
   const touchStartHandler = (e: React.TouchEvent) => {
+    // Disable interactions while loading
+    if (isLoading) return;
+    
     // Store the starting touch position
     const touch = e.touches[0];
     touchStartPosRef.current = { x: touch.clientX, y: touch.clientY };
@@ -85,6 +99,9 @@ export default function PenguinCard({
   };
   
   const touchMoveHandler = (e: React.TouchEvent) => {
+    // Disable interactions while loading
+    if (isLoading) return;
+    
     // If we don't have a starting position, exit
     if (!touchStartPosRef.current) return;
     
@@ -109,6 +126,9 @@ export default function PenguinCard({
   };
   
   const touchEndHandler = (e: React.TouchEvent) => {
+    // Disable interactions while loading
+    if (isLoading) return;
+    
     // Only handle touches that started on this component
     if (!touchStartPosRef.current) return;
     
@@ -142,6 +162,8 @@ export default function PenguinCard({
   
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
+    // Disable interactions while loading
+    if (isLoading) return;
     onLongPress();
   };
   
@@ -150,10 +172,10 @@ export default function PenguinCard({
 
   return (
     <motion.div
-      className="flex flex-col items-center cursor-pointer"
+      className={`flex flex-col items-center ${isLoading ? 'cursor-wait' : 'cursor-pointer'}`}
       variants={cardVariants}
       animate={isSeen ? "seen" : "unseen"}
-      whileHover={{ y: -5 }}
+      whileHover={isLoading ? {} : { y: -5 }}
       transition={{ duration: 0.2 }}
       onMouseDown={mouseDownHandler}
       onMouseUp={mouseUpHandler}
@@ -177,6 +199,19 @@ export default function PenguinCard({
             }`}
           />
         </div>
+        
+        {/* Loading spinner */}
+        {isLoading && (
+          <motion.div 
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/50 rounded-full p-3"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <Loader2 className="h-8 w-8 text-white animate-spin" />
+          </motion.div>
+        )}
+        
+        {/* "Seen" indicator */}
         <motion.div 
           className="absolute bottom-0 right-0 bg-[#FFD700] text-[#7B5800] rounded-full p-1.5 shadow-[0_0_8px_rgba(255,215,0,0.8)] border-2 border-white"
           initial={{ opacity: 0, scale: 0 }}

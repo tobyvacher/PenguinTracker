@@ -1,12 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 export function usePenguinStore() {
   const [seenPenguins, setSeenPenguins] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingPenguins, setLoadingPenguins] = useState<number[]>([]);
   const { currentUser, isAuthenticated } = useAuth();
+  const { toast } = useToast();
+  const pendingChanges = useRef<{id: number, action: 'add' | 'remove'}[]>([]);
   
   // Generate a storage key that includes user ID for authenticated users
   const getStorageKey = () => {
@@ -129,140 +133,222 @@ export function usePenguinStore() {
     };
   }, [currentUser, isAuthenticated]);
   
-  // Toggle penguin seen status
-  const toggleSeen = async (penguinId: number) => {
-    const storageKey = getStorageKey();
-    const isCurrentlySeen = seenPenguins.includes(penguinId);
+  // Function to process pending changes when back online
+  const processPendingChanges = async () => {
+    if (pendingChanges.current.length === 0) return;
+    console.log('Processing pending changes:', pendingChanges.current);
     
-    // For unauthenticated users, only use localStorage
-    if (!isAuthenticated || !currentUser) {
+    // Process each pending change
+    for (const change of [...pendingChanges.current]) {
       try {
-        if (isCurrentlySeen) {
-          // Remove from local seen list
-          const updatedSeenPenguins = seenPenguins.filter(id => id !== penguinId);
-          setSeenPenguins(updatedSeenPenguins);
-          localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
-          console.log(`Removed penguin ${penguinId} from local seen list (unauthenticated)`);
+        if (change.action === 'add') {
+          // Add penguin to server
+          const response = await fetch('/api/seen-penguins', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${await currentUser?.getIdToken()}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ penguinId: change.id }),
+            credentials: 'include'
+          });
+          
+          if (response.ok) {
+            console.log(`Successfully synced pending add for penguin ${change.id}`);
+            // Remove from pending queue if successful
+            pendingChanges.current = pendingChanges.current.filter(c => 
+              !(c.id === change.id && c.action === 'add')
+            );
+          } else {
+            throw new Error(`Failed with status: ${response.status}`);
+          }
         } else {
-          // Add to local seen list
-          const updatedSeenPenguins = [...seenPenguins, penguinId];
-          setSeenPenguins(updatedSeenPenguins);
-          localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
-          console.log(`Added penguin ${penguinId} to local seen list (unauthenticated)`);
-        }
-      } catch (error) {
-        console.error('Error updating localStorage:', error);
-      }
-      return;
-    }
-    
-    // For authenticated users, use API and Firestore
-    try {
-      // Get auth token for API requests
-      const authToken = await currentUser.getIdToken();
-      
-      if (isCurrentlySeen) {
-        // REMOVE PENGUIN FLOW
-        console.log(`Attempting to remove penguin ${penguinId} from seen list`);
-        
-        try {
-          const response = await fetch(`/api/seen-penguins/${penguinId}`, {
+          // Remove penguin from server
+          const response = await fetch(`/api/seen-penguins/${change.id}`, {
             method: 'DELETE',
             headers: {
-              'Authorization': `Bearer ${authToken}`,
+              'Authorization': `Bearer ${await currentUser?.getIdToken()}`,
               'Content-Type': 'application/json'
             },
             credentials: 'include'
           });
           
           if (response.status === 204) {
-            console.log(`Successfully removed penguin ${penguinId} from seen list`);
-            
-            // Update state after successful API call
-            const updatedSeenPenguins = seenPenguins.filter(id => id !== penguinId);
-            setSeenPenguins(updatedSeenPenguins);
-            localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
-            
-            // Invalidate queries to refresh data
-            queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
-          } else if (response.status === 401) {
-            // If unauthorized, fall back to local storage
-            console.warn("Unauthorized to update server data - using local storage only");
-            const updatedSeenPenguins = seenPenguins.filter(id => id !== penguinId);
-            setSeenPenguins(updatedSeenPenguins);
-            localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
+            console.log(`Successfully synced pending remove for penguin ${change.id}`);
+            // Remove from pending queue if successful
+            pendingChanges.current = pendingChanges.current.filter(c => 
+              !(c.id === change.id && c.action === 'remove')
+            );
           } else {
             throw new Error(`Failed with status: ${response.status}`);
           }
-        } catch (deleteError) {
-          console.error(`Failed to remove penguin ${penguinId} from seen list:`, deleteError);
-          // Do not update state on error - keep it as seen
+        }
+      } catch (error) {
+        console.error('Error processing pending change', error);
+        // Keep in queue to retry later
+      }
+    }
+    
+    // After processing, invalidate queries to refresh data
+    queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
+  };
+
+  // Listen for online status changes
+  useEffect(() => {
+    const handleOnline = () => {
+      if (isAuthenticated && currentUser) {
+        processPendingChanges();
+      }
+    };
+    
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [isAuthenticated, currentUser]);
+  
+  // Toggle penguin seen status (optimistically!)
+  const toggleSeen = async (penguinId: number) => {
+    const storageKey = getStorageKey();
+    const isCurrentlySeen = seenPenguins.includes(penguinId);
+    
+    // Set loading state for this penguin
+    setLoadingPenguins(prev => [...prev, penguinId]);
+    
+    // Store original state in case we need to revert
+    const originalSeenPenguins = [...seenPenguins];
+    
+    try {
+      // STEP 1: Update UI immediately (optimistically)
+      let updatedSeenPenguins: number[];
+      
+      if (isCurrentlySeen) {
+        // Remove penguin from seen list
+        updatedSeenPenguins = seenPenguins.filter(id => id !== penguinId);
+      } else {
+        // Add penguin to seen list
+        updatedSeenPenguins = [...seenPenguins, penguinId];
+      }
+      
+      // Update state optimistically
+      setSeenPenguins(updatedSeenPenguins);
+      
+      // Update localStorage (this happens for all users)
+      localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
+      
+      // Show immediate feedback toast
+      toast({
+        title: isCurrentlySeen ? "Marked as unseen" : "Marked as seen",
+        description: `Penguin ${isCurrentlySeen ? "removed from" : "added to"} your collection`,
+        variant: "default",
+      });
+      
+      // STEP 2: Perform actual server update in the background
+      if (isAuthenticated && currentUser) {
+        try {
+          let response;
+          
+          // Check if we're online
+          if (navigator.onLine) {
+            if (isCurrentlySeen) {
+              // REMOVE PENGUIN
+              console.log(`Attempting to remove penguin ${penguinId} from seen list`);
+              
+              response = await fetch(`/api/seen-penguins/${penguinId}`, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': `Bearer ${await currentUser.getIdToken()}`,
+                  'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+              });
+              
+              if (response.status === 204) {
+                console.log(`Successfully removed penguin ${penguinId} from seen list`);
+                // Success - no need to do anything as state is already updated
+              } else if (response.status === 401) {
+                // Handle authentication error
+                toast({
+                  title: "Session expired",
+                  description: "Please log in again to save your progress",
+                  variant: "destructive",
+                });
+                throw new Error('Authentication failed');
+              } else {
+                throw new Error(`Failed with status: ${response.status}`);
+              }
+            } else {
+              // ADD PENGUIN
+              console.log(`Attempting to add penguin ${penguinId} to seen list`);
+              
+              response = await fetch('/api/seen-penguins', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${await currentUser.getIdToken()}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ penguinId }),
+                credentials: 'include'
+              });
+              
+              if (response.ok) {
+                console.log(`Successfully added penguin ${penguinId} to seen list`);
+                // Success - no need to do anything as state is already updated
+              } else if (response.status === 401) {
+                // Handle authentication error
+                toast({
+                  title: "Session expired",
+                  description: "Please log in again to save your progress",
+                  variant: "destructive",
+                });
+                throw new Error('Authentication failed');
+              } else {
+                throw new Error(`Failed with status: ${response.status}`);
+              }
+            }
+            
+            // Invalidate queries to refresh data
+            queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
+          } else {
+            // We're offline, add to pending changes
+            console.log(`Offline - adding change to pending queue: ${isCurrentlySeen ? 'remove' : 'add'} penguin ${penguinId}`);
+            pendingChanges.current.push({
+              id: penguinId,
+              action: isCurrentlySeen ? 'remove' : 'add'
+            });
+          }
+        } catch (apiError) {
+          console.error(`API error when toggling penguin ${penguinId}:`, apiError);
+          
+          // Show error toast
+          toast({
+            title: "Error updating collection",
+            description: "We'll try again when your connection improves",
+            variant: "destructive",
+          });
+          
+          // Don't revert the UI state, since we'll retry the operation when online
+          // Also, the user has already seen the immediate UI update
         }
       } else {
-        // ADD PENGUIN FLOW
-        console.log(`Attempting to add penguin ${penguinId} to seen list`);
-        
-        try {
-          const response = await fetch('/api/seen-penguins', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${authToken}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ penguinId }),
-            credentials: 'include'
-          });
-          
-          if (response.ok) {
-            console.log(`Successfully added penguin ${penguinId} to seen list`);
-            
-            // Update state after successful API call
-            const updatedSeenPenguins = [...seenPenguins, penguinId];
-            setSeenPenguins(updatedSeenPenguins);
-            localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
-            
-            // Invalidate queries to refresh data
-            queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
-          } else if (response.status === 401) {
-            // If unauthorized, fall back to local storage
-            console.warn("Unauthorized to update server data - using local storage only");
-            const updatedSeenPenguins = [...seenPenguins, penguinId];
-            setSeenPenguins(updatedSeenPenguins);
-            localStorage.setItem(storageKey, JSON.stringify(updatedSeenPenguins));
-          } else {
-            throw new Error(`Failed with status: ${response.status}`);
-          }
-        } catch (postError) {
-          console.error(`Failed to add penguin ${penguinId} to seen list:`, postError);
-          // Do not update state on error - keep it as unseen
-        }
+        // For non-authenticated users, just update localStorage (already done above)
+        console.log(`${isCurrentlySeen ? 'Removed' : 'Added'} penguin ${penguinId} to local seen list (unauthenticated)`);
       }
     } catch (error) {
-      console.error('Failed to toggle penguin seen status:', error);
+      // Handle any unexpected errors
+      console.error('Unexpected error toggling penguin status:', error);
       
-      // Refresh the data from the server to ensure consistency
-      try {
-        // Get a fresh token
-        if (currentUser) {
-          const authToken = await currentUser.getIdToken(true);
-          
-          const response = await fetch('/api/seen-penguins', {
-            credentials: 'include',
-            headers: {
-              'Authorization': `Bearer ${authToken}`
-            }
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            setSeenPenguins(data);
-            localStorage.setItem(storageKey, JSON.stringify(data));
-          }
-        }
-      } catch (fetchError) {
-        console.error('Failed to fetch current seen penguins:', fetchError);
-        // No state changes on error
-      }
+      // Revert to original state
+      setSeenPenguins(originalSeenPenguins);
+      localStorage.setItem(storageKey, JSON.stringify(originalSeenPenguins));
+      
+      // Show error toast
+      toast({
+        title: "Error updating collection",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      // Remove loading state for this penguin
+      setLoadingPenguins(prev => prev.filter(id => id !== penguinId));
     }
   };
   
@@ -270,5 +356,7 @@ export function usePenguinStore() {
     seenPenguins,
     toggleSeen,
     isLoading,
+    loadingPenguins,
+    isPenguinLoading: (id: number) => loadingPenguins.includes(id),
   };
 }
