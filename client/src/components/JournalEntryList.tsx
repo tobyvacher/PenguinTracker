@@ -45,13 +45,13 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
     isDeletingJournalEntry 
   } = useJournal();
   
-  // Get journal entries for this penguin
-  const { 
-    data: journalEntries = [],
-    isLoading,
-    isError,
-    error
-  } = getPenguinJournalEntries(penguin.id) || { data: [], isLoading: false, isError: false };
+  // Get journal entries for this penguin if authenticated
+  const journalResult = getPenguinJournalEntries(penguin.id);
+  
+  // Safe extraction of values, providing defaults
+  const journalEntries = journalResult?.data || [];
+  const isLoading = journalResult?.isLoading || false;
+  const isError = journalResult?.isError || !isAuthenticated;
   
   // UI states
   const [showAddForm, setShowAddForm] = useState(false);
@@ -94,50 +94,56 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
     );
   }
   
-  // Show error state
-  if (isError) {
-    // Check if this is a Firestore index error
-    const isIndexError = error?.message?.includes('index') || error?.message?.includes('Index');
-    
+  // Show error state or empty state with a message for later implementation
+  if (isError || !isAuthenticated) {
     return (
       <div className="p-4 text-center space-y-3">
-        <p className="text-red-500 font-medium">Error loading journal entries</p>
-        
-        {isIndexError ? (
-          <>
-            <p className="text-sm text-gray-600">
-              This looks like a Firestore index error. For the journal feature to work properly, 
-              you need to create specific indices in your Firebase console.
+        {!isAuthenticated ? (
+          // If not authenticated, prompt to sign in 
+          <div className={`py-8 text-center ${isDark ? 'bg-gray-800' : 'bg-gray-50'} rounded-lg`}>
+            <p className={`mb-2 ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>Sign in to use the journal</p>
+            <p className={`text-sm max-w-md mx-auto ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              The journal feature allows you to record when and where you spotted penguins in the wild. 
+              Please sign in to create and view journal entries.
             </p>
-            <div className={`${isDark ? 'bg-gray-800' : 'bg-gray-50'} p-3 rounded-md text-xs text-left ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-              <p className="font-medium mb-1">How to fix:</p>
-              <ol className="list-decimal pl-5 space-y-1">
-                <li>Go to your Firebase console at console.firebase.google.com</li>
-                <li>Select the "penguin-tracker-7e7d7" project</li>
-                <li>Navigate to Firestore Database → Indexes tab</li>
-                <li>Create a composite index for the "journal_entries" collection with these fields:</li>
-                <ul className="list-disc pl-5 mt-1 space-y-1">
-                  <li>userId (Ascending)</li>
-                  <li>penguinId (Ascending)</li>
-                  <li>createdAt (Descending)</li>
-                </ul>
-                <li>Save the index and wait for it to be created (may take a few minutes)</li>
-              </ol>
-            </div>
-          </>
+            <Button 
+              onClick={signIn}
+              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <LogIn className="h-4 w-4 mr-1" />
+              Sign in with Google
+            </Button>
+          </div>
         ) : (
-          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-            Something went wrong while loading the journal entries.
-          </p>
+          // Otherwise show error with friendly message
+          <>
+            <p className="text-orange-500 font-medium">Journal entries temporarily unavailable</p>
+            
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              We're working on making the journal feature available soon.
+            </p>
+            
+            <div className={`${isDark ? 'bg-gray-800' : 'bg-gray-50'} p-3 rounded-md text-sm text-left mt-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+              <p>In the meantime, you can:</p>
+              <ul className="list-disc pl-5 mt-1 space-y-1 text-sm">
+                <li>Track which penguins you've seen</li>
+                <li>Explore penguin information</li>
+                <li>View the global penguin map</li>
+              </ul>
+            </div>
+            
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                // Simple refresh instead of a targeted refetch
+                window.location.reload();
+              }}
+              className="mt-4"
+            >
+              Try Again
+            </Button>
+          </>
         )}
-        
-        <Button 
-          variant="outline" 
-          onClick={() => window.location.reload()}
-          className="mt-2"
-        >
-          Retry
-        </Button>
       </div>
     );
   }
