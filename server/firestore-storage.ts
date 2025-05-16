@@ -841,3 +841,72 @@ export class FirestoreServerStorage implements IStorage {
 }
 
 export const firestoreServerStorage = new FirestoreServerStorage();
+
+// Testing function for journal entries
+export async function testJournalEntries() {
+  if (!db) throw new Error("Firestore not initialized");
+  
+  try {
+    console.log("TEST: Checking for journal_entries collection");
+    const collections = await db.listCollections();
+    const collectionNames = collections.map(col => col.id);
+    console.log(`TEST: Available collections: ${collectionNames.join(', ')}`);
+    
+    // Check if journal_entries collection exists
+    const hasJournalEntries = collectionNames.includes('journal_entries');
+    console.log(`TEST: journal_entries collection exists: ${hasJournalEntries}`);
+    
+    // Check for any entries in the collection
+    if (hasJournalEntries) {
+      const snapshot = await db.collection('journal_entries').get();
+      console.log(`TEST: journal_entries collection has ${snapshot.size} documents`);
+      
+      // List first few entries if they exist
+      if (snapshot.size > 0) {
+        console.log("TEST: Sample journal entries:");
+        snapshot.docs.slice(0, 3).forEach(doc => {
+          console.log(`TEST: Entry ID ${doc.id}: ${JSON.stringify(doc.data())}`);
+        });
+      }
+    }
+    
+    // Try to create a test entry
+    const testEntry = {
+      id: 999, // Use a high number to avoid conflicts
+      userId: 1, // User ID 1 should be the test user
+      penguinId: 6, // Emperor Penguin
+      sightingDate: new Date().toISOString(),
+      location: "Test Location",
+      notes: "This is a test journal entry created for debugging purposes",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    console.log(`TEST: Creating test journal entry: ${JSON.stringify(testEntry)}`);
+    
+    // Save the test entry
+    await db.collection('journal_entries').doc('test_entry').set(testEntry);
+    console.log("TEST: Test journal entry created successfully");
+    
+    // Verify we can read it back
+    const verifyDoc = await db.collection('journal_entries').doc('test_entry').get();
+    if (verifyDoc.exists) {
+      console.log(`TEST: Retrieved test entry: ${JSON.stringify(verifyDoc.data())}`);
+      return { success: true, message: "Test journal entry created and retrieved successfully" };
+    } else {
+      console.log("TEST: Failed to retrieve test entry after creation");
+      return { success: false, message: "Test entry was not found after creation" };
+    }
+  } catch (error) {
+    console.error("TEST ERROR:", error);
+    if (error instanceof Error) {
+      console.error("TEST ERROR details:", error.message);
+      console.error("TEST ERROR stack:", error.stack);
+    }
+    return { 
+      success: false, 
+      message: "Error testing journal entries", 
+      error: error instanceof Error ? error.message : String(error) 
+    };
+  }
+}

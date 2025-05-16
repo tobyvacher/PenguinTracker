@@ -10,6 +10,7 @@ import {
 import { z } from "zod";
 import { authenticate, isAuthenticated } from "./middleware/auth";
 import { debugFirestore, db } from "./firebase-admin";
+import { testJournalEntries } from "./firestore-storage";
 
 // Initialize penguin data
 import { penguinData } from "../client/src/lib/penguin-data";
@@ -462,6 +463,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error in Firestore debug route:", error);
       res.status(500).json({ 
         message: "Error debugging Firestore", 
+        error: error?.message || 'Unknown error' 
+      });
+    }
+  });
+  
+  // Test route for journal entries
+  apiRouter.get("/test-journal-entries", async (req, res) => {
+    try {
+      console.log('Running journal entries test from API route');
+      const result = await testJournalEntries();
+      res.json({ 
+        message: "Journal entries test completed", 
+        result 
+      });
+    } catch (error: any) {
+      console.error("Error in journal entries test route:", error);
+      res.status(500).json({ 
+        message: "Error testing journal entries", 
         error: error?.message || 'Unknown error' 
       });
     }
