@@ -774,18 +774,15 @@ export class FirestoreStorage implements IStorage {
         }
       }
     } catch (error) {
-      handleFirestoreError('get penguin journal entries', error);
-    }
-    
-    return [];
-    } catch (error) {
       console.error("Error fetching penguin journal entries:", error);
       if (error instanceof Error) {
         console.error("Error message:", error.message);
       }
       handleFirestoreError('get penguin journal entries', error);
+      return [];
     }
     
+    // Return empty array as fallback
     return [];
   }
 
