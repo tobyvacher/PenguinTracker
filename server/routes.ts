@@ -213,76 +213,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all journal entries for the current user
   apiRouter.get("/journal", async (req, res) => {
     try {
+      console.log("GET /journal - Starting request");
       // Only allow authenticated users to access journal entries
       if (!req.user) {
+        console.log("GET /journal - No authenticated user, returning empty array");
         return res.json([]);
       }
       
       // Get user by firebase uid
+      console.log(`GET /journal - Getting user with firebase uid: ${req.user.uid}`);
       const user = await storage.getUserByFirebaseUid(req.user.uid);
       if (!user) {
+        console.log(`GET /journal - User with firebase uid ${req.user.uid} not found, returning empty array`);
         return res.json([]);
       }
-
+      
+      console.log(`GET /journal - User found, id: ${user.id}, fetching journal entries...`);
       const journalEntries = await storage.getUserJournalEntries(user.id);
+      console.log(`GET /journal - Retrieved ${journalEntries.length} journal entries`);
+      
       res.json(journalEntries);
     } catch (error) {
       console.error("Error fetching journal entries:", error);
-      res.status(500).json({ message: "Failed to fetch journal entries" });
+      if (error instanceof Error) {
+        console.error("Error details:", error.message);
+        console.error("Error stack:", error.stack);
+      }
+      res.status(500).json({ message: "Failed to fetch journal entries", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
   // Get journal entries for a specific penguin
   apiRouter.get("/journal/penguin/:penguinId", async (req, res) => {
     try {
+      console.log(`GET /journal/penguin/${req.params.penguinId} - Starting request`);
       // Only allow authenticated users to access journal entries
       if (!req.user) {
+        console.log(`GET /journal/penguin/${req.params.penguinId} - No authenticated user, returning empty array`);
         return res.json([]);
       }
       
       // Get user by firebase uid
+      console.log(`GET /journal/penguin/${req.params.penguinId} - Getting user with firebase uid: ${req.user.uid}`);
       const user = await storage.getUserByFirebaseUid(req.user.uid);
       if (!user) {
+        console.log(`GET /journal/penguin/${req.params.penguinId} - User with firebase uid ${req.user.uid} not found, returning empty array`);
         return res.json([]);
       }
 
       const penguinId = parseInt(req.params.penguinId);
+      console.log(`GET /journal/penguin/${penguinId} - User found, id: ${user.id}, fetching journal entries...`);
       const journalEntries = await storage.getPenguinJournalEntries(user.id, penguinId);
+      console.log(`GET /journal/penguin/${penguinId} - Retrieved ${journalEntries.length} journal entries`);
+      
       res.json(journalEntries);
     } catch (error) {
-      console.error("Error fetching penguin journal entries:", error);
-      res.status(500).json({ message: "Failed to fetch penguin journal entries" });
+      console.error(`Error fetching penguin ${req.params.penguinId} journal entries:`, error);
+      if (error instanceof Error) {
+        console.error("Error details:", error.message);
+        console.error("Error stack:", error.stack);
+      }
+      res.status(500).json({ message: "Failed to fetch penguin journal entries", error: error instanceof Error ? error.message : String(error) });
     }
   });
 
   // Add a new journal entry
   apiRouter.post("/journal", async (req, res) => {
     try {
+      console.log("POST /journal - Starting request");
       // Only allow authenticated users to add journal entries
       if (!req.user) {
+        console.log("POST /journal - No authenticated user, returning 401");
         return res.status(401).json({ message: "Authentication required" });
       }
       
       // Get user by firebase uid
+      console.log(`POST /journal - Getting user with firebase uid: ${req.user.uid}`);
       const user = await storage.getUserByFirebaseUid(req.user.uid);
       if (!user) {
+        console.log(`POST /journal - User with firebase uid ${req.user.uid} not found, returning 404`);
         return res.status(404).json({ message: "User not found" });
       }
+      console.log(`POST /journal - User found, id: ${user.id}`);
 
       // Parse and validate the request body
       let journalData;
       try {
+        console.log(`POST /journal - Request body:`, JSON.stringify(req.body));
         // Convert sightingDate string to Date if it's a string
         const formData = { ...req.body };
         if (typeof formData.sightingDate === 'string') {
+          console.log(`POST /journal - Converting sightingDate string to Date: ${formData.sightingDate}`);
           formData.sightingDate = new Date(formData.sightingDate);
         }
         
         journalData = insertSightingJournalSchema
           .omit({ userId: true }) // userId will be set from the authenticated user
           .parse(formData);
+        console.log(`POST /journal - Validation successful, journal data:`, JSON.stringify({
+          penguinId: journalData.penguinId,
+          location: journalData.location,
+          sightingDate: journalData.sightingDate
+        }));
       } catch (err) {
         console.error("Validation error:", err);
+        if (err instanceof z.ZodError) {
+          console.error("Validation errors detail:", JSON.stringify(err.errors));
+        }
         return res.status(400).json({ 
           message: "Invalid request data", 
           errors: err instanceof z.ZodError ? err.errors : [{ message: "Failed to parse data" }]
@@ -290,21 +327,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Add the journal entry with the user's ID
+      console.log(`POST /journal - Adding journal entry for user ${user.id} and penguin ${journalData.penguinId}`);
       const journalEntry = await storage.addJournalEntry({
         ...journalData,
         userId: user.id
       });
       
+      console.log(`POST /journal - Journal entry added successfully, id: ${journalEntry.id}`);
       res.status(201).json(journalEntry);
     } catch (error) {
       if (error instanceof z.ZodError) {
+        console.error("Zod validation error:", error.errors);
         return res.status(400).json({ 
           message: "Invalid request data",
           errors: error.errors 
         });
       }
       console.error("Error adding journal entry:", error);
-      res.status(500).json({ message: "Failed to add journal entry" });
+      if (error instanceof Error) {
+        console.error("Error details:", error.message);
+        console.error("Error stack:", error.stack);
+      }
+      res.status(500).json({ 
+        message: "Failed to add journal entry", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
     }
   });
 
