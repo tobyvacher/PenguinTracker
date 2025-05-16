@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User } from 'firebase/auth';
-import { signInWithGoogle, signOutUser, onAuthStateChange } from '@/lib/firebase';
+import { signInWithGoogle, signOutUser, onAuthStateChange, firebaseConfigValid } from '@/lib/firebase';
 import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
 
@@ -10,37 +10,63 @@ interface AuthContextType {
   signIn: () => Promise<User | null>;
   signOut: () => Promise<void>;
   isAuthenticated: boolean;
+  firebaseAvailable: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create a default context to avoid the "useAuth must be used within an AuthProvider" error
+const defaultContext: AuthContextType = {
+  currentUser: null,
+  loading: true,
+  signIn: async () => {
+    console.error("Auth context not initialized properly");
+    return null;
+  },
+  signOut: async () => {
+    console.error("Auth context not initialized properly");
+  },
+  isAuthenticated: false,
+  firebaseAvailable: false
+};
+
+const AuthContext = createContext<AuthContextType>(defaultContext);
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
+  return useContext(AuthContext);
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [firebaseAvailable, setFirebaseAvailable] = useState(firebaseConfigValid);
 
   // Create or get user in both the backend API and Firestore when a user signs in
   const createOrGetUser = async (user: User) => {
     try {
       console.log("Creating/getting user in backend and Firestore:", user.uid);
       
-      // 1. First create user in the API backend
-      const token = await user.getIdToken();
-      const apiUser = await apiRequest('/api/users', 'POST', {}, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      // Get token first - this will verify the user is properly authenticated
+      let token;
+      try {
+        token = await user.getIdToken(true); // Force refresh the token
+        console.log("Successfully obtained authentication token");
+      } catch (tokenError) {
+        console.error("Failed to get auth token:", tokenError);
+        throw new Error("Authentication token could not be retrieved. Please try signing in again.");
+      }
       
-      console.log("User created/retrieved in API backend:", apiUser);
+      // 1. First create user in the API backend
+      try {
+        const apiUser = await apiRequest('/api/users', 'POST', {}, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        console.log("User created/retrieved in API backend:", apiUser);
+      } catch (apiError) {
+        console.error("Error creating user in API backend:", apiError);
+        // Continue even if API fails, as we can still use Firebase directly
+      }
       
       // 2. Also create the user in Firestore directly
       try {
@@ -49,7 +75,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (firestoreStorage) {
           // Create the user in Firestore if it doesn't exist
-          // Create user with the fields that match InsertUser type
           await firestoreStorage.createUser({
             firebaseUid: user.uid,
             displayName: user.displayName || null,
@@ -67,7 +92,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Don't throw here, we want to continue even if Firestore fails
       }
       
-      return apiUser;
+      return user;
     } catch (error) {
       console.error('Error creating/getting user:', error);
       throw error; // Re-throw to handle in the UI
@@ -75,31 +100,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Set up the auth state listener 
-    const unsubscribe = onAuthStateChange(async (user) => {
-      setCurrentUser(user);
-      
-      if (user) {
-        await createOrGetUser(user);
-        // Invalidate queries that depend on authentication
-        queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
-      }
-      
-      // Set loading to false once auth state is initialized
+    // Check if Firebase is correctly configured
+    setFirebaseAvailable(firebaseConfigValid);
+    
+    if (!firebaseConfigValid) {
+      console.warn("Firebase is not properly configured. Some features may not work.");
       setLoading(false);
-    });
+      return () => {};
+    }
+    
+    // Set up the auth state listener
+    try { 
+      const unsubscribe = onAuthStateChange(async (user) => {
+        console.log("Auth state changed:", user ? `User ${user.uid} signed in` : "No user");
+        setCurrentUser(user);
+        
+        if (user) {
+          try {
+            await createOrGetUser(user);
+            // Invalidate queries that depend on authentication
+            queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/journal'] });
+          } catch (error) {
+            console.error("Error in auth state change handler:", error);
+          }
+        }
+        
+        // Set loading to false once auth state is initialized
+        setLoading(false);
+      });
 
-    return () => unsubscribe();
+      return () => unsubscribe();
+    } catch (error) {
+      console.error("Error setting up auth state listener:", error);
+      setLoading(false);
+      return () => {};
+    }
   }, []);
 
   const signIn = async () => {
     try {
+      if (!firebaseConfigValid) {
+        throw new Error("Firebase is not properly configured. Please check your environment variables.");
+      }
+      
       // Using popup flow - this will immediately return the user
       const user = await signInWithGoogle();
       if (user) {
         await createOrGetUser(user);
         // Invalidate queries that depend on authentication
         queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/journal'] });
       }
       return user;
     } catch (error: any) {
@@ -127,21 +178,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      if (!firebaseConfigValid) {
+        throw new Error("Firebase is not properly configured. Please check your environment variables.");
+      }
+      
       await signOutUser();
       // Invalidate queries that depend on authentication
       queryClient.invalidateQueries({ queryKey: ['/api/seen-penguins'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/journal'] });
     } catch (error) {
       console.error('Error signing out:', error);
       throw error;
     }
   };
 
-  const value = {
+  const value: AuthContextType = {
     currentUser,
     loading,
     signIn,
     signOut,
     isAuthenticated: !!currentUser,
+    firebaseAvailable: firebaseAvailable
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
