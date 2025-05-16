@@ -46,7 +46,23 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
   } = useJournal();
   
   // Manage entries locally to avoid Firebase index issues
-  const [localEntries, setLocalEntries] = useState<SightingJournal[]>([]);
+  const [localEntries, setLocalEntries] = useState<SightingJournal[]>(() => {
+    // Initialize with a sample entry if we're authenticated
+    if (isAuthenticated) {
+      return [{
+        id: Date.now(),
+        userId: 1,
+        penguinId: penguin.id,
+        sightingDate: new Date(),
+        location: "Sample location - Add your own entries!",
+        notes: "This is a sample journal entry. Click the Add Entry button to create your own entries to track your penguin sightings.",
+        coordinates: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }];
+    }
+    return [];
+  });
   const [isLocalLoading, setIsLocalLoading] = useState(false);
   
   // We'll use local state instead of the problematic Firebase queries
@@ -185,7 +201,13 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
       <div className="p-4">
         <JournalEntryForm 
           penguin={penguin}
-          onComplete={handleAddComplete}
+          onComplete={(newEntry) => {
+            if (newEntry) {
+              // Add the new entry to local state
+              setLocalEntries(prev => [newEntry, ...prev]);
+            }
+            setShowAddForm(false);
+          }}
           onCancel={() => setShowAddForm(false)}
         />
       </div>
@@ -198,7 +220,15 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
         <JournalEntryForm 
           penguin={penguin}
           entry={editingEntry}
-          onComplete={handleEditComplete}
+          onComplete={(updatedEntry) => {
+            if (updatedEntry) {
+              // Update the entry in local state
+              setLocalEntries(prev => 
+                prev.map(entry => entry.id === editingEntry.id ? updatedEntry : entry)
+              );
+            }
+            setEditingEntry(null);
+          }}
           onCancel={() => setEditingEntry(null)}
         />
       </div>

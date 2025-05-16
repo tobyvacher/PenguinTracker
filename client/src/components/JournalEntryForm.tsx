@@ -15,7 +15,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 interface JournalEntryFormProps {
   penguin: Penguin;
   entry?: SightingJournal; // Optional for editing existing entry
-  onComplete: () => void;
+  onComplete: (entry?: SightingJournal) => void; // Pass the entry back to parent
   onCancel: () => void;
 }
 
@@ -88,56 +88,27 @@ export default function JournalEntryForm({
       ? date 
       : new Date();
     
-    console.log("Submitting journal entry with date:", {
-      dateObject: validDate,
-      dateToString: validDate.toString(),
-      dateISOString: validDate.toISOString(),
-      dateType: typeof validDate
-    });
-    
-    const journalData: Omit<InsertSightingJournal, "userId"> = {
+    // Create a complete journal entry object for local state management
+    const journalData = {
+      id: entry?.id || Date.now(), // Use existing ID or generate temp ID with timestamp
+      userId: 1, // Just a placeholder for local data
       penguinId: penguin.id,
       sightingDate: validDate,
       location,
       notes: notes || null,
       coordinates: coordinates || null,
+      createdAt: entry?.createdAt || new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
     
-    if (isEditing && entry) {
-      updateJournalEntry(entry.id, journalData)
-        .then(() => {
-          toast({
-            title: "Journal updated",
-            description: `Your sighting of the ${penguin.name} has been updated.`,
-          });
-          onComplete();
-        })
-        .catch((error: Error) => {
-          console.error("Error updating journal entry:", error);
-          toast({
-            title: "Update failed",
-            description: error.message || "There was an error updating your journal entry. Please try again.",
-            variant: "destructive",
-          });
-        });
-    } else {
-      addJournalEntry(journalData)
-        .then(() => {
-          toast({
-            title: "Journal entry added",
-            description: `Your sighting of the ${penguin.name} has been recorded.`,
-          });
-          onComplete();
-        })
-        .catch((error: Error) => {
-          console.error("Error adding journal entry:", error);
-          toast({
-            title: "Submission failed",
-            description: error.message || "There was an error saving your journal entry. Please try again.",
-            variant: "destructive",
-          });
-        });
-    }
+    // Display success message
+    toast({
+      title: isEditing ? "Journal updated" : "Journal entry added",
+      description: `Your sighting of the ${penguin.name} has been ${isEditing ? 'updated' : 'recorded'}.`,
+    });
+    
+    // Pass the created/updated entry back through the callback
+    onComplete(journalData);
   };
   
   return (
