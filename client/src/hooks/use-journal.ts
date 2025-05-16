@@ -99,42 +99,14 @@ export function useJournal() {
     queryKey: useFirestore ? [FIRESTORE_KEYS.ALL_ENTRIES] : [API_KEYS.ALL_ENTRIES],
     queryFn: async () => {
       if (useFirestore && currentUser) {
-        try {
-          const userId = await getUserIdFromFirebase(currentUser.uid);
-          if (userId) {
-            console.time('fetchAllJournalEntries');
-            const entries = await firestoreStorage.getUserJournalEntries(userId);
-            console.timeEnd('fetchAllJournalEntries');
-            return entries;
-          }
-          return [];
-        } catch (error) {
-          console.error("Error fetching journal entries from Firestore:", error);
-          
-          // Check if this is a permissions/security rules error
-          if (error instanceof Error) {
-            const errorMessage = error.message || '';
-            if (errorMessage.includes('permission-denied') || 
-                errorMessage.includes('Permission denied') || 
-                errorMessage.includes('unauthorized') ||
-                errorMessage.includes('Missing or insufficient permissions')) {
-              
-              console.warn("Firestore security rules are preventing access to journal entries");
-              
-              // Inform the user in a helpful way by attaching info to the error
-              const permissionError = new Error(
-                "Firebase security rules are preventing access to your journal entries. " +
-                "This is likely because the journal_entries collection needs specific security rules. " +
-                "Please check your Firebase security rules."
-              );
-              permissionError.name = "FirebaseSecurityRulesError";
-              throw permissionError;
-            }
-          }
-          
-          // Re-throw the original error
-          throw error;
+        const userId = await getUserIdFromFirebase(currentUser.uid);
+        if (userId) {
+          console.time('fetchAllJournalEntries');
+          const entries = await firestoreStorage.getUserJournalEntries(userId);
+          console.timeEnd('fetchAllJournalEntries');
+          return entries;
         }
+        return [];
       }
       
       // Fallback to API

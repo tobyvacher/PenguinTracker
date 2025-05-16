@@ -180,21 +180,7 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
             Please sign in to create and view journal entries.
           </p>
           <Button 
-            onClick={async () => {
-              try {
-                // Get the direct Firebase sign-in function
-                const { signInWithGoogle } = await import('@/lib/firebase');
-                
-                // Call the sign-in directly
-                await signInWithGoogle();
-                
-                // Reload the page to update the authentication state
-                window.location.reload();
-              } catch (error) {
-                console.error("Error signing in from journal:", error);
-                alert("Sign-in failed. Please try again or use the sign-in button in the header.");
-              }
-            }}
+            onClick={signIn}
             className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
           >
             <LogIn className="h-4 w-4 mr-1" />

@@ -98,56 +98,15 @@ export const firebaseConfigValid = isConfigValid;
 
 // Sign in with Google using popup (better for Replit environment)
 export const signInWithGoogle = async () => {
-  console.log("Starting Google sign-in process");
-  
   if (!auth || !googleProvider) {
-    console.error("Firebase auth or Google provider not initialized", {
-      authExists: !!auth,
-      googleProviderExists: !!googleProvider
-    });
     throw new Error("Firebase authentication not initialized. Check your environment variables.");
   }
 
-  // Provide better diagnostics about the environment 
-  console.log("Firebase auth state before sign-in:", {
-    currentUser: auth.currentUser ? {
-      uid: auth.currentUser.uid,
-      isAnonymous: auth.currentUser.isAnonymous,
-      emailVerified: auth.currentUser.emailVerified
-    } : null,
-    authDomain: `${import.meta.env.VITE_FIREBASE_PROJECT_ID}.firebaseapp.com`,
-    currentDomain: window.location.hostname
-  });
-
-  // Add Google OAuth scopes for better user experience
-  googleProvider.addScope('profile');
-  googleProvider.addScope('email');
-  
-  // Set custom parameters for the auth provider
-  googleProvider.setCustomParameters({
-    prompt: 'select_account'
-  });
-
   try {
-    console.log("Calling signInWithPopup...");
     const result = await signInWithPopup(auth, googleProvider);
-    console.log("Google sign-in successful:", result.user.uid);
     return result.user;
-  } catch (error: any) {
-    console.error("Detailed sign-in error:", { 
-      code: error.code,
-      message: error.message,
-      email: error.email,
-      credential: error.credential ? "present" : "missing"
-    });
-    
-    // Alert on common errors to help debugging
-    if (error.code === 'auth/unauthorized-domain') {
-      console.error(`DOMAIN ERROR: ${window.location.hostname} is not authorized in Firebase console`);
-    } else if (error.code === 'auth/internal-error') {
-      console.error("Firebase internal error. Check environment variables and browser console.");
-    }
-    
+  } catch (error) {
+    console.error("Error signing in with Google:", error);
     throw error;
   }
 };

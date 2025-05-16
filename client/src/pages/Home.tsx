@@ -13,7 +13,6 @@ import SortingControls from "@/components/SortingControls";
 import GenusGroupView from "@/components/GenusGroupView";
 import RegionGroupView from "@/components/RegionGroupView";
 import ThemeToggle from "@/components/ThemeToggle";
-import AuthDebugger from "@/components/AuthDebugger";
 import { usePenguinStore } from "@/hooks/use-penguin-store";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -281,14 +280,6 @@ export default function Home() {
             <MapPin className={`${isDark ? 'text-blue-300' : 'text-[#1E3A8A]'} h-8 w-8`} />
           </div>
         </Link>
-        
-        {/* Authentication Debugging Tool */}
-        <div className="my-6">
-          <h2 className={`text-xl font-bold mb-4 text-center ${isDark ? 'text-white' : 'text-gray-800'}`}>
-            Authentication Troubleshooter
-          </h2>
-          <AuthDebugger />
-        </div>
         
         {/* Attribution */}
         <div className="text-center pb-6">

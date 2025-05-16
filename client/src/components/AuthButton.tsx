@@ -24,46 +24,25 @@ export default function AuthButton() {
 
   const handleSignIn = async () => {
     try {
-      console.log("Auth button: Starting sign-in process");
       setAuthError(null);
-      
-      // Since we know the direct Firebase authentication works (from the debugger),
-      // let's use it directly here instead of going through the context
-      const { signInWithGoogle } = await import('@/lib/firebase');
-      
-      // Use the working Firebase function directly
-      const user = await signInWithGoogle();
-      console.log("Auth button: Sign-in successful", user ? user.uid : "No user returned");
-      
-      // Refresh the page to make sure everything is synced
-      window.location.reload();
+      await signIn();
     } catch (error: any) {
-      console.error('Auth button: Error signing in:', error);
-      
-      // Enhanced error handling
+      console.error('Error signing in:', error);
       if (error.code === 'auth/popup-closed-by-user') {
         setAuthError('Sign-in popup was closed. Please try again.');
       } else if (error.code === 'auth/popup-blocked') {
         setAuthError('Sign-in popup was blocked by your browser. Please allow popups for this site.');
       } else if (error.code === 'auth/unauthorized-domain') {
-        const currentDomain = window.location.hostname;
-        setAuthError(`Your domain (${currentDomain}) needs to be added to Firebase authorized domains list.`);
+        setAuthError('Your domain needs to be added to Firebase authorized domains list.');
       } else if (error.code === 'auth/network-request-failed') {
         setAuthError('Network connection error. Please check your internet connection and try again.');
       } else if (error.code === 'auth/internal-error') {
         setAuthError('Firebase internal error. Check that environment variables are set correctly.');
-      } else if (error.message?.includes('apiKey') || error.message?.includes('config') || error.message?.includes('initialized')) {
-        setAuthError('Firebase configuration error. Please make sure all required environment variables are set correctly.');
-        console.error('Firebase config error details:', error);
+      } else if (error.message?.includes('apiKey') || error.message?.includes('config')) {
+        setAuthError('Firebase configuration error. Check that environment variables are set correctly.');
       } else {
         setAuthError(error.message || 'Authentication error');
       }
-      
-      // Force render the error element by rerendering
-      setTimeout(() => {
-        // This forces React to rerender the component with the error
-        setAuthError(prev => prev);
-      }, 100);
     }
   };
 
