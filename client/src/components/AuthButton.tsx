@@ -27,11 +27,16 @@ export default function AuthButton() {
       console.log("Auth button: Starting sign-in process");
       setAuthError(null);
       
-      // Debug log to verify the signIn function exists
-      console.log("Auth button: signIn function type:", typeof signIn);
+      // Since we know the direct Firebase authentication works (from the debugger),
+      // let's use it directly here instead of going through the context
+      const { signInWithGoogle } = await import('@/lib/firebase');
       
-      const user = await signIn();
+      // Use the working Firebase function directly
+      const user = await signInWithGoogle();
       console.log("Auth button: Sign-in successful", user ? user.uid : "No user returned");
+      
+      // Refresh the page to make sure everything is synced
+      window.location.reload();
     } catch (error: any) {
       console.error('Auth button: Error signing in:', error);
       
