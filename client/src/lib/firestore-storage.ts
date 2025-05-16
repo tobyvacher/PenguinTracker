@@ -682,40 +682,102 @@ export class FirestoreStorage implements IStorage {
       
       console.log(`Fetching journal entries for user ${userId} and penguin ${penguinId} from Firestore`);
       
-      const journalQuery = query(
-        collection(db, COLLECTIONS.JOURNAL_ENTRIES),
-        where("userId", "==", userId),
-        where("penguinId", "==", penguinId),
-        orderBy("createdAt", "desc") // Most recent first
-      );
-      
-      console.time('getPenguinJournalEntries');
-      const snapshot = await getDocs(journalQuery);
-      console.timeEnd('getPenguinJournalEntries');
-      
-      // Process entries to handle date conversions
-      const entries: SightingJournal[] = [];
-      
-      snapshot.forEach(doc => {
-        const data = doc.data() || {};
-        // Convert sightingDate from ISO string to Date if it's a string
-        if (data.sightingDate && typeof data.sightingDate === 'string') {
-          // Create a proper SightingJournal object with the Date object for the app
-          const entry: SightingJournal = {
-            ...data,
-            sightingDate: new Date(data.sightingDate) 
-          } as SightingJournal;
-          entries.push(entry);
-        } else {
-          entries.push(data as SightingJournal);
+      try {
+        // First try to use the composite query (requires index)
+        const journalQuery = query(
+          collection(db, COLLECTIONS.JOURNAL_ENTRIES),
+          where("userId", "==", userId),
+          where("penguinId", "==", penguinId),
+          orderBy("createdAt", "desc") // Most recent first
+        );
+        
+        console.time('getPenguinJournalEntries');
+        const snapshot = await getDocs(journalQuery);
+        console.timeEnd('getPenguinJournalEntries');
+        
+        // Process entries to handle date conversions
+        const entries: SightingJournal[] = [];
+        
+        snapshot.forEach(doc => {
+          const data = doc.data() || {};
+          // Convert sightingDate from ISO string to Date if it's a string
+          if (data.sightingDate && typeof data.sightingDate === 'string') {
+            // Create a proper SightingJournal object with the Date object for the app
+            const entry: SightingJournal = {
+              ...data,
+              sightingDate: new Date(data.sightingDate) 
+            } as SightingJournal;
+            entries.push(entry);
+          } else {
+            entries.push(data as SightingJournal);
+          }
+        });
+        
+        console.log(`Found ${entries.length} journal entries for penguin ${penguinId}`);
+        
+        // Cache the result
+        journalCache.set(cacheKey, entries);
+        
+        return entries;
+      } catch (indexError) {
+        console.log('Failed to use composite index query. Falling back to filtered approach.', indexError);
+        
+        // If the index query fails, fallback to getting all entries for the user and filter them in memory
+        // This is less efficient but works without requiring indices
+        try {
+          // Get all journal entries for this user
+          const userJournalQuery = query(
+            collection(db, COLLECTIONS.JOURNAL_ENTRIES),
+            where("userId", "==", userId)
+          );
+          
+          console.time('getUserJournalEntriesFallback');
+          const allUserEntries = await getDocs(userJournalQuery);
+          console.timeEnd('getUserJournalEntriesFallback');
+          
+          // Filter for the specific penguin locally
+          const filteredEntries: SightingJournal[] = [];
+          
+          allUserEntries.forEach(doc => {
+            const data = doc.data() || {};
+            // Only include entries for this penguin
+            if (data.penguinId === penguinId) {
+              // Convert sightingDate from string to Date object if needed
+              if (data.sightingDate && typeof data.sightingDate === 'string') {
+                const entry: SightingJournal = {
+                  ...data,
+                  sightingDate: new Date(data.sightingDate)
+                } as SightingJournal;
+                filteredEntries.push(entry);
+              } else {
+                filteredEntries.push(data as SightingJournal);
+              }
+            }
+          });
+          
+          // Sort manually by createdAt in descending order
+          filteredEntries.sort((a, b) => {
+            const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return dateB - dateA;
+          });
+          
+          console.log(`Found ${filteredEntries.length} journal entries for penguin ${penguinId} using fallback method`);
+          
+          // Cache the result
+          journalCache.set(cacheKey, filteredEntries);
+          
+          return filteredEntries;
+        } catch (fallbackError) {
+          console.error('Both query methods failed:', fallbackError);
+          throw fallbackError;
         }
-      });
-      
-      console.log(`Found ${entries.length} journal entries for penguin ${penguinId}`);
-      
-      journalCache.set(cacheKey, entries); // Cache the results
-      
-      return entries;
+      }
+    } catch (error) {
+      handleFirestoreError('get penguin journal entries', error);
+    }
+    
+    return [];
     } catch (error) {
       console.error("Error fetching penguin journal entries:", error);
       if (error instanceof Error) {
