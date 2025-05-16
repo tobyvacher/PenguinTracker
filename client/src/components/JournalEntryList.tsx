@@ -97,7 +97,7 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
   // Show error state
   if (isError) {
     // Check if this is a Firestore index error
-    const isIndexError = error?.message?.includes('index');
+    const isIndexError = error?.message?.includes('index') || error?.message?.includes('Index');
     
     return (
       <div className="p-4 text-center space-y-3">
@@ -107,19 +107,26 @@ export default function JournalEntryList({ penguin, onClose }: JournalEntryListP
           <>
             <p className="text-sm text-gray-600">
               This looks like a Firestore index error. For the journal feature to work properly, 
-              you need to create specific indexes in your Firebase console.
+              you need to create specific indices in your Firebase console.
             </p>
-            <div className="bg-gray-50 p-3 rounded-md text-xs text-left">
+            <div className={`${isDark ? 'bg-gray-800' : 'bg-gray-50'} p-3 rounded-md text-xs text-left ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
               <p className="font-medium mb-1">How to fix:</p>
               <ol className="list-decimal pl-5 space-y-1">
-                <li>Go to your Firebase console</li>
-                <li>Navigate to Firestore Database → Indexes</li>
-                <li>Add the required composite indexes for the journal_entries collection</li>
+                <li>Go to your Firebase console at console.firebase.google.com</li>
+                <li>Select the "penguin-tracker-7e7d7" project</li>
+                <li>Navigate to Firestore Database → Indexes tab</li>
+                <li>Create a composite index for the "journal_entries" collection with these fields:</li>
+                <ul className="list-disc pl-5 mt-1 space-y-1">
+                  <li>userId (Ascending)</li>
+                  <li>penguinId (Ascending)</li>
+                  <li>createdAt (Descending)</li>
+                </ul>
+                <li>Save the index and wait for it to be created (may take a few minutes)</li>
               </ol>
             </div>
           </>
         ) : (
-          <p className="text-sm text-gray-600">
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
             Something went wrong while loading the journal entries.
           </p>
         )}
