@@ -21,13 +21,21 @@ import { HelpCircle, AlertTriangle, MapPin } from "lucide-react";
 import { firebaseConfigValid } from "@/lib/firebase";
 import { PenguinSortType, sortPenguins } from "@/lib/penguin-sorting";
 
+const MILESTONES = [5, 10, 15, 18] as const;
+
+function getAchievementCount(seenCount: number): 5 | 10 | 15 | 18 {
+  if (seenCount >= 18) return 18;
+  if (seenCount >= 15) return 15;
+  if (seenCount >= 10) return 10;
+  return 5;
+}
+
 export default function Home() {
-  // Move all hooks to the top of the component
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const { currentUser } = useAuth();
   const { seenPenguins, toggleSeen } = usePenguinStore();
-  
+
   const [selectedPenguin, setSelectedPenguin] = useState<Penguin | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -36,61 +44,37 @@ export default function Home() {
   const [showCongratsModal, setShowCongratsModal] = useState(false);
   const [congratsCount, setCongratsCount] = useState(18);
   const [sortType, setSortType] = useState<PenguinSortType>("default");
-  
-  // Track the last milestone reached to prevent showing the badge again for the same milestone
+
   const lastMilestoneRef = useRef<number>(0);
 
-  // Fetch all penguins
   const { data, isLoading, error } = useQuery<Penguin[]>({
     queryKey: ["/api/penguins"],
   });
-  
-  // Ensure penguins is always an array
+
   const penguins: Penguin[] = data || [];
-  
-  // Check for achievement milestones and trigger effects
+
   useEffect(() => {
     const count = seenPenguins.length;
-    
-    if (count === 18 && lastMilestoneRef.current < 18) {
-      lastMilestoneRef.current = 18;
-      // Show congratulations modal when all 18 are collected
-      setCongratsCount(18);
-      setShowCongratsModal(true);
-    } else if (count >= 15 && lastMilestoneRef.current < 15) {
-      lastMilestoneRef.current = 15;
-      // We don't automatically show the modal for 15, 10, or 5
-    } else if (count >= 10 && lastMilestoneRef.current < 10) {
-      lastMilestoneRef.current = 10;
-    } else if (count >= 5 && lastMilestoneRef.current < 5) {
-      lastMilestoneRef.current = 5;
+    for (const milestone of [...MILESTONES].reverse()) {
+      if (count >= milestone && lastMilestoneRef.current < milestone) {
+        lastMilestoneRef.current = milestone;
+        if (milestone === 18) {
+          setCongratsCount(18);
+          setShowCongratsModal(true);
+        }
+        break;
+      }
     }
   }, [seenPenguins.length]);
-  
-  // This function is no longer used, we use the useEffect above instead
-  const checkAchievements = () => {
-    // Just a placeholder - logic moved to useEffect
-    return false;
-  };
 
   const handlePenguinClick = (penguin: Penguin) => {
     const wasSeen = seenPenguins.includes(penguin.id);
-    
-    // Set appropriate toast message based on current status
-    if (wasSeen) {
-      setToastMessage(`Unmarked the ${penguin.name}`);
-    } else {
-      setToastMessage(`You've spotted the ${penguin.name}!`);
-    }
-    
+    setToastMessage(
+      wasSeen ? `Unmarked the ${penguin.name}` : `You've spotted the ${penguin.name}!`
+    );
     setShowToast(true);
     setTimeout(() => setShowToast(false), 3000);
-    
-    // Toggle penguin status whether seen or not seen
     toggleSeen(penguin.id);
-    
-    // No need to call anything here - useEffect will automatically
-    // check for achievements when seenPenguins.length changes
   };
 
   const handlePenguinLongPress = (penguin: Penguin) => {
@@ -98,12 +82,9 @@ export default function Home() {
     setIsModalOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
-  
-  const closeCongratsModal = () => {
-    setShowCongratsModal(false);
+  const handleAchievementClick = () => {
+    setCongratsCount(getAchievementCount(seenPenguins.length));
+    setShowCongratsModal(true);
   };
 
   if (isLoading) {
@@ -127,25 +108,25 @@ export default function Home() {
     );
   }
 
+  const achievementCount = getAchievementCount(seenPenguins.length);
+  const showAchievement = seenPenguins.length >= 5;
+
   return (
     <div className={`${isDark ? 'bg-gradient-to-b from-gray-900 to-gray-800' : 'bg-gradient-to-b from-[#F8FAFC] to-[#E2E8F0]'} min-h-screen font-sans text-foreground`}>
       {/* Header */}
       <header className={`sticky top-0 ${isDark ? 'bg-gray-900/90' : 'bg-white/90'} backdrop-blur-sm shadow-md z-[100]`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          {/* Responsive header layout */}
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-            {/* Logo and title - centered on mobile, left-aligned on desktop */}
             <div className="flex items-center justify-center sm:justify-start mb-3 sm:mb-0">
               <img src="/logo.png" alt="Penguin Tracker Logo" className="w-10 h-10 mr-3" />
               <h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-[#1E3A8A]'}`}>Penguin Tracker</h1>
             </div>
-            
-            {/* Action buttons - centered on mobile, right-aligned on desktop */}
+
             <div className="flex items-center justify-center sm:justify-end gap-4">
               <ThemeToggle variant="toggle" className="mr-2" />
-              
+
               {!showInfoBanner && (
-                <button 
+                <button
                   onClick={() => setShowInfoBanner(true)}
                   className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-full p-2 shadow-sm ${isDark ? 'hover:bg-gray-700' : 'hover:bg-slate-100'} transition-colors`}
                   aria-label="Show help information"
@@ -153,20 +134,9 @@ export default function Home() {
                   <HelpCircle className={`${isDark ? 'text-white' : 'text-[#1E3A8A]'} h-5 w-5`} />
                 </button>
               )}
-              {/* Achievement Badge */}
-              {seenPenguins.length >= 5 && (
-                <AchievementBadge 
-                  count={seenPenguins.length >= 18 ? 18 : 
-                         seenPenguins.length >= 15 ? 15 : 
-                         seenPenguins.length >= 10 ? 10 : 5} 
-                  onClick={() => {
-                    const count = seenPenguins.length >= 18 ? 18 :
-                                  seenPenguins.length >= 15 ? 15 :
-                                  seenPenguins.length >= 10 ? 10 : 5;
-                    setCongratsCount(count);
-                    setShowCongratsModal(true);
-                  }}
-                />
+
+              {showAchievement && (
+                <AchievementBadge count={achievementCount} onClick={handleAchievementClick} />
               )}
               <ProgressCounter count={seenPenguins.length} total={penguins.length} seenPenguinIds={seenPenguins} />
               <AuthButton />
@@ -176,12 +146,11 @@ export default function Home() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <InfoBanner 
+        <InfoBanner
           isVisible={showInfoBanner}
           onClose={() => setShowInfoBanner(false)}
         />
-        
-        {/* Deployment Warning */}
+
         {!firebaseConfigValid && (
           <div className="mb-6 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-md shadow-sm">
             <div className="flex items-start">
@@ -203,18 +172,18 @@ export default function Home() {
             </div>
           </div>
         )}
-        
+
         {/* Sorting Controls */}
         <div className="flex justify-end mb-4">
-          <SortingControls 
+          <SortingControls
             currentSort={sortType}
             onSortChange={setSortType}
           />
         </div>
-        
-        {/* Penguin Display - grid, genus grouping, or region grouping */}
+
+        {/* Penguin Display */}
         {sortType === "genus" ? (
-          <GenusGroupView 
+          <GenusGroupView
             penguins={penguins}
             seenPenguins={seenPenguins}
             onPenguinClick={handlePenguinClick}
@@ -249,27 +218,16 @@ export default function Home() {
 
         {/* Bottom Progress Counter */}
         <div className="mt-12 mb-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-          {seenPenguins.length >= 5 && (
-            <AchievementBadge 
-              count={seenPenguins.length >= 18 ? 18 : 
-                     seenPenguins.length >= 15 ? 15 : 
-                     seenPenguins.length >= 10 ? 10 : 5} 
-              onClick={() => {
-                const count = seenPenguins.length >= 18 ? 18 :
-                              seenPenguins.length >= 15 ? 15 :
-                              seenPenguins.length >= 10 ? 10 : 5;
-                setCongratsCount(count);
-                setShowCongratsModal(true);
-              }}
-            />
+          {showAchievement && (
+            <AchievementBadge count={achievementCount} onClick={handleAchievementClick} />
           )}
-          <ProgressCounter 
-            count={seenPenguins.length} 
-            total={penguins.length} 
+          <ProgressCounter
+            count={seenPenguins.length}
+            total={penguins.length}
             seenPenguinIds={seenPenguins}
           />
         </div>
-        
+
         {/* Map Link */}
         <Link to="/map">
           <div className={`${isDark ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-slate-50'} rounded-lg shadow-md p-4 mb-8 flex items-center justify-between transition-colors cursor-pointer`}>
@@ -280,7 +238,7 @@ export default function Home() {
             <MapPin className={`${isDark ? 'text-blue-300' : 'text-[#1E3A8A]'} h-8 w-8`} />
           </div>
         </Link>
-        
+
         {/* Attribution */}
         <div className="text-center pb-6">
           <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -289,25 +247,24 @@ export default function Home() {
         </div>
       </main>
 
-      {/* Modals and Toasts */}
       {selectedPenguin && (
-        <PenguinModal 
-          penguin={selectedPenguin} 
-          isOpen={isModalOpen} 
-          onClose={closeModal} 
+        <PenguinModal
+          penguin={selectedPenguin}
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
         />
       )}
-      
+
       <CongratulationsModal
         isOpen={showCongratsModal}
-        onClose={closeCongratsModal}
+        onClose={() => setShowCongratsModal(false)}
         count={congratsCount}
         seenPenguins={penguins.filter((p) => seenPenguins.includes(p.id))}
       />
-      
-      <SuccessToast 
-        message={toastMessage} 
-        isVisible={showToast} 
+
+      <SuccessToast
+        message={toastMessage}
+        isVisible={showToast}
       />
     </div>
   );

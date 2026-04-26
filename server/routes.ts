@@ -311,59 +311,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update an existing journal entry
   apiRouter.patch("/journal/:id", async (req, res) => {
     try {
-      // Only allow authenticated users to update journal entries
       if (!req.user) {
         return res.status(401).json({ message: "Authentication required" });
       }
-      
-      // Get user by firebase uid
+
       const user = await storage.getUserByFirebaseUid(req.user.uid);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
       const entryId = parseInt(req.params.id);
-      
-      // Parse and validate the request body (allow partial updates)
+
+      // Verify ownership before updating
+      const allEntries = await storage.getUserJournalEntries(user.id);
+      const existingEntry = allEntries.find(e => e.id === entryId);
+      if (!existingEntry) {
+        return res.status(404).json({ message: "Journal entry not found or not owned by the user" });
+      }
+
       let updateData;
       try {
-        // Convert sightingDate string to Date if it's a string
         const formData = { ...req.body };
         if (typeof formData.sightingDate === 'string') {
           formData.sightingDate = new Date(formData.sightingDate);
         }
-        
         updateData = insertSightingJournalSchema
-          .omit({ userId: true }) // userId should not be updated
-          .partial() // Make all fields optional for PATCH
+          .omit({ userId: true })
+          .partial()
           .parse(formData);
       } catch (err) {
         console.error("Validation error:", err);
-        return res.status(400).json({ 
-          message: "Invalid request data", 
+        return res.status(400).json({
+          message: "Invalid request data",
           errors: err instanceof z.ZodError ? err.errors : [{ message: "Failed to parse data" }]
         });
       }
-      
-      // Update the journal entry
+
       const updatedEntry = await storage.updateJournalEntry(entryId, updateData);
-      
-      if (!updatedEntry) {
-        return res.status(404).json({ message: "Journal entry not found" });
-      }
-      
-      // Check if the entry belongs to the current user
-      if (updatedEntry.userId !== user.id) {
-        return res.status(403).json({ message: "Not authorized to update this journal entry" });
-      }
-      
       res.json(updatedEntry);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ 
-          message: "Invalid request data",
-          errors: error.errors 
-        });
+        return res.status(400).json({ message: "Invalid request data", errors: error.errors });
       }
       console.error("Error updating journal entry:", error);
       res.status(500).json({ message: "Failed to update journal entry" });
@@ -402,8 +390,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Admin-only utility routes — require authentication
+  const requireAuth = (req: Request, res: any, next: any) => {
+    if (!req.user) return res.status(401).json({ message: "Authentication required" });
+    next();
+  };
+
   // Debug route to check Firestore connection
-  apiRouter.get("/debug-firestore", async (req, res) => {
+  apiRouter.get("/debug-firestore", requireAuth, async (req, res) => {
     try {
       console.log('Running Firestore debug check from API route');
       const result = await debugFirestore();
@@ -421,7 +415,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Dedicated route for merging seenPenguins and seen_penguins collections
-  apiRouter.get("/merge-seen-penguins", async (req, res) => {
+  apiRouter.get("/merge-seen-penguins", requireAuth, async (req, res) => {
     try {
       if (!db) {
         return res.status(500).json({ 
@@ -516,7 +510,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Dedicated route for cleaning up unused collections
-  apiRouter.get("/cleanup-collections", async (req, res) => {
+  apiRouter.get("/cleanup-collections", requireAuth, async (req, res) => {
     try {
       if (!db) {
         return res.status(500).json({ 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -6,111 +6,97 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, Map, Save, X } from "lucide-react";
 import { format } from "date-fns";
-import { InsertSightingJournal, Penguin, SightingJournal } from "@shared/schema";
+import { Penguin, SightingJournal } from "@shared/schema";
 import { cn } from "@/lib/utils";
-import { useJournal } from "@/hooks/use-journal";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/contexts/ThemeContext";
 
 interface JournalEntryFormProps {
   penguin: Penguin;
-  entry?: SightingJournal; // Optional for editing existing entry
-  onComplete: (entry?: SightingJournal) => void; // Pass the entry back to parent
+  entry?: SightingJournal;
+  onComplete: (entry?: SightingJournal) => void;
   onCancel: () => void;
 }
 
-export default function JournalEntryForm({ 
-  penguin, 
-  entry, 
-  onComplete, 
-  onCancel 
+export default function JournalEntryForm({
+  penguin,
+  entry,
+  onComplete,
+  onCancel,
 }: JournalEntryFormProps) {
   const { toast } = useToast();
-  const { addJournalEntry, updateJournalEntry, isAddingJournalEntry, isUpdatingJournalEntry } = useJournal();
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const isEditing = !!entry;
-  
-  // Form state
-  const [date, setDate] = useState<Date>(entry?.sightingDate ? new Date(entry.sightingDate) : new Date());
-  const [location, setLocation] = useState(entry?.location || '');
-  const [notes, setNotes] = useState(entry?.notes || '');
-  const [coordinates, setCoordinates] = useState(entry?.coordinates || '');
-  
-  // Track form validity
+
+  const [date, setDate] = useState<Date>(
+    entry?.sightingDate ? new Date(entry.sightingDate) : new Date()
+  );
+  const [location, setLocation] = useState(entry?.location ?? '');
+  const [notes, setNotes] = useState(entry?.notes ?? '');
+  const [coordinates, setCoordinates] = useState(entry?.coordinates ?? '');
+
   const isValid = location.trim().length > 0;
-  
-  // Handle getting current location
+
   const handleGetLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          setCoordinates(`${latitude},${longitude}`);
-          toast({
-            title: "Location detected",
-            description: "Your current location has been added to the journal entry.",
-          });
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-          toast({
-            title: "Location error",
-            description: "Unable to get your current location. Please enter location manually.",
-            variant: "destructive",
-          });
-        }
-      );
-    } else {
+    if (!navigator.geolocation) {
       toast({
         title: "Location not supported",
         description: "Geolocation is not supported by your browser. Please enter location manually.",
         variant: "destructive",
       });
+      return;
     }
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setCoordinates(`${coords.latitude},${coords.longitude}`);
+        toast({ title: "Location detected", description: "Your current location has been added." });
+      },
+      () => {
+        toast({
+          title: "Location error",
+          description: "Unable to get your current location. Please enter it manually.",
+          variant: "destructive",
+        });
+      }
+    );
   };
-  
-  // Handle form submission
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!isValid) {
       toast({
-        title: "Invalid form",
+        title: "Location required",
         description: "Please provide a location for your sighting.",
         variant: "destructive",
       });
       return;
     }
-    
-    // Ensure date is a valid Date object before submission
-    const validDate = date instanceof Date && !isNaN(date.getTime()) 
-      ? date 
-      : new Date();
-    
-    // Create a complete journal entry object for local state management
-    const journalData = {
-      id: entry?.id || Date.now(), // Use existing ID or generate temp ID with timestamp
-      userId: 1, // Just a placeholder for local data
+
+    const validDate = date instanceof Date && !isNaN(date.getTime()) ? date : new Date();
+
+    const journalData: SightingJournal = {
+      id: entry?.id ?? Date.now(),
+      userId: 1,
       penguinId: penguin.id,
       sightingDate: validDate,
       location,
       notes: notes || null,
       coordinates: coordinates || null,
-      createdAt: entry?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      createdAt: entry?.createdAt ?? new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
-    
-    // Display success message
+
     toast({
       title: isEditing ? "Journal updated" : "Journal entry added",
       description: `Your sighting of the ${penguin.name} has been ${isEditing ? 'updated' : 'recorded'}.`,
     });
-    
-    // Pass the created/updated entry back through the callback
+
     onComplete(journalData);
   };
-  
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
@@ -121,10 +107,10 @@ export default function JournalEntryForm({
           Record when and where you spotted the {penguin.name}.
         </p>
       </div>
-      
+
       {/* Date selector */}
       <div className="space-y-2">
-        <label htmlFor="date" className={`text-sm font-medium ${isDark ? '' : 'text-gray-700'}`}>
+        <label className={`text-sm font-medium ${isDark ? '' : 'text-gray-700'}`}>
           Date of Sighting
         </label>
         <Popover>
@@ -145,14 +131,14 @@ export default function JournalEntryForm({
             <Calendar
               mode="single"
               selected={date}
-              onSelect={(date) => date && setDate(date)}
+              onSelect={(d) => d && setDate(d)}
               initialFocus
               className={!isDark ? 'bg-white text-gray-800' : ''}
             />
           </PopoverContent>
         </Popover>
       </div>
-      
+
       {/* Location input */}
       <div className="space-y-2">
         <label htmlFor="location" className={`text-sm font-medium ${isDark ? '' : 'text-gray-700'}`}>
@@ -167,9 +153,9 @@ export default function JournalEntryForm({
             required
             className={`flex-1 ${!isDark && 'border-gray-300 text-gray-800 placeholder:text-gray-500 bg-white'}`}
           />
-          <Button 
-            type="button" 
-            variant="outline" 
+          <Button
+            type="button"
+            variant="outline"
             onClick={handleGetLocation}
             title="Use current location"
             className={!isDark ? 'border-gray-300 text-gray-700 hover:bg-gray-100 bg-white' : ''}
@@ -178,7 +164,7 @@ export default function JournalEntryForm({
           </Button>
         </div>
       </div>
-      
+
       {/* Notes textarea */}
       <div className="space-y-2">
         <label htmlFor="notes" className={`text-sm font-medium ${isDark ? '' : 'text-gray-700'}`}>
@@ -193,36 +179,28 @@ export default function JournalEntryForm({
           className={!isDark ? 'border-gray-300 text-gray-800 placeholder:text-gray-500 bg-white' : ''}
         />
       </div>
-      
-      {/* Coordinates (hidden but set by geolocation) */}
-      <input
-        type="hidden"
-        id="coordinates"
-        value={coordinates}
-      />
-      
-      {/* Show coordinates if they exist */}
+
+      {/* Coordinates display */}
       {coordinates && (
         <div className={`text-sm ${isDark ? 'text-muted-foreground' : 'text-gray-600'}`}>
           <span className={`font-medium ${!isDark && 'text-gray-700'}`}>GPS Coordinates:</span> {coordinates}
         </div>
       )}
-      
+
       {/* Form actions */}
       <div className="flex justify-end space-x-2 pt-2">
-        <Button 
-          type="button" 
-          variant="outline" 
+        <Button
+          type="button"
+          variant="outline"
           onClick={onCancel}
           className={!isDark ? 'border-gray-300 text-gray-700 hover:bg-gray-100 bg-white' : ''}
         >
           <X className="mr-2 h-4 w-4" />
           Cancel
         </Button>
-        
-        <Button 
-          type="submit" 
-          disabled={!isValid || isAddingJournalEntry || isUpdatingJournalEntry}
+        <Button
+          type="submit"
+          disabled={!isValid}
           className="bg-[#22C55E] hover:bg-[#16A34A] text-white"
         >
           <Save className="mr-2 h-4 w-4" />
