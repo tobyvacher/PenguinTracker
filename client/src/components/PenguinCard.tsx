@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Eye, Info, Loader2 } from "lucide-react";
+import { Eye, Loader2 } from "lucide-react";
 import { Penguin } from "@shared/schema";
 import { useTheme } from "@/contexts/ThemeContext";
 import { usePenguinStore } from "@/hooks/use-penguin-store";
@@ -43,7 +43,7 @@ export default function PenguinCard({
       animate={isSeen ? "seen" : "unseen"}
       whileHover={isLoading ? {} : { y: -5 }}
       transition={{ duration: 0.2 }}
-      onClick={isLoading ? undefined : onClick}
+      onClick={isLoading ? undefined : onInfo}
     >
       <div className="relative mb-3">
         {/* Penguin image */}
@@ -74,40 +74,25 @@ export default function PenguinCard({
           </motion.div>
         )}
 
-        {/* Info button — bottom-left */}
-        <button
+        {/* Eye button — always visible, bottom-right; click toggles seen/unseen */}
+        <motion.button
           type="button"
-          aria-label={`More info about ${penguin.name}`}
+          aria-label={isSeen ? `Mark ${penguin.name} as unseen` : `Mark ${penguin.name} as seen`}
           onClick={(e) => {
             e.stopPropagation();
-            if (!isLoading) onInfo();
+            if (!isLoading) onClick();
           }}
-          className="absolute bottom-0 left-0 bg-white/90 text-blue-700 rounded-full p-1.5 shadow-md border-2 border-white opacity-70 hover:opacity-100 focus-visible:opacity-100 transition-opacity"
-        >
-          <Info className="h-4 w-4" />
-        </button>
-
-        {/* "Seen" indicator — bottom-right */}
-        <motion.div
-          className="absolute bottom-0 right-0 bg-[#FFD700] text-[#7B5800] rounded-full p-1.5 shadow-[0_0_8px_rgba(255,215,0,0.8)] border-2 border-white"
-          initial={{ opacity: 0, scale: 0 }}
-          animate={
+          className={`absolute bottom-0 right-0 rounded-full p-1.5 border-2 border-white shadow-md transition-all duration-300 ${
             isSeen
-              ? {
-                  opacity: 1,
-                  scale: 1,
-                  rotate: [0, 10, 0, -10, 0],
-                  transition: {
-                    opacity: { duration: 0.3 },
-                    scale: { duration: 0.3 },
-                    rotate: { repeat: 0, duration: 2, ease: "easeInOut", delay: 0.3 },
-                  },
-                }
-              : { opacity: 0, scale: 0 }
-          }
+              ? "bg-[#FFD700] text-[#7B5800] shadow-[0_0_8px_rgba(255,215,0,0.8)]"
+              : isDark
+              ? "bg-white/20 text-white/70 hover:bg-white/40"
+              : "bg-gray-200/90 text-gray-500 hover:bg-gray-300"
+          }`}
+          whileTap={{ scale: 0.85 }}
         >
           <Eye className="h-4 w-4" />
-        </motion.div>
+        </motion.button>
       </div>
 
       <div className="text-center">
