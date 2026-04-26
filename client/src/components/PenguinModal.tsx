@@ -1,8 +1,9 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Penguin } from "@shared/schema";
-import { Share2, Info, Book } from "lucide-react";
+import { Share2, Info, Book, Eye } from "lucide-react";
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useTheme } from "@/contexts/ThemeContext";
 import ShareAchievement from "./ShareAchievement";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +13,8 @@ interface PenguinModalProps {
   penguin: Penguin;
   isOpen: boolean;
   onClose: () => void;
+  isSeen?: boolean;
+  onToggleSeen?: () => void;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -43,7 +46,7 @@ const ADDITIONAL_INFO: Record<string, string> = {
   "Emperor Penguin": "The only penguin species that breeds during the Antarctic winter, with males incubating the egg balanced on their feet in temperatures as low as -40°C. They can dive deeper than any other bird, reaching depths of over 500 meters and staying underwater for up to 20 minutes when hunting.",
 };
 
-export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalProps) {
+export default function PenguinModal({ penguin, isOpen, onClose, isSeen = false, onToggleSeen }: PenguinModalProps) {
   const [showShareModal, setShowShareModal] = useState(false);
   const { theme } = useTheme();
   const isDark = theme === "dark";
@@ -71,12 +74,31 @@ export default function PenguinModal({ penguin, isOpen, onClose }: PenguinModalP
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
             <div>
-              <div className={`rounded-full overflow-hidden shadow-md border-4 ${isDark ? 'border-gray-700' : 'border-white'} mx-auto max-w-[280px] aspect-square`}>
-                <img
-                  src={penguin.imageUrl}
-                  alt={penguin.name}
-                  className="w-full h-full object-cover"
-                />
+              <div className="relative mx-auto max-w-[280px] aspect-square">
+                <div className={`rounded-full overflow-hidden shadow-md border-4 w-full h-full ${isSeen ? 'border-[#FFD700] shadow-[0_0_15px_rgba(255,215,0,0.6)]' : isDark ? 'border-gray-700' : 'border-white'}`}>
+                  <img
+                    src={penguin.imageUrl}
+                    alt={penguin.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                {onToggleSeen && (
+                  <motion.button
+                    type="button"
+                    aria-label={isSeen ? `Mark ${penguin.name} as unseen` : `Mark ${penguin.name} as seen`}
+                    onClick={onToggleSeen}
+                    whileTap={{ scale: 0.85 }}
+                    className={`absolute top-2 left-2 rounded-full p-2 border-2 border-white shadow-md transition-all duration-300 ${
+                      isSeen
+                        ? "bg-[#FFD700] text-[#7B5800] shadow-[0_0_8px_rgba(255,215,0,0.8)]"
+                        : isDark
+                        ? "bg-white/20 text-white/70 hover:bg-white/40"
+                        : "bg-gray-200/90 text-gray-500 hover:bg-gray-300"
+                    }`}
+                  >
+                    <Eye className="h-5 w-5" />
+                  </motion.button>
+                )}
               </div>
             </div>
             <div>

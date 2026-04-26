@@ -229,6 +229,8 @@ export default function Home() {
           penguin={selectedPenguin}
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
+          isSeen={seenPenguins.includes(selectedPenguin.id)}
+          onToggleSeen={() => handlePenguinClick(selectedPenguin)}
         />
       )}
 
