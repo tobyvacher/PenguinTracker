@@ -102,7 +102,9 @@ export async function syncGuestJournalToApi(queryClient: QueryClient): Promise<v
   const entries = readAll();
   if (entries.length === 0) return;
 
+  const failed: GuestJournalEntry[] = [];
   let synced = 0;
+
   for (const entry of entries) {
     try {
       await apiRequest(JOURNAL_API_KEYS.ALL_ENTRIES, "POST", {
@@ -114,12 +116,18 @@ export async function syncGuestJournalToApi(queryClient: QueryClient): Promise<v
       });
       synced++;
     } catch {
-      // Skip entries that fail; they remain in storage for the next attempt
+      // Retain failed entries in storage for the next sign-in attempt
+      failed.push(entry);
     }
   }
 
   if (synced > 0) {
-    localStorage.removeItem(STORAGE_KEY);
+    if (failed.length > 0) {
+      // Keep only the entries that couldn't be synced
+      writeAll(failed);
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
     queryClient.invalidateQueries({ queryKey: [JOURNAL_API_KEYS.ALL_ENTRIES] });
   }
 }

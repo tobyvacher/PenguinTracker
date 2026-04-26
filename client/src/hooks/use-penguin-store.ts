@@ -63,26 +63,36 @@ export function usePenguinStore() {
           if (isNewSignIn) {
             const guestIds = readGuestLocalStorage();
             const toAdd = guestIds.filter((id) => !apiIds.includes(id));
+            const failedIds: number[] = [];
 
             for (const id of toAdd) {
               try {
-                await fetch("/api/seen-penguins", {
+                const res = await fetch("/api/seen-penguins", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ penguinId: id }),
                   credentials: "include",
                 });
-                apiIds.push(id);
+                if (res.ok) {
+                  apiIds.push(id);
+                } else {
+                  failedIds.push(id);
+                }
               } catch {
-                // Skip entries that fail — they're still in guest storage
+                failedIds.push(id);
               }
             }
 
-            if (toAdd.length > 0) {
-              queryClient.invalidateQueries({ queryKey: ["/api/seen-penguins"] });
+            // Only remove from guest storage the IDs that were successfully synced
+            if (failedIds.length > 0) {
+              localStorage.setItem(GUEST_KEY, JSON.stringify(failedIds));
+            } else {
+              localStorage.removeItem(GUEST_KEY);
             }
 
-            localStorage.removeItem(GUEST_KEY);
+            if (toAdd.length - failedIds.length > 0) {
+              queryClient.invalidateQueries({ queryKey: ["/api/seen-penguins"] });
+            }
           }
 
           if (isMounted) {
