@@ -10,6 +10,10 @@ import { useTheme } from "@/contexts/ThemeContext";
 
 type AnyEntry = SightingJournal | GuestJournalEntry;
 
+function toDateInputValue(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 type AddData = {
   penguinId: number;
   sightingDate: Date;
@@ -134,10 +138,13 @@ export default function JournalEntryForm({
         <input
           id="sighting-date"
           type="date"
-          max={(() => { const t = new Date(); return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`; })()}
-          value={`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`}
+          max={toDateInputValue(new Date())}
+          defaultValue={toDateInputValue(date)}
           onChange={(e) => {
-            const [y, m, d] = e.target.value.split('-').map(Number);
+            const val = e.target.value;
+            if (!val) return;
+            const [y, m, d] = val.split('-').map(Number);
+            if (!y || y < 1900 || y > 2100) return;
             const parsed = new Date(y, m - 1, d);
             if (!isNaN(parsed.getTime())) setDate(parsed);
           }}
