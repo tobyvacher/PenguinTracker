@@ -3,13 +3,11 @@ import { apiRequest } from "@/lib/queryClient";
 import { SightingJournal, InsertSightingJournal } from "@shared/schema";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { JOURNAL_API_KEYS } from "@/lib/journal-api-keys";
+
+export { JOURNAL_API_KEYS };
 
 type JournalEntryInput = Omit<InsertSightingJournal, "userId">;
-
-export const JOURNAL_API_KEYS = {
-  ALL_ENTRIES: "/api/journal",
-  PENGUIN_ENTRIES: (id: number) => `/api/journal/penguin/${id}`,
-};
 
 const API_KEYS = JOURNAL_API_KEYS;
 

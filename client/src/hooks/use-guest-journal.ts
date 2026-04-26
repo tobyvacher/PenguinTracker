@@ -2,7 +2,7 @@ import { useState } from "react";
 import { QueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { JOURNAL_API_KEYS } from "./use-journal";
+import { JOURNAL_API_KEYS } from "@/lib/journal-api-keys";
 
 export interface GuestJournalEntry {
   id: number;
@@ -128,6 +128,21 @@ export async function syncGuestJournalToApi(queryClient: QueryClient): Promise<v
     } else {
       localStorage.removeItem(STORAGE_KEY);
     }
+
+    // Invalidate the all-entries query and each per-penguin query that was affected
     queryClient.invalidateQueries({ queryKey: [JOURNAL_API_KEYS.ALL_ENTRIES] });
+
+    const syncedPenguinIds = [
+      ...new Set(
+        entries
+          .filter((e) => !failed.some((f) => f.id === e.id))
+          .map((e) => e.penguinId)
+      ),
+    ];
+    for (const penguinId of syncedPenguinIds) {
+      queryClient.invalidateQueries({
+        queryKey: [JOURNAL_API_KEYS.PENGUIN_ENTRIES(penguinId)],
+      });
+    }
   }
 }
