@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Penguin, SightingJournal } from "@shared/schema";
+import { GuestJournalEntry, useGuestJournal } from "@/hooks/use-guest-journal";
 import { format } from "date-fns";
 import { Edit, MapPin, Plus, Trash, LogIn, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,42 +28,67 @@ interface JournalEntryListProps {
   onClose?: () => void;
 }
 
+type AnyEntry = SightingJournal | GuestJournalEntry;
+
 export default function JournalEntryList({ penguin }: JournalEntryListProps) {
   const { isAuthenticated, signIn } = useAuth();
   const { theme } = useTheme();
   const isDark = theme === "dark";
-  const { deleteJournalEntry, isDeletingJournalEntry } = useJournal();
 
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingEntry, setEditingEntry] = useState<SightingJournal | null>(null);
+  const [editingEntry, setEditingEntry] = useState<AnyEntry | null>(null);
+
+  // --- Authenticated path: API-backed journal ---
+  const {
+    addJournalEntry: apiAdd,
+    updateJournalEntry: apiUpdate,
+    deleteJournalEntry: apiDelete,
+    isAddingJournalEntry,
+    isUpdatingJournalEntry,
+    isDeletingJournalEntry,
+  } = useJournal();
 
   const {
-    data: entries = [],
-    isLoading,
-    isError,
+    data: apiEntries = [],
+    isLoading: isLoadingApi,
+    isError: isErrorApi,
   } = useQuery<SightingJournal[]>({
     queryKey: [JOURNAL_API_KEYS.PENGUIN_ENTRIES(penguin.id)],
     enabled: isAuthenticated,
     staleTime: 1000 * 60 * 5,
   });
 
-  if (!isAuthenticated) {
-    return (
-      <div className={`py-8 text-center ${isDark ? 'bg-gray-800' : 'bg-gray-50'} rounded-lg`}>
-        <p className={`mb-2 font-medium ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>Sign in to use the journal</p>
-        <p className={`text-sm max-w-md mx-auto ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-          The journal feature lets you record when and where you spotted penguins in the wild.
-        </p>
-        <Button
-          onClick={signIn}
-          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <LogIn className="h-4 w-4 mr-1" />
-          Sign in
-        </Button>
-      </div>
-    );
-  }
+  // --- Guest path: localStorage-backed journal ---
+  const {
+    entries: guestEntries,
+    addEntry: guestAdd,
+    updateEntry: guestUpdate,
+    deleteEntry: guestDelete,
+  } = useGuestJournal(penguin.id);
+
+  // Unified handlers — pick the right backend based on auth state
+  const handleAdd = isAuthenticated
+    ? async (data: Parameters<typeof apiAdd>[0]) => { await apiAdd(data); }
+    : guestAdd;
+
+  const handleUpdate = isAuthenticated
+    ? async (id: number, data: Parameters<typeof apiUpdate>[1]) => { await apiUpdate(id, data); }
+    : guestUpdate;
+
+  const handleDelete = async (id: number) => {
+    if (isAuthenticated) {
+      await apiDelete(id, penguin.id);
+    } else {
+      await guestDelete(id);
+    }
+  };
+
+  const entries: AnyEntry[] = isAuthenticated ? apiEntries : guestEntries;
+  const isLoading = isAuthenticated ? isLoadingApi : false;
+  const isError = isAuthenticated ? isErrorApi : false;
+  const isSaving =
+    isAuthenticated && (isAddingJournalEntry || isUpdatingJournalEntry);
+  const isDeleting = isAuthenticated && isDeletingJournalEntry;
 
   if (showAddForm) {
     return (
@@ -71,6 +97,9 @@ export default function JournalEntryList({ penguin }: JournalEntryListProps) {
           penguin={penguin}
           onComplete={() => setShowAddForm(false)}
           onCancel={() => setShowAddForm(false)}
+          onAdd={handleAdd}
+          onUpdate={handleUpdate}
+          isSaving={isSaving}
         />
       </div>
     );
@@ -84,18 +113,13 @@ export default function JournalEntryList({ penguin }: JournalEntryListProps) {
           entry={editingEntry}
           onComplete={() => setEditingEntry(null)}
           onCancel={() => setEditingEntry(null)}
+          onAdd={handleAdd}
+          onUpdate={handleUpdate}
+          isSaving={isSaving}
         />
       </div>
     );
   }
-
-  const handleDelete = async (entryId: number) => {
-    try {
-      await deleteJournalEntry(entryId, penguin.id);
-    } catch {
-      // Error toast handled in hook
-    }
-  };
 
   return (
     <div className="space-y-4 p-1">
@@ -112,6 +136,24 @@ export default function JournalEntryList({ penguin }: JournalEntryListProps) {
           Add Entry
         </Button>
       </div>
+
+      {/* Guest save-to-account nudge */}
+      {!isAuthenticated && (
+        <div className={`flex items-center justify-between rounded-lg px-4 py-2 text-sm ${
+          isDark ? 'bg-blue-900/30 text-blue-200' : 'bg-blue-50 text-blue-700'
+        }`}>
+          <span>Entries saved locally. Sign in to keep them permanently.</span>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={signIn}
+            className={`ml-2 h-7 px-2 ${isDark ? 'hover:bg-blue-800 text-blue-200' : 'hover:bg-blue-100 text-blue-700'}`}
+          >
+            <LogIn className="h-3.5 w-3.5 mr-1" />
+            Sign in
+          </Button>
+        </div>
+      )}
 
       <Separator />
 
@@ -140,14 +182,18 @@ export default function JournalEntryList({ penguin }: JournalEntryListProps) {
       ) : (
         <div className="space-y-3">
           {[...entries]
-            .sort((a, b) => new Date(b.sightingDate).getTime() - new Date(a.sightingDate).getTime())
+            .sort(
+              (a, b) =>
+                new Date(b.sightingDate as string).getTime() -
+                new Date(a.sightingDate as string).getTime()
+            )
             .map((entry) => (
               <Card key={entry.id} className="overflow-hidden">
                 <CardHeader className={`pb-2 ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
                   <div className="flex justify-between items-start">
                     <div>
                       <CardTitle className={`text-base ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                        {format(new Date(entry.sightingDate), "MMMM d, yyyy")}
+                        {format(new Date(entry.sightingDate as string), "MMMM d, yyyy")}
                       </CardTitle>
                       <CardDescription className="flex items-center">
                         <MapPin className="h-3 w-3 mr-1 text-gray-400" />
@@ -169,7 +215,7 @@ export default function JournalEntryList({ penguin }: JournalEntryListProps) {
                           <Button
                             size="icon"
                             variant="ghost"
-                            disabled={isDeletingJournalEntry}
+                            disabled={isDeleting}
                             className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
                           >
                             <Trash className="h-4 w-4" />

@@ -1,6 +1,7 @@
-import React, { createContext, useContext } from 'react';
+import React, { createContext, useContext, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { User } from '@shared/schema';
+import { syncGuestJournalToApi } from '@/hooks/use-guest-journal';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -36,6 +37,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     retry: false,
     staleTime: 1000 * 60 * 5,
   });
+
+  // Detect sign-in and sync guest journal entries to the API
+  const prevUserRef = useRef<User | null | undefined>(undefined);
+  useEffect(() => {
+    if (loading) return;
+
+    const prev = prevUserRef.current;
+    prevUserRef.current = currentUser;
+
+    // Transition from "no user" (null or initial undefined) to a real user
+    if (!prev && currentUser) {
+      syncGuestJournalToApi(queryClient).catch(() => {
+        // Sync errors are non-fatal
+      });
+    }
+  }, [currentUser, loading, queryClient]);
 
   const signIn = () => {
     window.location.href = '/api/login';

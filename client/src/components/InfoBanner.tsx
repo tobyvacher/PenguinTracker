@@ -22,7 +22,7 @@ export default function InfoBanner({ isVisible, onClose }: InfoBannerProps) {
           <div className="ml-4">
             <h3 className="text-sm font-medium">How to use Penguin Tracker</h3>
             <div className="mt-1 text-sm">
-              <p>Click on a penguin to mark it as seen. Tap the <strong>ⓘ</strong> icon on any penguin to learn more about that species and log your sightings. Sign in to save your progress for next time. Welcome to Penguin Tracker!</p>
+              <p>Click on a penguin to mark it as seen. Tap the <strong>ⓘ</strong> icon on any penguin to learn more about that species and log your sightings. Your progress is saved locally — sign in to keep it permanently across devices. Welcome to Penguin Tracker!</p>
             </div>
           </div>
         </div>

@@ -7,16 +7,31 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Map, Save, X } from "lucide-react";
 import { format } from "date-fns";
 import { Penguin, SightingJournal } from "@shared/schema";
+import { GuestJournalEntry } from "@/hooks/use-guest-journal";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/contexts/ThemeContext";
-import { useJournal } from "@/hooks/use-journal";
+
+type AnyEntry = SightingJournal | GuestJournalEntry;
+
+type AddData = {
+  penguinId: number;
+  sightingDate: Date;
+  location: string;
+  notes: string | null;
+  coordinates: string | null;
+};
+
+type UpdateData = Partial<Omit<AddData, "penguinId">>;
 
 interface JournalEntryFormProps {
   penguin: Penguin;
-  entry?: SightingJournal;
+  entry?: AnyEntry;
   onComplete: () => void;
   onCancel: () => void;
+  onAdd: (data: AddData) => Promise<void>;
+  onUpdate: (id: number, data: UpdateData) => Promise<void>;
+  isSaving?: boolean;
 }
 
 export default function JournalEntryForm({
@@ -24,27 +39,23 @@ export default function JournalEntryForm({
   entry,
   onComplete,
   onCancel,
+  onAdd,
+  onUpdate,
+  isSaving = false,
 }: JournalEntryFormProps) {
   const { toast } = useToast();
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const isEditing = !!entry;
-  const {
-    addJournalEntry,
-    updateJournalEntry,
-    isAddingJournalEntry,
-    isUpdatingJournalEntry,
-  } = useJournal();
 
   const [date, setDate] = useState<Date>(
-    entry?.sightingDate ? new Date(entry.sightingDate) : new Date()
+    entry?.sightingDate ? new Date(entry.sightingDate as string) : new Date()
   );
   const [location, setLocation] = useState(entry?.location ?? '');
   const [notes, setNotes] = useState(entry?.notes ?? '');
   const [coordinates, setCoordinates] = useState(entry?.coordinates ?? '');
 
   const isValid = location.trim().length > 0;
-  const isSaving = isAddingJournalEntry || isUpdatingJournalEntry;
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
@@ -85,23 +96,26 @@ export default function JournalEntryForm({
 
     const validDate = date instanceof Date && !isNaN(date.getTime()) ? date : new Date();
 
-    const payload = {
-      penguinId: penguin.id,
-      sightingDate: validDate,
-      location,
-      notes: notes || null,
-      coordinates: coordinates || null,
-    };
-
     try {
       if (isEditing && entry) {
-        await updateJournalEntry(entry.id, payload);
+        await onUpdate(entry.id, {
+          sightingDate: validDate,
+          location,
+          notes: notes || null,
+          coordinates: coordinates || null,
+        });
       } else {
-        await addJournalEntry(payload);
+        await onAdd({
+          penguinId: penguin.id,
+          sightingDate: validDate,
+          location,
+          notes: notes || null,
+          coordinates: coordinates || null,
+        });
       }
       onComplete();
     } catch {
-      // Error toast is handled inside the hook
+      // Error toast is handled inside the caller
     }
   };
 
