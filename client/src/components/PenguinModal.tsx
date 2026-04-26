@@ -88,7 +88,7 @@ export default function PenguinModal({ penguin, isOpen, onClose, isSeen = false,
                     aria-label={isSeen ? `Mark ${penguin.name} as unseen` : `Mark ${penguin.name} as seen`}
                     onClick={onToggleSeen}
                     whileTap={{ scale: 0.85 }}
-                    className={`absolute top-2 left-2 rounded-full p-2 border-2 border-white shadow-md transition-all duration-300 ${
+                    className={`absolute bottom-2 right-2 rounded-full p-3 border-2 border-white shadow-md transition-all duration-300 ${
                       isSeen
                         ? "bg-[#FFD700] text-[#7B5800] shadow-[0_0_8px_rgba(255,215,0,0.8)]"
                         : isDark
@@ -96,7 +96,7 @@ export default function PenguinModal({ penguin, isOpen, onClose, isSeen = false,
                         : "bg-gray-200/90 text-gray-500 hover:bg-gray-300"
                     }`}
                   >
-                    <Eye className="h-5 w-5" />
+                    <Eye className="h-7 w-7" />
                   </motion.button>
                 )}
               </div>
