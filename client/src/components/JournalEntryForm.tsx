@@ -2,13 +2,9 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Map, Save, X } from "lucide-react";
-import { format } from "date-fns";
+import { Map, Save, X } from "lucide-react";
 import { Penguin, SightingJournal } from "@shared/schema";
 import { GuestJournalEntry } from "@/hooks/use-guest-journal";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -132,33 +128,25 @@ export default function JournalEntryForm({
 
       {/* Date selector */}
       <div className="space-y-2">
-        <label className={`text-sm font-medium ${isDark ? '' : 'text-gray-700'}`}>
+        <label htmlFor="sighting-date" className={`text-sm font-medium ${isDark ? '' : 'text-gray-700'}`}>
           Date of Sighting
         </label>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !date && "text-muted-foreground",
-                !isDark && "border-gray-300 text-gray-800 hover:bg-gray-100 bg-white"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {date ? format(date, "PPP") : "Select date"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className={`w-auto p-0 ${!isDark && 'bg-white border-gray-200'}`}>
-            <Calendar
-              mode="single"
-              selected={date}
-              onSelect={(d) => d && setDate(d)}
-              initialFocus
-              className={!isDark ? 'bg-white text-gray-800' : ''}
-            />
-          </PopoverContent>
-        </Popover>
+        <input
+          id="sighting-date"
+          type="date"
+          max={(() => { const t = new Date(); return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`; })()}
+          value={`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`}
+          onChange={(e) => {
+            const [y, m, d] = e.target.value.split('-').map(Number);
+            const parsed = new Date(y, m - 1, d);
+            if (!isNaN(parsed.getTime())) setDate(parsed);
+          }}
+          className={`w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${
+            isDark
+              ? 'bg-background border-input text-foreground'
+              : 'bg-white border-gray-300 text-gray-800'
+          }`}
+        />
       </div>
 
       {/* Location input */}
