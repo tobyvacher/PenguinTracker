@@ -204,7 +204,7 @@ export default function Home() {
                   penguin={penguin}
                   isSeen={seenPenguins.includes(penguin.id)}
                   onClick={() => handlePenguinClick(penguin)}
-                  onLongPress={() => handlePenguinLongPress(penguin)}
+                  onInfo={() => handlePenguinLongPress(penguin)}
                 />
                 {sortType !== "default" && (
                   <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'} text-center italic`}>
