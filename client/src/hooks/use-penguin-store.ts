@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -13,9 +12,8 @@ export function usePenguinStore() {
   const pendingChanges = useRef<{ id: number; action: 'add' | 'remove' }[]>([]);
 
   const getStorageKey = () =>
-    currentUser ? `seenPenguins-${currentUser.uid}` : 'seenPenguins-guest';
+    currentUser ? `seenPenguins-${currentUser.replitUserId}` : 'seenPenguins-guest';
 
-  // Load seen penguins from the appropriate source
   useEffect(() => {
     let isMounted = true;
     setIsLoading(true);
@@ -31,7 +29,7 @@ export function usePenguinStore() {
           }
         }
       } catch {
-        // Ignore parse/access errors
+        // ignore
       }
       if (isMounted) setSeenPenguins([]);
       return [];
@@ -39,20 +37,7 @@ export function usePenguinStore() {
 
     const fetchFromAPI = async (): Promise<number[] | null> => {
       try {
-        let authHeader = '';
-        if (currentUser) {
-          try {
-            authHeader = `Bearer ${await currentUser.getIdToken()}`;
-          } catch {
-            // Continue without auth header
-          }
-        }
-
-        const response = await fetch('/api/seen-penguins', {
-          credentials: 'include',
-          headers: { 'Authorization': authHeader },
-        });
-
+        const response = await fetch('/api/seen-penguins', { credentials: 'include' });
         if (response.ok) {
           const data = await response.json();
           if (Array.isArray(data)) {
@@ -86,7 +71,6 @@ export function usePenguinStore() {
     return () => { isMounted = false; };
   }, [currentUser, isAuthenticated]);
 
-  // Retry any pending changes when back online
   const processPendingChanges = async () => {
     if (pendingChanges.current.length === 0) return;
 
@@ -96,10 +80,7 @@ export function usePenguinStore() {
         if (change.action === 'add') {
           const res = await fetch('/api/seen-penguins', {
             method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${await currentUser?.getIdToken()}`,
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ penguinId: change.id }),
             credentials: 'include',
           });
@@ -107,10 +88,6 @@ export function usePenguinStore() {
         } else {
           const res = await fetch(`/api/seen-penguins/${change.id}`, {
             method: 'DELETE',
-            headers: {
-              'Authorization': `Bearer ${await currentUser?.getIdToken()}`,
-              'Content-Type': 'application/json',
-            },
             credentials: 'include',
           });
           ok = res.status === 204;
@@ -122,7 +99,7 @@ export function usePenguinStore() {
           );
         }
       } catch {
-        // Keep in queue to retry later
+        // keep for retry
       }
     }
 
@@ -145,7 +122,6 @@ export function usePenguinStore() {
     setLoadingPenguins(prev => [...prev, penguinId]);
 
     try {
-      // Optimistic update
       const updated = isCurrentlySeen
         ? seenPenguins.filter(id => id !== penguinId)
         : [...seenPenguins, penguinId];
@@ -164,10 +140,6 @@ export function usePenguinStore() {
           if (isCurrentlySeen) {
             response = await fetch(`/api/seen-penguins/${penguinId}`, {
               method: 'DELETE',
-              headers: {
-                'Authorization': `Bearer ${await currentUser.getIdToken()}`,
-                'Content-Type': 'application/json',
-              },
               credentials: 'include',
             });
 
@@ -179,10 +151,7 @@ export function usePenguinStore() {
           } else {
             response = await fetch('/api/seen-penguins', {
               method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${await currentUser.getIdToken()}`,
-                'Content-Type': 'application/json',
-              },
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ penguinId }),
               credentials: 'include',
             });

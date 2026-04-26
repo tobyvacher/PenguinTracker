@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Penguin, SightingJournal } from "@shared/schema";
 import { format } from "date-fns";
-import { Edit, MapPin, Plus, Trash, LogIn } from "lucide-react";
+import { Edit, MapPin, Plus, Trash, LogIn, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -16,9 +17,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useJournal, JOURNAL_API_KEYS } from "@/hooks/use-journal";
 import JournalEntryForm from './JournalEntryForm';
 
 interface JournalEntryListProps {
@@ -27,14 +28,23 @@ interface JournalEntryListProps {
 }
 
 export default function JournalEntryList({ penguin }: JournalEntryListProps) {
-  const { toast } = useToast();
   const { isAuthenticated, signIn } = useAuth();
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  const { deleteJournalEntry, isDeletingJournalEntry } = useJournal();
 
-  const [entries, setEntries] = useState<SightingJournal[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingEntry, setEditingEntry] = useState<SightingJournal | null>(null);
+
+  const {
+    data: entries = [],
+    isLoading,
+    isError,
+  } = useQuery<SightingJournal[]>({
+    queryKey: [JOURNAL_API_KEYS.PENGUIN_ENTRIES(penguin.id)],
+    enabled: isAuthenticated,
+    staleTime: 1000 * 60 * 5,
+  });
 
   if (!isAuthenticated) {
     return (
@@ -48,7 +58,7 @@ export default function JournalEntryList({ penguin }: JournalEntryListProps) {
           className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
         >
           <LogIn className="h-4 w-4 mr-1" />
-          Sign in with Google
+          Sign in
         </Button>
       </div>
     );
@@ -59,10 +69,7 @@ export default function JournalEntryList({ penguin }: JournalEntryListProps) {
       <div className="p-4">
         <JournalEntryForm
           penguin={penguin}
-          onComplete={(newEntry) => {
-            if (newEntry) setEntries(prev => [newEntry, ...prev]);
-            setShowAddForm(false);
-          }}
+          onComplete={() => setShowAddForm(false)}
           onCancel={() => setShowAddForm(false)}
         />
       </div>
@@ -75,22 +82,19 @@ export default function JournalEntryList({ penguin }: JournalEntryListProps) {
         <JournalEntryForm
           penguin={penguin}
           entry={editingEntry}
-          onComplete={(updatedEntry) => {
-            if (updatedEntry) {
-              setEntries(prev => prev.map(e => e.id === editingEntry.id ? updatedEntry : e));
-              toast({ title: "Entry updated", description: "Journal entry has been updated." });
-            }
-            setEditingEntry(null);
-          }}
+          onComplete={() => setEditingEntry(null)}
           onCancel={() => setEditingEntry(null)}
         />
       </div>
     );
   }
 
-  const handleDelete = (entryId: number) => {
-    setEntries(prev => prev.filter(e => e.id !== entryId));
-    toast({ title: "Entry deleted", description: "Journal entry has been removed." });
+  const handleDelete = async (entryId: number) => {
+    try {
+      await deleteJournalEntry(entryId, penguin.id);
+    } catch {
+      // Error toast handled in hook
+    }
   };
 
   return (
@@ -111,7 +115,15 @@ export default function JournalEntryList({ penguin }: JournalEntryListProps) {
 
       <Separator />
 
-      {entries.length === 0 ? (
+      {isLoading ? (
+        <div className={`py-8 flex justify-center ${isDark ? 'bg-gray-800' : 'bg-gray-50'} rounded-lg`}>
+          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        </div>
+      ) : isError ? (
+        <div className={`py-8 text-center ${isDark ? 'bg-gray-800 text-gray-300' : 'bg-gray-50 text-gray-600'} rounded-lg`}>
+          Failed to load journal entries.
+        </div>
+      ) : entries.length === 0 ? (
         <div className={`py-8 text-center ${isDark ? 'bg-gray-800' : 'bg-gray-50'} rounded-lg`}>
           <p className={`mb-2 ${isDark ? 'text-gray-300' : 'text-gray-500'}`}>No journal entries yet</p>
           <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -157,6 +169,7 @@ export default function JournalEntryList({ penguin }: JournalEntryListProps) {
                           <Button
                             size="icon"
                             variant="ghost"
+                            disabled={isDeletingJournalEntry}
                             className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
                           >
                             <Trash className="h-4 w-4" />

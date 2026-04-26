@@ -1,12 +1,8 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Extended types for Firestore persistence
-export type WithTimestamps = {
-  createdAt?: string;
-  updatedAt?: string;
-};
+export * from "./models/auth";
 
 export const penguins = pgTable("penguins", {
   id: serial("id").primaryKey(),
@@ -23,11 +19,10 @@ export const penguins = pgTable("penguins", {
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  firebaseUid: text("firebase_uid").notNull().unique(),
+  replitUserId: text("replit_user_id").notNull().unique(),
   displayName: text("display_name"),
   email: text("email"),
   photoURL: text("photo_url"),
-  seenPenguins: text("seen_penguins").array(), // Store seen penguin IDs as an array
 });
 
 export const seenPenguins = pgTable("seen_penguins", {
@@ -36,7 +31,6 @@ export const seenPenguins = pgTable("seen_penguins", {
   penguinId: integer("penguin_id").notNull(),
 });
 
-// New table for journal entries to record sightings
 export const sightingJournal = pgTable("sighting_journal", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
@@ -44,7 +38,7 @@ export const sightingJournal = pgTable("sighting_journal", {
   sightingDate: timestamp("sighting_date").notNull().defaultNow(),
   location: text("location").notNull(),
   notes: text("notes"),
-  coordinates: text("coordinates"), // Format: "latitude,longitude"
+  coordinates: text("coordinates"),
 });
 
 export const insertPenguinSchema = createInsertSchema(penguins).pick({
@@ -60,11 +54,10 @@ export const insertPenguinSchema = createInsertSchema(penguins).pick({
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
-  firebaseUid: true,
+  replitUserId: true,
   displayName: true,
   email: true,
   photoURL: true,
-  seenPenguins: true,
 });
 
 export const insertSeenPenguinSchema = createInsertSchema(seenPenguins).pick({
@@ -72,7 +65,6 @@ export const insertSeenPenguinSchema = createInsertSchema(seenPenguins).pick({
   penguinId: true,
 });
 
-// Schema for inserting journal entries
 export const insertSightingJournalSchema = createInsertSchema(sightingJournal).pick({
   userId: true,
   penguinId: true,
@@ -83,10 +75,10 @@ export const insertSightingJournalSchema = createInsertSchema(sightingJournal).p
 });
 
 export type InsertPenguin = z.infer<typeof insertPenguinSchema>;
-export type Penguin = typeof penguins.$inferSelect & WithTimestamps;
+export type Penguin = typeof penguins.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect & WithTimestamps;
+export type User = typeof users.$inferSelect;
 export type InsertSeenPenguin = z.infer<typeof insertSeenPenguinSchema>;
-export type SeenPenguin = typeof seenPenguins.$inferSelect & WithTimestamps;
+export type SeenPenguin = typeof seenPenguins.$inferSelect;
 export type InsertSightingJournal = z.infer<typeof insertSightingJournalSchema>;
-export type SightingJournal = typeof sightingJournal.$inferSelect & WithTimestamps;
+export type SightingJournal = typeof sightingJournal.$inferSelect;

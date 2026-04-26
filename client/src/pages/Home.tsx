@@ -17,8 +17,7 @@ import { usePenguinStore } from "@/hooks/use-penguin-store";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Penguin } from "@shared/schema";
-import { HelpCircle, AlertTriangle, MapPin } from "lucide-react";
-import { firebaseConfigValid } from "@/lib/firebase";
+import { HelpCircle, MapPin } from "lucide-react";
 import { PenguinSortType, sortPenguins } from "@/lib/penguin-sorting";
 
 const MILESTONES = [5, 10, 15, 18] as const;
@@ -150,28 +149,6 @@ export default function Home() {
           isVisible={showInfoBanner}
           onClose={() => setShowInfoBanner(false)}
         />
-
-        {!firebaseConfigValid && (
-          <div className="mb-6 bg-amber-50 border-l-4 border-amber-400 p-4 rounded-md shadow-sm">
-            <div className="flex items-start">
-              <div className="flex-shrink-0">
-                <AlertTriangle className="h-5 w-5 text-amber-400" />
-              </div>
-              <div className="ml-3">
-                <h3 className="text-sm font-medium text-amber-800">Firebase Configuration Warning</h3>
-                <div className="mt-2 text-sm text-amber-700">
-                  <p>
-                    Your app is running but Firebase environment variables are missing. For the deployed app to work properly:
-                  </p>
-                  <ul className="list-disc list-inside mt-2">
-                    <li>Make sure all Firebase environment variables are set in your deployment</li>
-                    <li>Add your deployment domain ({window.location.hostname}) to the Firebase authorized domains list</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Sorting Controls */}
         <div className="flex justify-end mb-4">

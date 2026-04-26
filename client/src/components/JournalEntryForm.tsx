@@ -10,11 +10,12 @@ import { Penguin, SightingJournal } from "@shared/schema";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useJournal } from "@/hooks/use-journal";
 
 interface JournalEntryFormProps {
   penguin: Penguin;
   entry?: SightingJournal;
-  onComplete: (entry?: SightingJournal) => void;
+  onComplete: () => void;
   onCancel: () => void;
 }
 
@@ -28,6 +29,12 @@ export default function JournalEntryForm({
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const isEditing = !!entry;
+  const {
+    addJournalEntry,
+    updateJournalEntry,
+    isAddingJournalEntry,
+    isUpdatingJournalEntry,
+  } = useJournal();
 
   const [date, setDate] = useState<Date>(
     entry?.sightingDate ? new Date(entry.sightingDate) : new Date()
@@ -37,6 +44,7 @@ export default function JournalEntryForm({
   const [coordinates, setCoordinates] = useState(entry?.coordinates ?? '');
 
   const isValid = location.trim().length > 0;
+  const isSaving = isAddingJournalEntry || isUpdatingJournalEntry;
 
   const handleGetLocation = () => {
     if (!navigator.geolocation) {
@@ -63,7 +71,7 @@ export default function JournalEntryForm({
     );
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!isValid) {
@@ -77,24 +85,24 @@ export default function JournalEntryForm({
 
     const validDate = date instanceof Date && !isNaN(date.getTime()) ? date : new Date();
 
-    const journalData: SightingJournal = {
-      id: entry?.id ?? Date.now(),
-      userId: 1,
+    const payload = {
       penguinId: penguin.id,
       sightingDate: validDate,
       location,
       notes: notes || null,
       coordinates: coordinates || null,
-      createdAt: entry?.createdAt ?? new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     };
 
-    toast({
-      title: isEditing ? "Journal updated" : "Journal entry added",
-      description: `Your sighting of the ${penguin.name} has been ${isEditing ? 'updated' : 'recorded'}.`,
-    });
-
-    onComplete(journalData);
+    try {
+      if (isEditing && entry) {
+        await updateJournalEntry(entry.id, payload);
+      } else {
+        await addJournalEntry(payload);
+      }
+      onComplete();
+    } catch {
+      // Error toast is handled inside the hook
+    }
   };
 
   return (
@@ -173,7 +181,7 @@ export default function JournalEntryForm({
         <Textarea
           id="notes"
           placeholder="Add any details about your sighting..."
-          value={notes}
+          value={notes ?? ''}
           onChange={(e) => setNotes(e.target.value)}
           rows={4}
           className={!isDark ? 'border-gray-300 text-gray-800 placeholder:text-gray-500 bg-white' : ''}
@@ -193,6 +201,7 @@ export default function JournalEntryForm({
           type="button"
           variant="outline"
           onClick={onCancel}
+          disabled={isSaving}
           className={!isDark ? 'border-gray-300 text-gray-700 hover:bg-gray-100 bg-white' : ''}
         >
           <X className="mr-2 h-4 w-4" />
@@ -200,11 +209,11 @@ export default function JournalEntryForm({
         </Button>
         <Button
           type="submit"
-          disabled={!isValid}
+          disabled={!isValid || isSaving}
           className="bg-[#22C55E] hover:bg-[#16A34A] text-white"
         >
           <Save className="mr-2 h-4 w-4" />
-          {isEditing ? "Update" : "Save"}
+          {isSaving ? "Saving..." : isEditing ? "Update" : "Save"}
         </Button>
       </div>
     </form>
